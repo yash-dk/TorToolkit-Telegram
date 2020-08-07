@@ -1,0 +1,3 @@
+class Commands:
+    LEECH = "leech"
+    

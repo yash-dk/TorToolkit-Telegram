@@ -1,0 +1,6 @@
+ExecVarsSample.py
+venv
+__pycache__
+*.session
+test*.*
+splfil/
