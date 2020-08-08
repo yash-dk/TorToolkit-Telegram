@@ -2,6 +2,7 @@ import re,os
 from telethon.tl import types
 import logging
 from . import QBittorrentWrap
+from tortoolkit.functions.tele_upload import upload_handel
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("telethon").setLevel(logging.WARNING)
 
@@ -74,7 +75,9 @@ async def check_link(msg):
             #urls.extend(await get_magnets(msg.text))
             rmess = await omess.reply("Scanning....")
             mgt = get_magnets(msg.text.strip())
-            return await QBittorrentWrap.register_torrent(mgt,rmess,True)
+            path = await QBittorrentWrap.register_torrent(mgt,rmess,True)
+            rdict = await upload_handel(path,rmess,omess.from_id,dict())
+            print("Here are the fiels uploaded {}".format(rdict))
         elif msg.entities is not None:
            url = get_entities(msg)
            #todo implement direst links ;)

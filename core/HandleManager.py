@@ -7,6 +7,7 @@ from tortoolkit.functions.Leech_Module import check_link,cancel_torrent
 
 def add_handlers(bot: TelegramClient):
     bot.add_event_handler(handle_leech_command,events.NewMessage(pattern=get_command("LEECH"),chats=ExecVars.ALD_USR))
+    bot.add_event_handler(handle_test_command,events.NewMessage(pattern="/test",chats=ExecVars.ALD_USR))
     bot.add_event_handler(callback_handler,events.CallbackQuery(pattern="torcancel"))
 
 #*********** Handlers Below ***********
@@ -19,8 +20,12 @@ async def handle_leech_command(e):
         if path is not None:
             print(path)
 
-
-
+async def handle_test_command(e):
+    msg = await e.reply("tset")
+    await msg.edit(
+        file="/mnt/d/GitMajors/TorToolkit/test.html",
+        text="modified"
+    )
 async def callback_handler(e):
     
     mes = await e.get_message()
