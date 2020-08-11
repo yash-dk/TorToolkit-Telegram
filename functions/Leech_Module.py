@@ -6,6 +6,8 @@ from .tele_upload import upload_handel
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("telethon").setLevel(logging.WARNING)
 
+#this files main task is to keep the ability to switch to a new engine if needed ;)
+
 #TODO implement multiple magnets from same message if needed
 #this function is to ensure that only one magnet is passed at a time
 def get_magnets(text):
@@ -72,12 +74,15 @@ async def check_link(msg):
 
     elif msg.text is not None:
         if msg.text.lower().startswith("magnet:"):
-            #urls.extend(await get_magnets(msg.text))
             rmess = await omess.reply("Scanning....")
+            
             mgt = get_magnets(msg.text.strip())
             path = await QBittorrentWrap.register_torrent(mgt,rmess,True)
-            rdict = await upload_handel(path,rmess,omess.from_id,dict())
-            print("Here are the fiels uploaded {}".format(rdict))
+            
+            if not isinstance(path,bool):
+                rdict = await upload_handel(path,rmess,omess.from_id,dict())
+            
+                print("Here are the fiels uploaded {}".format(rdict))
         elif msg.entities is not None:
            url = get_entities(msg)
            #todo implement direst links ;)
@@ -86,6 +91,16 @@ async def check_link(msg):
             urls.append(msg.text.strip())
     
     return None
+
+async def pause_all(msg):
+    await QBittorrentWrap.pause_all(msg)
+
+async def resume_all(msg):
+    await QBittorrentWrap.resume_all(msg)
+
+async def purge_all(msg):
+    await QBittorrentWrap.delete_all(msg)
+
 
 async def cancel_torrent(hashid):
     await QBittorrentWrap.deregister_torrent(hashid)

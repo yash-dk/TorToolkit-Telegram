@@ -13,7 +13,7 @@ logging.getLogger('qbittorrentapi').setLevel(logging.ERROR)
 logging.getLogger('requests').setLevel(logging.ERROR)
 logging.getLogger('urllib3').setLevel(logging.ERROR)
 
-async def get_client(host=None,port=None,uname=None,passw=None,retry=2):
+async def get_client(host=None,port=None,uname=None,passw=None,retry=2) -> qba.TorrentsAPIMixIn:
     """Creats and returns a client to communicate with qBittorrent server. Max Retries 2
     """
     #getting the conn 
@@ -43,7 +43,7 @@ async def get_client(host=None,port=None,uname=None,passw=None,retry=2):
         cmd = cmd.split(" ")
 
         subpr = await aio.create_subprocess_exec(*cmd,stderr=aio.subprocess.PIPE,stdout=aio.subprocess.PIPE)
-        out, err = await subpr.communicate()
+        _, _ = await subpr.communicate()
         return await get_client(host,port,uname,passw,retry=retry-1)
 
 
@@ -190,7 +190,49 @@ async def update_progress(client,message,torrent,except_retry=0):
         logging.error("{}\n\n{}\n\nn{}".format(e,traceback.format_exc(),tor_info))
         return False
 
+async def pause_all(message):
+    client = await get_client()
+    client.torrents_pause(torrent_hashes='all')
+    await aio.sleep(1)
+    msg = ""
+    tors = client.torrents_info(status_filter="paused|stalled")
+    msg += "⏸️ Paused total <b>{}</b> torrents ⏸️\n".format(len(tors))
 
+    for i in tors:
+        if i.progress == 1:
+            continue
+        msg += "➡️<code>{}</code> - <b>{}%</b>\n".format(i.name,round(i.progress*100,2))
+
+    await message.reply(msg,parse_mode="html")
+    await message.delete()
+
+async def resume_all(message):
+    client = await get_client()
+    client.torrents_resume(torrent_hashes='all')
+
+    await aio.sleep(1)
+    msg = ""
+    tors = client.torrents_info(status_filter="stalled|downloading|stalled_downloading")
+    
+    msg += "▶️Resumed {} torrents check the status for more...▶️".format(len(tors))
+
+    for i in tors:
+        if i.progress == 1:
+            continue
+        msg += "➡️<code>{}</code> - <b>{}%</b>\n".format(i.name,round(i.progress*100,2))
+
+    await message.reply(msg,parse_mode="html")
+    await message.delete()
+
+async def delete_all(message):
+    client = await get_client()
+    tors = client.torrents_info()
+    msg = "☠️ Deleted <b>{}</b> torrents.☠️".format(len(tors))
+    client.torrents_delete(delete_files=False,torrent_hashes="all")
+
+    await message.reply(msg,parse_mode="html")
+    await message.delete()
+    
 
 def progress_bar(percentage):
     """Returns a progress bar for download

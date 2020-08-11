@@ -53,12 +53,13 @@ async def upload_a_file(path,message,force_edit):
             text=file_name
         )
     else:
+        start_time = time.time()
         out_msg = await msg.client.send_file(
             msg.to_id,
             file=path,
             caption=file_name,
             reply_to=message.id,
-            progress_callback=lambda c,t: progress(c,t,msg,file_name,time.time())
+            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
         )
     await msg.delete()
     return out_msg
