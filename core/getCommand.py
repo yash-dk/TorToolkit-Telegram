@@ -1,4 +1,4 @@
-from tortoolkit.consts.DefaultCommands import Commands
+from ..consts.DefaultCommands import Commands
 import os
 
 def get_command(command):

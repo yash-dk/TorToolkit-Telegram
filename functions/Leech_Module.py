@@ -2,7 +2,7 @@ import re,os
 from telethon.tl import types
 import logging
 from . import QBittorrentWrap
-from tortoolkit.functions.tele_upload import upload_handel
+from .tele_upload import upload_handel
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("telethon").setLevel(logging.WARNING)
 

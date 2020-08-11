@@ -1,9 +1,9 @@
 from telethon import TelegramClient,events 
 from telethon.tl.types import KeyboardButtonCallback
-from tortoolkit.consts.ExecVarsSample import ExecVars
-from tortoolkit.core.getCommand import get_command
-from tortoolkit.core.getVars import get_val
-from tortoolkit.functions.Leech_Module import check_link,cancel_torrent
+from ..consts.ExecVarsSample import ExecVars
+from ..core.getCommand import get_command
+from ..core.getVars import get_val
+from ..functions.Leech_Module import check_link,cancel_torrent
 
 def add_handlers(bot: TelegramClient):
     bot.add_event_handler(handle_leech_command,events.NewMessage(pattern=get_command("LEECH"),chats=ExecVars.ALD_USR))

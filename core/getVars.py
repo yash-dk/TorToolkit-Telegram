@@ -1,4 +1,4 @@
-from tortoolkit.consts.ExecVarsSample import ExecVars 
+from ..consts.ExecVarsSample import ExecVars 
 import os
 
 def get_val(variable):

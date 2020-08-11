@@ -3,9 +3,9 @@ import asyncio as aio
 import os
 import logging,traceback
 from datetime import datetime,timedelta
-from tortoolkit.functions import Hash_Fetch
-from tortoolkit.functions.Human_Format import human_readable_bytes,human_readable_timedelta 
-from tortoolkit.core.getVars import get_val
+from . import Hash_Fetch
+from .Human_Format import human_readable_bytes,human_readable_timedelta 
+from ..core.getVars import get_val
 from telethon.tl.types import KeyboardButtonCallback
 
 logging.basicConfig(level=logging.DEBUG)

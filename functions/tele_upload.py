@@ -1,5 +1,7 @@
-import os,logging
-from tortoolkit.core.getVars import get_val
+import os,logging,time
+from ..core.getVars import get_val
+from .progress_for_telethon import progress 
+
 
 #thanks @SpEcHlDe for this concept of recursion
 async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False):
@@ -55,9 +57,10 @@ async def upload_a_file(path,message,force_edit):
             msg.to_id,
             file=path,
             caption=file_name,
-            reply_to=message.id
+            reply_to=message.id,
+            progress_callback=lambda c,t: progress(c,t,msg,file_name,time.time())
         )
-
+    await msg.delete()
     return out_msg
 
 
