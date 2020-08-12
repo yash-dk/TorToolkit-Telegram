@@ -6,7 +6,7 @@ import time
 from .Human_Format import human_readable_bytes,human_readable_timedelta
 from ..core.getVars import get_val
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 async def progress(current,total,message,file_name,start):
     now = time.time()

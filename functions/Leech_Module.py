@@ -3,7 +3,7 @@ from telethon.tl import types
 import logging
 from . import QBittorrentWrap
 from .tele_upload import upload_handel
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("telethon").setLevel(logging.WARNING)
 
 #this files main task is to keep the ability to switch to a new engine if needed ;)

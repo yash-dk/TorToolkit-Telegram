@@ -8,7 +8,7 @@ from .Human_Format import human_readable_bytes,human_readable_timedelta
 from ..core.getVars import get_val
 from telethon.tl.types import KeyboardButtonCallback
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('qbittorrentapi').setLevel(logging.ERROR)
 logging.getLogger('requests').setLevel(logging.ERROR)
 logging.getLogger('urllib3').setLevel(logging.ERROR)

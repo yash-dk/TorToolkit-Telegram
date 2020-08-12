@@ -2,7 +2,7 @@ from urllib.parse import urlparse,parse_qs
 import logging
 from torrentool.api import Torrent
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 def get_hash_magnet(mgt):
     if mgt.startswith('magnet:'):
