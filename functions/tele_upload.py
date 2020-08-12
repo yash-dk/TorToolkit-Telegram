@@ -1,6 +1,6 @@
 import os,logging,time
 from ..core.getVars import get_val
-from .progress_for_telethon import progress 
+from .progress_for_telethon import progress
 
 
 #thanks @SpEcHlDe for this concept of recursion
@@ -39,7 +39,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
     return files_dict
 
 async def upload_a_file(path,message,force_edit):
-    
+    #todo improve this uploading
     file_name = os.path.basename(path)
     
     if not force_edit:
@@ -54,14 +54,26 @@ async def upload_a_file(path,message,force_edit):
         )
     else:
         start_time = time.time()
-        out_msg = await msg.client.send_file(
-            msg.to_id,
-            file=path,
-            caption=file_name,
-            reply_to=message.id,
-            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
-        )
-    await msg.delete()
+        if get_val("FORCE_DOCUMENTS") == True:
+            out_msg = await msg.client.send_file(
+                msg.to_id,
+                file=path,
+                caption=file_name,
+                reply_to=message.id,
+                force_document=True,
+                progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
+            )
+        else:
+            out_msg = await msg.client.send_file(
+                msg.to_id,
+                file=path,
+                caption=file_name,
+                reply_to=message.id,
+                progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
+            )
+    if out_msg.id != msg.id:
+        await msg.delete()
+    
     return out_msg
 
 

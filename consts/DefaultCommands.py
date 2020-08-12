@@ -3,4 +3,5 @@ class Commands:
     PURGE = "purge"
     PAUSEALL = "pauseall"
     RESUMEALL = "resumeall"
+    STATUS = "status"
     

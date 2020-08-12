@@ -3,7 +3,8 @@ from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
 from ..core.getVars import get_val
-from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all
+from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status
+from ..functions.tele_upload import upload_a_file
 import re,logging
 
 torlog = logging.getLogger(__name__)
@@ -33,12 +34,20 @@ def add_handlers(bot: TelegramClient):
         events.NewMessage(pattern=command_process(get_command("RESUMEALL")),
         chats=ExecVars.ALD_USR)
     )
+
+    bot.add_event_handler(
+        handle_status_command,
+        events.NewMessage(pattern=command_process(get_command("STATUS")),
+        chats=ExecVars.ALD_USR)
+    )
     
     bot.add_event_handler(
         handle_test_command,
         events.NewMessage(pattern="/test",
         chats=ExecVars.ALD_USR)
     )
+
+    #*********** Callback Handlers *********** 
     
     bot.add_event_handler(
         callback_handler,
@@ -64,11 +73,23 @@ async def handle_pauseall_command(e):
     
 async def handle_resumeall_command(e):
     await resume_all(e)
-    
+
+async def handle_status_command(e):
+    cmds = e.text.split(" ")
+    if len(cmds) > 1:
+        if cmds[1] == "all":
+            await get_status(e,True)
+        else:
+            await get_status(e)
+    else:
+        await get_status(e)
+        
 
 async def handle_test_command(e):
-    torlog.info("Logger working")
-    torlog.critical("Critical error")
+    torlog.debug(e)
+    torlog.debug(dir(e))
+
+    #await upload_a_file("/mnt/d/GitMajors/TorToolkit/test2.mkv",e,False)
 
 async def callback_handler(e):
     

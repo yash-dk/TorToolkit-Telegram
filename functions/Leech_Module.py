@@ -101,6 +101,10 @@ async def resume_all(msg):
 async def purge_all(msg):
     await QBittorrentWrap.delete_all(msg)
 
+async def get_status(msg,all=False):
+    smsg = await QBittorrentWrap.get_status(msg,all)
+    await msg.reply(smsg,parse_mode="html")
+
 
 async def cancel_torrent(hashid):
     await QBittorrentWrap.deregister_torrent(hashid)

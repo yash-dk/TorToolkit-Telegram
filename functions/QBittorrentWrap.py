@@ -9,6 +9,7 @@ from ..core.getVars import get_val
 from telethon.tl.types import KeyboardButtonCallback
 
 #logging.basicConfig(level=logging.DEBUG)
+torlog = logging.getLogger(__name__)
 logging.getLogger('qbittorrentapi').setLevel(logging.ERROR)
 logging.getLogger('requests').setLevel(logging.ERROR)
 logging.getLogger('urllib3').setLevel(logging.ERROR)
@@ -233,6 +234,39 @@ async def delete_all(message):
     await message.reply(msg,parse_mode="html")
     await message.delete()
     
+async def get_status(message,all=False):
+    client = await get_client()
+    tors = client.torrents_info()
+    olen = 0
+
+    if len(tors) > 0:
+        msg = ""
+        for i in tors:
+            if i.progress == 1 and not all:
+                continue
+            else:
+                olen += 1
+                msg += "📥 <b>{} | {}% | {}/{} | {} | {} | S:{} | L:{} | {}</b>\n\n".format(
+                    i.name,
+                    round(i.progress*100,2),
+                    human_readable_bytes(i.size),
+                    human_readable_bytes(i.total_size),
+                    human_readable_bytes(i.dlspeed,postfix="/s"),
+                    human_readable_timedelta(i.eta),
+                    i.num_seeds,
+                    i.num_leechs,
+                    i.state
+                )
+        return msg
+    else:
+        msg = "No torrents running currently...."
+        return msg
+    
+    if olen == 0:
+        msg = "No torrents running currently...."
+        return msg
+
+
 
 def progress_bar(percentage):
     """Returns a progress bar for download
