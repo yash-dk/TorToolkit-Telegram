@@ -3,8 +3,8 @@ from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
 from ..core.getVars import get_val
-from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status
-from ..functions.tele_upload import upload_a_file
+from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files
+from ..functions.tele_upload import upload_a_file,upload_handel
 import re,logging
 
 torlog = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ async def handle_leech_command(e):
     else:
         path = await check_link(e)
         if path is not None:
-            print(path)
+            pass
 
 #add admin check
 async def handle_purge_command(e):
@@ -86,10 +86,8 @@ async def handle_status_command(e):
         
 
 async def handle_test_command(e):
-    torlog.debug(e)
-    torlog.debug(dir(e))
-
-    #await upload_a_file("/mnt/d/GitMajors/TorToolkit/test2.mkv",e,False)
+    rdict = await upload_handel("/mnt/d/GitMajors/TorToolkit/test",e,e.sender_id,dict())
+    await print_files(e,rdict)
 
 async def callback_handler(e):
     

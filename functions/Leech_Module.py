@@ -1,6 +1,7 @@
 import re,os
 from telethon.tl import types
 import logging
+import asyncio as aio
 from . import QBittorrentWrap
 from .tele_upload import upload_handel
 #logging.basicConfig(level=logging.DEBUG)
@@ -81,7 +82,7 @@ async def check_link(msg):
             
             if not isinstance(path,bool):
                 rdict = await upload_handel(path,rmess,omess.from_id,dict())
-            
+                await print_files(omess,rdict)
                 print("Here are the fiels uploaded {}".format(rdict))
         elif msg.entities is not None:
            url = get_entities(msg)
@@ -104,6 +105,51 @@ async def purge_all(msg):
 async def get_status(msg,all=False):
     smsg = await QBittorrentWrap.get_status(msg,all)
     await msg.reply(smsg,parse_mode="html")
+
+async def print_files(e,files):
+    msg = ""
+    if len(files) == 0:
+        return
+    for i in files.keys():
+        link = f'https://t.me/c/{e.chat_id}/{files[i]}'
+        msg += f'🚩 <a href="{link}">{i}</a>\n'
+    
+    await e.reply(msg,parse_mode="html")
+
+    if len(files) < 2:
+        return
+
+    ids = list()
+    for i in files.keys():
+        ids.append(files[i])
+    
+    msgs = await e.client.get_messages(e.chat_id,ids=ids)
+    for i in msgs:
+        index = None
+        for j in range(0,len(msgs)):
+            index = j
+            if ids[j] == i.id:
+                break
+        nextt,prev = "",""
+        chat_id = str(e.chat_id)[4:]
+        if index == 0:
+            nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+            nextt = f'<a href="{nextt}">Next</a>\n'
+        elif index == len(msgs)-1:
+            prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+            prev = f'<a href="{prev}">Prev</a>\n'
+        else:
+            nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+            nextt = f'<a href="{nextt}">Next</a>\n'
+            
+            prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+            prev = f'<a href="{prev}">Prev</a>\n'
+
+        try:
+            await i.edit("{} {} {}".format(prev,i.text,nextt),parse_mode="html")
+        except:pass
+        await aio.sleep(1)
+
 
 
 async def cancel_torrent(hashid):
