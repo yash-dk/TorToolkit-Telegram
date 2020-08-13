@@ -4,4 +4,5 @@ class Commands:
     PAUSEALL = "pauseall"
     RESUMEALL = "resumeall"
     STATUS = "status"
+    SETTINGS = "settings"
     

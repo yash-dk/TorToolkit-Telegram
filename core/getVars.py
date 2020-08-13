@@ -1,7 +1,9 @@
 from ..consts.ExecVarsSample import ExecVars 
+from ..core.database_handle import TorToolkitDB
 import os
 
 def get_val(variable):
+    db = TorToolkitDB()
     val = None
 
     #Get the variable from the constants supplied
@@ -15,7 +17,10 @@ def get_val(variable):
     val =  envval if envval is not None else val
 
     #Get the variable form the DB [overlap]
-    #TODO database
+    dbval, _ = db.get_variable(variable)
+    
+    if dbval is not None:
+        val = dbval
 
     if val is None:
         raise Exception("The variable was not found in either the constants, environment or database. Variable is :- {}".format(variable))

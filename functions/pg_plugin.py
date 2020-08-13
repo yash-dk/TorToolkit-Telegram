@@ -19,6 +19,17 @@ class DataBaseHandle:
         
         self._conn = psycopg2.connect(self._dburl)
 
+    def scur(self):
+        # start cursor
+        cur = self._conn.cursor()
+        return cur
+
+    def ccur(self,cursor):
+        if cursor is not None:
+            self._conn.commit()
+            cursor.close()
+
+
     def __del__(self):
         """Close connection so that the threshold is not exceeded
         """

@@ -5,6 +5,7 @@ from ..core.getCommand import get_command
 from ..core.getVars import get_val
 from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files
 from ..functions.tele_upload import upload_a_file,upload_handel
+from .settings import handle_settings,handle_setting_callback
 import re,logging
 
 torlog = logging.getLogger(__name__)
@@ -40,6 +41,12 @@ def add_handlers(bot: TelegramClient):
         events.NewMessage(pattern=command_process(get_command("STATUS")),
         chats=ExecVars.ALD_USR)
     )
+
+    bot.add_event_handler(
+        handle_settings_command,
+        events.NewMessage(pattern=command_process(get_command("SETTINGS")),
+        chats=ExecVars.ALD_USR)
+    )
     
     bot.add_event_handler(
         handle_test_command,
@@ -54,6 +61,11 @@ def add_handlers(bot: TelegramClient):
         events.CallbackQuery(pattern="torcancel")
     )
 
+    bot.add_event_handler(
+        handle_settings_cb,
+        events.CallbackQuery(pattern="setting")
+    )
+
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
@@ -64,7 +76,7 @@ async def handle_leech_command(e):
         if path is not None:
             pass
 
-#add admin check
+#add admin checks here
 async def handle_purge_command(e):
     await purge_all(e)
 
@@ -73,6 +85,9 @@ async def handle_pauseall_command(e):
     
 async def handle_resumeall_command(e):
     await resume_all(e)
+
+async def handle_settings_command(e):
+    await handle_settings(e)
 
 async def handle_status_command(e):
     cmds = e.text.split(" ")
@@ -88,6 +103,9 @@ async def handle_status_command(e):
 async def handle_test_command(e):
     rdict = await upload_handel("/mnt/d/GitMajors/TorToolkit/test",e,e.sender_id,dict())
     await print_files(e,rdict)
+
+async def handle_settings_cb(e):
+    await handle_setting_callback(e)
 
 async def callback_handler(e):
     
