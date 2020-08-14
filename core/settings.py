@@ -53,6 +53,7 @@ async def handle_setting_callback(e):
     
     elif cmd[1] == "remstr":
         # what will a general manager require
+        # anser message, type handler, value 
         await e.answer("Type the new value for Remaining Progress String. Note that only one character is expected.",alert=True)
 
         mmes = await e.get_message()
@@ -65,6 +66,32 @@ async def handle_setting_callback(e):
                 if conf:
                     db.set_variable("REMAINING_STR",val[0])
                     await handle_settings(mmes,True,f"<b><u>Received Remaining String value '{val[0]}' with confirm.</b></u>")
+                else:
+                    await handle_settings(mmes,True,f"<b><u>Confirm differed by user.</b></u>")
+            else:
+                await handle_settings(mmes,True,f"<b><u>Confirm timed out [waited 60s for input].</b></u>")
+        else:
+            await handle_settings(mmes,True,f"<b><u>Entry Timed out [waited 60s for input].</b></u>")
+    
+    elif cmd[1] == "tguplimit":
+        # what will a general manager require
+        # anser message, type handler, value 
+        await e.answer("Type the new value for TELEGRAM UPLOAD LIMIT. Note that integer is expected.",alert=True)
+
+        mmes = await e.get_message()
+
+        val = await get_value(e)
+        if val is not None:
+            await confirm_buttons(mmes,val)
+            conf = await get_confirm(e)
+            if conf is not None:
+                if conf:
+                    try:
+                        val = int(val)
+                        db.set_variable("TG_UP_LIMIT",val)
+                        await handle_settings(mmes,True,f"<b><u>Received TG Upload Limit value '{val}' with confirm.</b></u>")
+                    except ValueError:
+                        await handle_settings(mmes,True,f"<b><u>Value [{val}] not valid try again and enter integer.</b></u>")    
                 else:
                     await handle_settings(mmes,True,f"<b><u>Confirm differed by user.</b></u>")
             else:
