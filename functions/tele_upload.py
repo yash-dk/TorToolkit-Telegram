@@ -39,13 +39,9 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
             message = await message.edit(buttons=buts)
 
-        
-
-        cflag = False
 
         for file in directory_contents:
             if updb.get_cancel_status(message.chat_id,message.id):
-                cflag = True
                 continue
 
             await upload_handel(
@@ -60,7 +56,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             )
         
         if not from_in:
-            if cflag:
+            if updb.get_cancel_status(message.chat_id,message.id):
                 await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
             else:
                 await message.edit(buttons=None)
@@ -82,10 +78,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
 
-            cflag = False
             for file in dircon:
                 if updb.get_cancel_status(message.chat_id,message.id):
-                    cflag = True
                     continue
             
                 await upload_handel(
@@ -100,7 +94,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 )
 
             if not from_in:
-                if cflag:
+                if updb.get_cancel_status(message.chat_id,message.id):
                     await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
                 else:
                     await message.edit(buttons=None)
@@ -122,6 +116,10 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             )
 
             if not from_in:
+                if updb.get_cancel_status(message.chat_id,message.id):
+                    await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
+                else:
+                    await message.edit(buttons=None)
                 updb.deregister_upload(message.chat_id,message.id)
 
             if sentmsg is not None:
