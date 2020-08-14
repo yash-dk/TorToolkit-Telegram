@@ -13,7 +13,7 @@ TIMEOUT_SEC = 60
 # todo make the code more modular
 no = "❌"
 yes = "✅"
-header =  "<b>**TorToolKit**</b>\n<u>SETTINGS ADMIN MENU</u>"   
+header =  "<b>**TorToolKit**</b>\n<u>ADMIN SETTINGS MENU - Beta v1</u>"   
 async def handle_setting_callback(e):
     db = TorToolkitDB()
 
@@ -35,21 +35,10 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for Complete Progress String. Note that only one character is expected.",alert=True)
 
         mmes = await e.get_message()
-
         val = await get_value(e)
-        if val is not None:
-            await confirm_buttons(mmes,val[0])
-            conf = await get_confirm(e)
-            if conf is not None:
-                if conf:
-                    db.set_variable("COMPLETED_STR",val[0])
-                    await handle_settings(mmes,True,f"<b><u>Received Complete String value '{val[0]}' with confirm.</b></u>")
-                else:
-                    await handle_settings(mmes,True,f"<b><u>Confirm differed by user.</b></u>")
-            else:
-                await handle_settings(mmes,True,f"<b><u>Confirm timed out [waited 60s for input].</b></u>")
-        else:
-            await handle_settings(mmes,True,f"<b><u>Entry Timed out [waited 60s for input].</b></u>")
+
+        await general_input_manager(e,mmes,"COMPLETED_STR","str",val[0],db)
+        
     
     elif cmd[1] == "remstr":
         # what will a general manager require
@@ -57,21 +46,9 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for Remaining Progress String. Note that only one character is expected.",alert=True)
 
         mmes = await e.get_message()
-
         val = await get_value(e)
-        if val is not None:
-            await confirm_buttons(mmes,val[0])
-            conf = await get_confirm(e)
-            if conf is not None:
-                if conf:
-                    db.set_variable("REMAINING_STR",val[0])
-                    await handle_settings(mmes,True,f"<b><u>Received Remaining String value '{val[0]}' with confirm.</b></u>")
-                else:
-                    await handle_settings(mmes,True,f"<b><u>Confirm differed by user.</b></u>")
-            else:
-                await handle_settings(mmes,True,f"<b><u>Confirm timed out [waited 60s for input].</b></u>")
-        else:
-            await handle_settings(mmes,True,f"<b><u>Entry Timed out [waited 60s for input].</b></u>")
+        
+        await general_input_manager(e,mmes,"REMAINING_STR","str",val[0],db)
     
     elif cmd[1] == "tguplimit":
         # what will a general manager require
@@ -79,25 +56,9 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for TELEGRAM UPLOAD LIMIT. Note that integer is expected.",alert=True)
 
         mmes = await e.get_message()
-
         val = await get_value(e)
-        if val is not None:
-            await confirm_buttons(mmes,val)
-            conf = await get_confirm(e)
-            if conf is not None:
-                if conf:
-                    try:
-                        val = int(val)
-                        db.set_variable("TG_UP_LIMIT",val)
-                        await handle_settings(mmes,True,f"<b><u>Received TG Upload Limit value '{val}' with confirm.</b></u>")
-                    except ValueError:
-                        await handle_settings(mmes,True,f"<b><u>Value [{val}] not valid try again and enter integer.</b></u>")    
-                else:
-                    await handle_settings(mmes,True,f"<b><u>Confirm differed by user.</b></u>")
-            else:
-                await handle_settings(mmes,True,f"<b><u>Confirm timed out [waited 60s for input].</b></u>")
-        else:
-            await handle_settings(mmes,True,f"<b><u>Entry Timed out [waited 60s for input].</b></u>")
+        
+        await general_input_manager(e,mmes,"TG_UP_LIMIT","int",val,db)
 
         
 
@@ -118,6 +79,38 @@ async def handle_settings(e,edit=False,msg=""):
         rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu)
     else:
         rmess = await e.reply(header+"\nIts recommended to lock the group before setting vars.\n",parse_mode="html",buttons=menu)
+
+# an attempt to manager all the input
+async def general_input_manager(e,mmes,var_name,datatype,value,db):
+    if value is not None:
+        await confirm_buttons(mmes,value)
+        conf = await get_confirm(e)
+        if conf is not None:
+            if conf:
+                try:
+                    if datatype == "int":
+                        value = int(value)
+                    if datatype == "str":
+                        value = str(value)
+                    if datatype == "bool":
+                        if value.lower() == "true":
+                            value = True
+                        elif value.lower() == "false":
+                            value = False
+                        else:
+                            raise ValueError("Invalid value from bool")
+                        
+                    db.set_variable(var_name,value)
+                    await handle_settings(mmes,True,f"<b><u>Received {var_name} value '{value}' with confirm.</b></u>")
+                except ValueError:
+                    await handle_settings(mmes,True,f"<b><u>Value [{value}] not valid try again and enter {datatype}.</b></u>")    
+            else:
+                await handle_settings(mmes,True,f"<b><u>Confirm differed by user.</b></u>")
+        else:
+            await handle_settings(mmes,True,f"<b><u>Confirm timed out [waited 60s for input].</b></u>")
+    else:
+        await handle_settings(mmes,True,f"<b><u>Entry Timed out [waited 60s for input].</b></u>")
+
 
 async def get_value(e):
     # this function gets the new value to be set from the user in current context

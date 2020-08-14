@@ -66,6 +66,12 @@ async def check_link(msg):
             #not worring about the download location now
             path = await msg.download_media()
             rval =  await QBittorrentWrap.register_torrent(path,rmess,file=True)
+            
+            if not isinstance(path,bool):
+                rdict = await upload_handel(rval,rmess,omess.from_id,dict())
+                await print_files(omess,rdict)
+                print("Here are the fiels uploaded {}".format(rdict))
+
             try:
                 os.remove(path)
             except:pass
@@ -86,10 +92,12 @@ async def check_link(msg):
                 print("Here are the fiels uploaded {}".format(rdict))
         elif msg.entities is not None:
            url = get_entities(msg)
-           #todo implement direst links ;)
+           await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
+           #todo implement direct links ;)
         else:
             #consider it as a direct link LOL
             urls.append(msg.text.strip())
+            await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
     
     return None
 

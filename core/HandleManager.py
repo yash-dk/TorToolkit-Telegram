@@ -5,6 +5,7 @@ from ..core.getCommand import get_command
 from ..core.getVars import get_val
 from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files
 from ..functions.tele_upload import upload_a_file,upload_handel
+from .database_handle import TtkUpload
 from .settings import handle_settings,handle_setting_callback
 import re,logging
 
@@ -48,6 +49,7 @@ def add_handlers(bot: TelegramClient):
         chats=ExecVars.ALD_USR)
     )
     
+    
     bot.add_event_handler(
         handle_test_command,
         events.NewMessage(pattern="/test",
@@ -64,6 +66,11 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         handle_settings_cb,
         events.CallbackQuery(pattern="setting")
+    )
+
+    bot.add_event_handler(
+        handle_upcancel_cb,
+        events.CallbackQuery(pattern="upcancel")
     )
 
 #*********** Handlers Below ***********
@@ -101,11 +108,26 @@ async def handle_status_command(e):
         
 
 async def handle_test_command(e):
-    rdict = await upload_handel("/mnt/d/GitMajors/TorToolkit/test",e,e.sender_id,dict())
+    testmsg = await e.reply("Test Files are downloaded ;)")
+    rdict = await upload_handel("/mnt/d/GitMajors/TorToolkit/test",testmsg,e.sender_id,dict())
     await print_files(e,rdict)
 
 async def handle_settings_cb(e):
     await handle_setting_callback(e)
+
+async def handle_upcancel_cb(e):
+    db = TtkUpload()
+
+    data = e.data.decode("UTF-8")
+    print("Data is ",data)
+    data = data.split(" ")
+
+    if str(e.sender_id) == data[3]:
+        db.cancel_download(data[1],data[2])
+        await e.answer("CANCLED UPLOAD")
+    else:
+        await e.answer("Cant Cancel others upload 😡",alert=True)
+
 
 async def callback_handler(e):
     
