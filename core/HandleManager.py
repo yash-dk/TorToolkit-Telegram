@@ -109,7 +109,7 @@ async def handle_status_command(e):
 
 async def handle_test_command(e):
     testmsg = await e.reply("Test Files are downloaded ;)")
-    rdict = await upload_handel("/mnt/d/GitMajors/TorToolkit/test",testmsg,e.sender_id,dict())
+    rdict = await upload_handel("/mnt/d/GitMajors/TorToolkit/test2",testmsg,e.sender_id,dict())
     await print_files(e,rdict)
 
 async def handle_settings_cb(e):

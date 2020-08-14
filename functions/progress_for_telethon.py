@@ -5,10 +5,19 @@ import os
 import time
 from .Human_Format import human_readable_bytes,human_readable_timedelta
 from ..core.getVars import get_val
-
+from ..core.database_handle import TtkUpload
 #logging.basicConfig(level=logging.DEBUG)
 
-async def progress(current,total,message,file_name,start):
+async def progress(current,total,message,file_name,start,cancel_msg=None):
+
+    if cancel_msg is not None:
+        # dirty alt. was not able to find something to stop upload
+        db = TtkUpload()
+        if db.get_cancel_status(cancel_msg.chat_id,cancel_msg.id):
+            del db
+            raise Exception("cancel the upload")
+        del db
+
     now = time.time()
     diff = now - start
     time_out = get_val("EDIT_SLEEP_SECS")

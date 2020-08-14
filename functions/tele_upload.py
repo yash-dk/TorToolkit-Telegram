@@ -58,13 +58,12 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 updb,
                 from_in=True
             )
-
-        if cflag:
-            await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
-        else:
-            await message.edit(buttons=None)
         
         if not from_in:
+            if cflag:
+                await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
+            else:
+                await message.edit(buttons=None)
             updb.deregister_upload(message.chat_id,message.id)
 
     else:
@@ -83,8 +82,10 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
 
+            cflag = False
             for file in dircon:
                 if updb.get_cancel_status(message.chat_id,message.id):
+                    cflag = True
                     continue
             
                 await upload_handel(
@@ -99,6 +100,10 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 )
 
             if not from_in:
+                if cflag:
+                    await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
+                else:
+                    await message.edit(buttons=None)
                 updb.deregister_upload(message.chat_id,message.id)
             # spliting file logic blah blah
         else:
@@ -154,78 +159,89 @@ async def upload_a_file(path,message,force_edit,database=None):
     else:
         msg = message
 
+    out_msg = None
     
-    if message.media and force_edit:
-        out_msg = await msg.edit(
-            file=path,
-            text=file_name
-        )
-    else:
-        start_time = time.time()
-        if ftype == "video":
-            if get_val("FORCE_DOCUMENTS") == True:
-                # add the thumbs for the docs too
-                out_msg = await msg.client.send_file(
-                    msg.to_id,
-                    file=path,
-                    caption=file_name,
-                    reply_to=message.id,
-                    force_document=True,
-                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
-                )
-            else:
-                thumb = await thumb_manage.get_thumbnail(path)
-                try:
-                    out_msg = await msg.client.send_file(
-                        msg.to_id,
-                        file=path,
-                        thumb=thumb,
-                        caption=file_name,
-                        reply_to=message.id,
-                        supports_streaming=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
-                    )
-                except VideoContentTypeInvalidError:
-                    torlog.warning("Streamable file send failed fallback to document.")
-                    out_msg = await msg.client.send_file(
-                        msg.to_id,
-                        file=path,
-                        caption=file_name,
-                        thumb=thumb,
-                        reply_to=message.id,
-                        force_document=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
-                    )
-                except Exception:
-                    torlog.error("Error:- {}".format(traceback.format_exc()))
-        elif ftype == "audio":
-            # not sure about this if
-            out_msg = await msg.client.send_file(
-                msg.to_id,
+    try:
+        if message.media and force_edit:
+            out_msg = await msg.edit(
                 file=path,
-                caption=file_name,
-                reply_to=message.id,
-                progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
+                text=file_name
             )
         else:
-            if get_val("FORCE_DOCUMENTS"):
+            start_time = time.time()
+            if ftype == "video":
+                if get_val("FORCE_DOCUMENTS") == True:
+                    # add the thumbs for the docs too
+                    out_msg = await msg.client.send_file(
+                        msg.to_id,
+                        file=path,
+                        caption=file_name,
+                        reply_to=message.id,
+                        force_document=True,
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                    )
+                else:
+                    thumb = await thumb_manage.get_thumbnail(path)
+                    try:
+                        out_msg = await msg.client.send_file(
+                            msg.to_id,
+                            file=path,
+                            thumb=thumb,
+                            caption=file_name,
+                            reply_to=message.id,
+                            supports_streaming=True,
+                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                        )
+                    except VideoContentTypeInvalidError:
+                        torlog.warning("Streamable file send failed fallback to document.")
+                        out_msg = await msg.client.send_file(
+                            msg.to_id,
+                            file=path,
+                            caption=file_name,
+                            thumb=thumb,
+                            reply_to=message.id,
+                            force_document=True,
+                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                        )
+                    except Exception:
+                        torlog.error("Error:- {}".format(traceback.format_exc()))
+            elif ftype == "audio":
+                # not sure about this if
                 out_msg = await msg.client.send_file(
                     msg.to_id,
                     file=path,
                     caption=file_name,
                     reply_to=message.id,
-                    force_document=True,
-                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
+                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
                 )
             else:
-                out_msg = await msg.client.send_file(
-                    msg.to_id,
-                    file=path,
-                    caption=file_name,
-                    reply_to=message.id,
-                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time)
-                )
-            
+                if get_val("FORCE_DOCUMENTS"):
+                    out_msg = await msg.client.send_file(
+                        msg.to_id,
+                        file=path,
+                        caption=file_name,
+                        reply_to=message.id,
+                        force_document=True,
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                    )
+                else:
+                    out_msg = await msg.client.send_file(
+                        msg.to_id,
+                        file=path,
+                        caption=file_name,
+                        reply_to=message.id,
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                    )
+    except Exception as e:
+        if str(e).find("cancel") != -1:
+            torlog.info("cancled an upload lol")
+            await msg.delete()
+        else:
+            torlog.info(traceback.format_exc())
+                
+
+    if out_msg is None:
+        return None
     if out_msg.id != msg.id:
         await msg.delete()
     
