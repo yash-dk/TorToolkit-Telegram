@@ -8,7 +8,7 @@ if __name__ == "__main__":
     #logging stuff
     #thread name is just kept for future use
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s %(levelname)s %(threadName)s %(name)s %(message)s"
     )
     

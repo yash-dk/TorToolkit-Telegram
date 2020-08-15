@@ -134,20 +134,26 @@ async def callback_handler(e):
     mes = await e.get_message()
     mes = await mes.get_reply_message()
     
-    if mes.from_id == e.sender_id:
+    torlog.info(f"Here the sender _id is {e.sender_id}")
+    torlog.info("here is the allower users list {} {}".format(get_val("ALD_USR"),type(get_val("ALD_USR"))))
+
+    if mes.sender_id == e.sender_id:
         hashid = str(e.data).split(" ")[1]
         hashid = hashid.strip("'")
-        print("hashid - ",hashid)
+        torlog.info(f"Hashid :- {hashid}")
+
         await cancel_torrent(hashid)
         await e.answer("The torrent has been cancled ;)",alert=True)
-    elif mes.from_id in get_val("ALD_USR"):
+    elif e.sender_id in get_val("ALD_USR"):
         hashid = str(e.data).split(" ")[1]
         hashid = hashid.strip("'")
-        print("hashid - ",hashid)
+        
+        torlog.info(f"Hashid :- {hashid}")
+        
         await cancel_torrent(hashid)
         await e.answer("The torrent has been cancled in ADMIN MODE XD ;)",alert=True)
     else:
-        await e.answer("You can cancel only your torrents ;)")
+        await e.answer("You can cancel only your torrents ;)", alert=True)
 
 def command_process(command):
     return re.compile(command,re.IGNORECASE)

@@ -6,6 +6,7 @@ from . import QBittorrentWrap
 from .tele_upload import upload_handel
 #logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("telethon").setLevel(logging.WARNING)
+torlog = logging.getLogger(__name__)
 
 #this files main task is to keep the ability to switch to a new engine if needed ;)
 
@@ -70,7 +71,7 @@ async def check_link(msg):
             if not isinstance(path,bool):
                 rdict = await upload_handel(rval,rmess,omess.from_id,dict())
                 await print_files(omess,rdict)
-                print("Here are the fiels uploaded {}".format(rdict))
+                torlog.info("Here are the fiels uploaded {}".format(rdict))
 
             try:
                 os.remove(path)
@@ -89,15 +90,14 @@ async def check_link(msg):
             if not isinstance(path,bool):
                 rdict = await upload_handel(path,rmess,omess.from_id,dict())
                 await print_files(omess,rdict)
-                print("Here are the fiels uploaded {}".format(rdict))
-        elif msg.entities is not None:
-           url = get_entities(msg)
-           await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
-           #todo implement direct links ;)
-        else:
-            #consider it as a direct link LOL
-            urls.append(msg.text.strip())
-            await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
+                torlog.info("Here are the files to be uploaded {}".format(rdict))
+    elif msg.entities is not None:
+        url = get_entities(msg)
+        await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
+        #todo implement direct links ;)
+    else:
+        #consider it as a direct link LOL
+        await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
     
     return None
 
