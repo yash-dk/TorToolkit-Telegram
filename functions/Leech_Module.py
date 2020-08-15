@@ -4,6 +4,8 @@ import logging
 import asyncio as aio
 from . import QBittorrentWrap
 from .tele_upload import upload_handel
+from .rclone_upload import rclone_driver
+
 #logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("telethon").setLevel(logging.WARNING)
 torlog = logging.getLogger(__name__)
@@ -49,7 +51,6 @@ async def check_link(msg,rclone=False):
     urls = None
     omess = msg
     msg = await msg.get_reply_message()
-    torlog.info(msg)
 
     if msg is None:
         urls = None
@@ -70,9 +71,14 @@ async def check_link(msg,rclone=False):
             rval =  await QBittorrentWrap.register_torrent(path,rmess,file=True)
             
             if not isinstance(path,bool):
-                rdict = await upload_handel(rval,rmess,omess.from_id,dict())
-                await print_files(omess,rdict)
-                torlog.info("Here are the fiels uploaded {}".format(rdict))
+                if not rclone:
+                    rdict = await upload_handel(rval,rmess,omess.from_id,dict())
+                    await print_files(omess,rdict)
+                    torlog.info("Here are the fiels uploaded {}".format(rdict))
+                else:
+                    res = await rclone_driver(path,rmess)
+                    if res is None:
+                        await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
 
             try:
                 os.remove(path)
@@ -89,9 +95,15 @@ async def check_link(msg,rclone=False):
             path = await QBittorrentWrap.register_torrent(mgt,rmess,True)
             
             if not isinstance(path,bool):
-                rdict = await upload_handel(path,rmess,omess.from_id,dict())
-                await print_files(omess,rdict)
-                torlog.info("Here are the files to be uploaded {}".format(rdict))
+                if not rclone:
+                    rdict = await upload_handel(path,rmess,omess.from_id,dict())
+                    await print_files(omess,rdict)
+                    torlog.info("Here are the files to be uploaded {}".format(rdict))
+                else:
+                    res = await rclone_driver(path,rmess)
+                    if res is None:
+                        await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
+
         elif msg.entities is not None:
             url = get_entities(msg)
             torlog.info("Downloadinf Urls")

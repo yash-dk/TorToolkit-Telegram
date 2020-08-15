@@ -8,8 +8,10 @@ from ..functions.tele_upload import upload_a_file,upload_handel
 from .database_handle import TtkUpload
 from .settings import handle_settings,handle_setting_callback
 from functools import partial
+from ..functions.rclone_upload import get_config
 import asyncio as aio
 import re,logging
+
 
 torlog = logging.getLogger(__name__)
 
@@ -98,36 +100,37 @@ async def handle_leech_command(e):
     else:
         rclone = False
         # convo init
-        async with e.client.conversation(e.chat_id) as conv:
-            buts = [[KeyboardButtonCallback("To Drive",data="leechselect drive")],[KeyboardButtonCallback("To Telegram",data="leechselect tg")]]
-            conf_mes = await conv.send_message("<b>Choose where to upload your files:- </b>",parse_mode="html",buttons=buts,reply_to=e.id)
-            
-            try:
-                await conv.wait_event(
-                    events.CallbackQuery(
-                        pattern="leechselect",
-                        func=lambda ne: get_c_par(ne,e.sender_id)
-                    ),
-                    timeout=60
-                )
-            except aio.exceptions.TimeoutError:
-                torlog.error("Choice for the user got timeout fallback to default")
-                defleech = get_val("DEFAULT_TIMEOUT")
+        if get_config() is not None:
+            async with e.client.conversation(e.chat_id) as conv:
+                buts = [[KeyboardButtonCallback("To Drive",data="leechselect drive")],[KeyboardButtonCallback("To Telegram",data="leechselect tg")]]
+                conf_mes = await conv.send_message("<b>Choose where to upload your files:- </b>",parse_mode="html",buttons=buts,reply_to=e.id)
                 
-                if defleech == "leech":
-                    rclone = False
-                elif defleech == "rclone":
-                    rclone = True
+                try:
+                    await conv.wait_event(
+                        events.CallbackQuery(
+                            pattern="leechselect",
+                            func=lambda ne: get_c_par(ne,e.sender_id)
+                        ),
+                        timeout=60
+                    )
+                except aio.exceptions.TimeoutError:
+                    torlog.error("Choice for the user got timeout fallback to default")
+                    defleech = get_val("DEFAULT_TIMEOUT")
+                    
+                    if defleech == "leech":
+                        rclone = False
+                    elif defleech == "rclone":
+                        rclone = True
+                    else:
+                        # just in case something goes wrong
+                        rclone = False
                 else:
-                    # just in case something goes wrong
-                    rclone = False
-            else:
-                if choice[0].find("drive") != -1:
-                    rclone = True
-                else:
-                    rclone = False
-            finally:
-                await conf_mes.delete()
+                    if choice[0].find("drive") != -1:
+                        rclone = True
+                    else:
+                        rclone = False
+                finally:
+                    await conf_mes.delete()
 
         
         await check_link(e,rclone)
