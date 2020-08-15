@@ -16,11 +16,17 @@ yes = "✅"
 header =  "<b>**TorToolKit**</b>\n<u>ADMIN SETTINGS MENU - Beta v1</u>"   
 async def handle_setting_callback(e):
     db = TorToolkitDB()
+    session_id,_ = db.get_variable("SETTING_AUTH_CODE")
 
     
     data = e.data.decode()
     cmd = data.split(" ")
     val = ""
+    
+    if cmd[-1] != session_id:
+
+        await e.answer("This Setting menu is expired.",alert=True)
+        return
     if cmd[1] == "fdocs":
         await e.answer("")
         if cmd[2] == "true":
@@ -65,15 +71,18 @@ async def handle_setting_callback(e):
 
 async def handle_settings(e,edit=False,msg=""):
     # this function creates the menu
-
+    session_id = time.time()
+    db = TorToolkitDB()
+    db.set_variable("SETTING_AUTH_CODE",str(session_id))
+    del db
     menu = [
         #[KeyboardButtonCallback(yes+" Allow TG Files Leech123456789-","settings data".encode("UTF-8"))], # for ref
     ]
     
-    await get_bool_variable("FORCE_DOCUMENTS","FORCE_DOCUMENTS",menu,"fdocs")
-    await get_string_variable("COMPLETED_STR",menu,"compstr")
-    await get_string_variable("REMAINING_STR",menu,"remstr")
-    await get_int_variable("TG_UP_LIMIT",menu,"tguplimit")
+    await get_bool_variable("FORCE_DOCUMENTS","FORCE_DOCUMENTS",menu,"fdocs",session_id)
+    await get_string_variable("COMPLETED_STR",menu,"compstr",session_id)
+    await get_string_variable("REMAINING_STR",menu,"remstr",session_id)
+    await get_int_variable("TG_UP_LIMIT",menu,"tguplimit",session_id)
 
     if edit:
         rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu)
@@ -186,7 +195,7 @@ async def confirm_buttons(e,val):
     # add the confirm buttons at the bottom of the message
     await e.edit(f"Confirm the input :- <u>{val}</u>",buttons=[KeyboardButtonCallback("Yes","confirmsetting true"),KeyboardButtonCallback("No","confirmsetting false")],parse_mode="html")
 
-async def get_bool_variable(var_name,msg,menu,callback_name):
+async def get_bool_variable(var_name,msg,menu,callback_name,session_id):
     # handle the vars having bool values
      
     val = get_val(var_name)
@@ -194,29 +203,29 @@ async def get_bool_variable(var_name,msg,menu,callback_name):
     if val:
         #setting the value in callback so calls will be reduced ;)
         menu.append(
-            [KeyboardButtonCallback(yes+msg,f"settings {callback_name} false".encode("UTF-8"))]
+            [KeyboardButtonCallback(yes+msg,f"settings {callback_name} false {session_id}".encode("UTF-8"))]
         ) 
     else:
         menu.append(
-            [KeyboardButtonCallback(no+msg,f"settings {callback_name} true".encode("UTF-8"))]
+            [KeyboardButtonCallback(no+msg,f"settings {callback_name} true {session_id}".encode("UTF-8"))]
         ) 
 
-async def get_string_variable(var_name,menu,callback_name):
+async def get_string_variable(var_name,menu,callback_name,session_id):
     # handle the vars having string value
 
     val = get_val(var_name)
     msg = var_name + " " + val
     menu.append(
-        [KeyboardButtonCallback(msg,f"settings {callback_name}".encode("UTF-8"))]
+        [KeyboardButtonCallback(msg,f"settings {callback_name} {session_id}".encode("UTF-8"))]
     ) 
 
-async def get_int_variable(var_name,menu,callback_name):
+async def get_int_variable(var_name,menu,callback_name,session_id):
     # handle the vars having string value
 
     val = get_val(var_name)
     msg = var_name + " " + str(val)
     menu.append(
-        [KeyboardButtonCallback(msg,f"settings {callback_name}".encode("UTF-8"))]
+        [KeyboardButtonCallback(msg,f"settings {callback_name} {session_id}".encode("UTF-8"))]
     ) 
 
 # todo handle the list value 
