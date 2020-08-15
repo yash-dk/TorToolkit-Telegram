@@ -113,6 +113,7 @@ async def general_input_manager(e,mmes,var_name,datatype,value,db):
 
 
 async def get_value(e):
+    # todo replace with conver.
     # this function gets the new value to be set from the user in current context
     lis = [False,None]
     #func tools works as expected ;);)

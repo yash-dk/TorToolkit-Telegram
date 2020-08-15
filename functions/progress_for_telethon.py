@@ -12,6 +12,7 @@ async def progress(current,total,message,file_name,start,cancel_msg=None):
 
     if cancel_msg is not None:
         # dirty alt. was not able to find something to stop upload
+        # todo inspect with "StopAsyncIteration"
         db = TtkUpload()
         if db.get_cancel_status(cancel_msg.chat_id,cancel_msg.id):
             del db

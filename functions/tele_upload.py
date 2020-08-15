@@ -134,6 +134,9 @@ async def upload_a_file(path,message,force_edit,database=None):
         if database.get_cancel_status(message.chat_id,message.id):
             # add os remove here
             return None
+    if not os.path.exists(path):
+        return None
+        
     #todo improve this uploading ✔️
     file_name = os.path.basename(path)
     metadata = extractMetadata(createParser(path))
