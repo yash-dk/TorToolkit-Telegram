@@ -7,6 +7,8 @@ from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_
 from ..functions.tele_upload import upload_a_file,upload_handel
 from .database_handle import TtkUpload
 from .settings import handle_settings,handle_setting_callback
+from functools import partial
+import asyncio as aio
 import re,logging
 
 torlog = logging.getLogger(__name__)
@@ -76,12 +78,62 @@ def add_handlers(bot: TelegramClient):
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
+    # get the callback in convs
+    async def get_c_data(e,sid,li):
+        if e.sender_id == sid:
+            li[0] = e.data.decode("UTF-8")
+            await e.answer("Got the selection")
+            return True
+        else:
+            await e.answer("Dont touch someone eles leech.",alert=True)
+            return False
+
+    # get the value in list [only way ]
+    choice = [""]
+    #create a partial for lambda
+    get_c_par = partial(get_c_data,li=choice)
+
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
-        path = await check_link(e)
-        if path is not None:
-            pass
+        rclone = False
+        # convo init
+        async with e.client.conversation(e.chat_id) as conv:
+            buts = [[KeyboardButtonCallback("To Drive",data="leechselect drive")],[KeyboardButtonCallback("To Telegram",data="leechselect tg")]]
+            conf_mes = await conv.send_message("<b>Choose where to upload your files:- </b>",parse_mode="html",buttons=buts,reply_to=e.id)
+            
+            try:
+                await conv.wait_event(
+                    events.CallbackQuery(
+                        pattern="leechselect",
+                        func=lambda ne: get_c_par(ne,e.sender_id)
+                    ),
+                    timeout=60
+                )
+            except aio.exceptions.TimeoutError:
+                torlog.error("Choice for the user got timeout fallback to default")
+                defleech = get_val("DEFAULT_TIMEOUT")
+                
+                if defleech == "leech":
+                    rclone = False
+                elif defleech == "rclone":
+                    rclone = True
+                else:
+                    # just in case something goes wrong
+                    rclone = False
+            else:
+                if choice[0].find("drive") != -1:
+                    rclone = True
+                else:
+                    rclone = False
+            finally:
+                await conf_mes.delete()
+
+        
+        await check_link(e,rclone)
+            #path = await check_link(e)
+            #if path is not None:
+            #    pass
 
 #add admin checks here
 async def handle_purge_command(e):

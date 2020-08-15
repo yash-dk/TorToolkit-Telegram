@@ -32,22 +32,36 @@ class TorToolkitDB(DataBaseHandle):
         cur.close()
 
     def set_variable(self,var_name,var_value,update_blob=False,blob_val=None):
-        #todo implement blob
+        #todo implement blob - done
+        # remember to handle the memoryview
         vtype = "str"
         if isinstance(var_value,bool):
             vtype = "bool"
         elif isinstance(var_value,int):
             vtype = "int"
+        
+        if update_blob:
+            vtype = "blob"
 
         sql = "SELECT * FROM ttk_config WHERE var_name=%s"
         cur = self.scur()
         
         cur.execute(sql,(var_name,))
         if cur.rowcount > 0:
-            sql = "UPDATE ttk_config SET var_value=%s , vtype=%s WHERE var_name=%s"
+            if not update_blob:
+                sql = "UPDATE ttk_config SET var_value=%s , vtype=%s WHERE var_name=%s"
+            else:
+                sql = "UPDATE ttk_config SET blob_val=%s , vtype=%s WHERE var_name=%s"
+                var_value = blob_val
+
             cur.execute(sql,(var_value,vtype,var_name))
         else:
-            sql = "INSERT INTO ttk_config(var_name,var_value,date_changed,vtype) VALUES(%s,%s,%s,%s)"
+            if not update_blob:
+                sql = "INSERT INTO ttk_config(var_name,var_value,date_changed,vtype) VALUES(%s,%s,%s,%s)"
+            else:
+                sql = "INSERT INTO ttk_config(var_name,blob_val,date_changed,vtype) VALUES(%s,%s,%s,%s)"
+                var_value = blob_val
+            
             cur.execute(sql,(var_name,var_value,datetime.datetime.now(),vtype))
 
         self.ccur(cur)

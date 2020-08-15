@@ -45,10 +45,11 @@ def get_entities(msg):
     else:
         return None
 
-async def check_link(msg):
+async def check_link(msg,rclone=False):
     urls = None
     omess = msg
     msg = await msg.get_reply_message()
+    torlog.info(msg)
 
     if msg is None:
         urls = None
@@ -91,13 +92,15 @@ async def check_link(msg):
                 rdict = await upload_handel(path,rmess,omess.from_id,dict())
                 await print_files(omess,rdict)
                 torlog.info("Here are the files to be uploaded {}".format(rdict))
-    elif msg.entities is not None:
-        url = get_entities(msg)
-        await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
-        #todo implement direct links ;)
-    else:
-        #consider it as a direct link LOL
-        await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
+        elif msg.entities is not None:
+            url = get_entities(msg)
+            torlog.info("Downloadinf Urls")
+            await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
+            #todo implement direct links ;)
+        else:
+            torlog.info("Downloadinf Url")
+            #consider it as a direct link LOL
+            await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
     
     return None
 
