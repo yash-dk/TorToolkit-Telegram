@@ -30,6 +30,7 @@ async def get_client(host=None,port=None,uname=None,passw=None,retry=2) -> qba.T
     try:
         client.auth_log_in()
         logging.info("Client connected successfully to the torrent server. :)")
+        client.application.set_preferences({"disk_cache":200})
         return client
     except qba.LoginFailed as e:
         logging.error("An errot occured invalid creds detected\n{}\n{}".format(e,traceback.format_exc()))
