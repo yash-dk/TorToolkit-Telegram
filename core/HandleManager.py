@@ -9,6 +9,7 @@ from .database_handle import TtkUpload
 from .settings import handle_settings,handle_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config
+from ..functions.admin_check import is_admin
 import asyncio as aio
 import re,logging
 
@@ -100,7 +101,7 @@ async def handle_leech_command(e):
     else:
         rclone = False
         # convo init
-        if get_config() is not None:
+        if await get_config() is not None:
             async with e.client.conversation(e.chat_id) as conv:
                 buts = [[KeyboardButtonCallback("To Drive",data="leechselect drive")],[KeyboardButtonCallback("To Telegram",data="leechselect tg")]]
                 conf_mes = await conv.send_message("<b>Choose where to upload your files:- </b>",parse_mode="html",buttons=buts,reply_to=e.id)
@@ -163,9 +164,7 @@ async def handle_status_command(e):
         
 
 async def handle_test_command(e):
-    testmsg = await e.reply("Test Files are downloaded ;)")
-    rdict = await upload_handel("/mnt/d/GitMajors/TorToolkit/test2/test.mp3",testmsg,e.sender_id,dict())
-    await print_files(e,rdict)
+    print(await is_admin(e.client,e.sender_id,e.chat_id))
 
 async def handle_settings_cb(e):
     await handle_setting_callback(e)

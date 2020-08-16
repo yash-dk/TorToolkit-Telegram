@@ -91,7 +91,7 @@ async def rclone_process_display(process,edit_time,msg):
                     nstr = nstr.split(",")
                     progress = "<b>Uploaded:- {} \nProgress:- {} \nSpeed:- {} \nETA:- {}</b>".format(nstr[0],nstr[1],nstr[2],nstr[3].replace("ETA",""))
                     await msg.edit(progress,parse_mode="html")
-                    torlog.info(progress)
+                    torlog.debug(progress)
                     
             
         if data == "":

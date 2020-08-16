@@ -1,10 +1,12 @@
-from telethon.tl.types import KeyboardButtonCallback
+from telethon.tl.types import KeyboardButtonCallback,KeyboardButton
 from telethon import events
 import asyncio as aio
 from .getVars import get_val
 from .database_handle import TorToolkitDB
 from functools import partial
-import time
+import time,os,configparser,logging,traceback
+
+torlog = logging.getLogger(__name__)
 
 TIMEOUT_SEC = 60
 
@@ -24,8 +26,8 @@ async def handle_setting_callback(e):
     val = ""
     
     if cmd[-1] != session_id:
-
         await e.answer("This Setting menu is expired.",alert=True)
+        await e.delete()
         return
     if cmd[1] == "fdocs":
         await e.answer("")
@@ -43,7 +45,7 @@ async def handle_setting_callback(e):
         mmes = await e.get_message()
         val = await get_value(e)
 
-        await general_input_manager(e,mmes,"COMPLETED_STR","str",val[0],db)
+        await general_input_manager(e,mmes,"COMPLETED_STR","str",val[0],db,None)
         
     
     elif cmd[1] == "remstr":
@@ -54,7 +56,7 @@ async def handle_setting_callback(e):
         mmes = await e.get_message()
         val = await get_value(e)
         
-        await general_input_manager(e,mmes,"REMAINING_STR","str",val[0],db)
+        await general_input_manager(e,mmes,"REMAINING_STR","str",val[0],db,None)
     
     elif cmd[1] == "tguplimit":
         # what will a general manager require
@@ -64,13 +66,33 @@ async def handle_setting_callback(e):
         mmes = await e.get_message()
         val = await get_value(e)
         
-        await general_input_manager(e,mmes,"TG_UP_LIMIT","int",val,db)
+        await general_input_manager(e,mmes,"TG_UP_LIMIT","int",val,db,None)
+
+    elif cmd[1] == "rclonemenu":
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,"\nWelcome to Rclone Config Menu. TD= Team Drive, ND= Normal Drive",submenu="rclonemenu")
+    elif cmd[1] == "mainmenu":
+        mmes = await e.get_message()
+        await handle_settings(mmes,True)
+    elif cmd[1] == "rcloneconfig":
+        await e.answer("Sned the rclone config file which you have generated.",alert=True)
+        mmes = await e.get_message()
+        val = await get_value(e,True)
+        
+        await general_input_manager(e,mmes,"RCLONE_CONFIG","str",val,db,"rclonemenu")
+    elif cmd[1] == "change_drive":
+        await e.answer(f"Changed default drive to {cmd[2]}.",alert=True)
+        db.set_variable("DEF_RCLONE_DRIVE",cmd[2])
+
+        await handle_settings(await e.get_message(),True,f"<b><u>Changed the default drive to {cmd[2]}</b></u>","rclonemenu")
+
 
         
 
 
-async def handle_settings(e,edit=False,msg=""):
+async def handle_settings(e,edit=False,msg="",submenu=None):
     # this function creates the menu
+    # and now submenus too
     session_id = time.time()
     db = TorToolkitDB()
     db.set_variable("SETTING_AUTH_CODE",str(session_id))
@@ -79,18 +101,60 @@ async def handle_settings(e,edit=False,msg=""):
         #[KeyboardButtonCallback(yes+" Allow TG Files Leech123456789-","settings data".encode("UTF-8"))], # for ref
     ]
     
-    await get_bool_variable("FORCE_DOCUMENTS","FORCE_DOCUMENTS",menu,"fdocs",session_id)
-    await get_string_variable("COMPLETED_STR",menu,"compstr",session_id)
-    await get_string_variable("REMAINING_STR",menu,"remstr",session_id)
-    await get_int_variable("TG_UP_LIMIT",menu,"tguplimit",session_id)
+    if submenu is None:
+        await get_bool_variable("FORCE_DOCUMENTS","FORCE_DOCUMENTS",menu,"fdocs",session_id)
+        await get_string_variable("COMPLETED_STR",menu,"compstr",session_id)
+        await get_string_variable("REMAINING_STR",menu,"remstr",session_id)
+        await get_int_variable("TG_UP_LIMIT",menu,"tguplimit",session_id)
+        #await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
+        await get_sub_menu("☁️ Open Rclone Menu ☁️","rclonemenu",session_id,menu)
 
-    if edit:
-        rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu)
-    else:
-        rmess = await e.reply(header+"\nIts recommended to lock the group before setting vars.\n",parse_mode="html",buttons=menu)
+
+        if edit:
+            rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu)
+        else:
+            rmess = await e.reply(header+"\nIts recommended to lock the group before setting vars.\n",parse_mode="html",buttons=menu)
+    elif submenu == "rclonemenu":
+        rcval = await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
+        if rcval != "None":
+            # create a all drives menu
+            if rcval == "Custom file is loaded.":
+                db = TorToolkitDB()
+                _, fdata = db.get_variable("RCLONE_CONFIG")
+                del db
+                path = os.path.join(os.getcwd(),"rclone.conf")
+
+                # find alternative to this
+                with open(path,"wb") as fi:
+                    fi.write(fdata)
+                
+                conf = configparser.ConfigParser()
+                conf.read(path)
+                #menu.append([KeyboardButton("Choose a default drive from below")])
+                def_drive = get_val("DEF_RCLONE_DRIVE")
+
+                for j in conf.sections():
+                    prev=""
+                    if j == def_drive:
+                        prev = yes
+
+                    if "team_drive" in list(conf[j]):
+                        menu.append(
+                            [KeyboardButtonCallback(f"{prev}{j} - TD",f"settings change_drive {j} {session_id}")]
+                        )
+                    else:
+                        menu.append(
+                            [KeyboardButtonCallback(f"{prev}{j} - ND",f"settings change_drive {j} {session_id}")]
+                        )
+
+
+        await get_sub_menu("Go Back 🔙","mainmenu",session_id,menu)
+
+        if edit:
+            rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu)
 
 # an attempt to manager all the input
-async def general_input_manager(e,mmes,var_name,datatype,value,db):
+async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
     if value is not None:
         await confirm_buttons(mmes,value)
         conf = await get_confirm(e)
@@ -108,26 +172,45 @@ async def general_input_manager(e,mmes,var_name,datatype,value,db):
                             value = False
                         else:
                             raise ValueError("Invalid value from bool")
-                        
-                    db.set_variable(var_name,value)
-                    await handle_settings(mmes,True,f"<b><u>Received {var_name} value '{value}' with confirm.</b></u>")
+                    
+                    if var_name == "RCLONE_CONFIG":
+                        #adjust the special case
+                        try:
+                            conf = configparser.ConfigParser()
+                            conf.read(value)
+                            for i in conf.sections():
+                                db.set_variable("DEF_RCLONE_DRIVE",str(i))
+                                break
+                                
+                            with open(value,"rb") as fi:
+                                data = fi.read()
+                                db.set_variable("RCLONE_CONFIG",0,True,data)
+                            os.remove(value)
+                        except Exception:
+                            torlog.error(traceback.format_exc())
+                            await handle_settings(mmes,True,f"<b><u>The conf file is invalid check logs.</b></u>",sub_menu)
+                            return
+                    else:
+                        db.set_variable(var_name,value)
+                    
+                    await handle_settings(mmes,True,f"<b><u>Received {var_name} value '{value}' with confirm.</b></u>",sub_menu)
                 except ValueError:
-                    await handle_settings(mmes,True,f"<b><u>Value [{value}] not valid try again and enter {datatype}.</b></u>")    
+                    await handle_settings(mmes,True,f"<b><u>Value [{value}] not valid try again and enter {datatype}.</b></u>",sub_menu)    
             else:
-                await handle_settings(mmes,True,f"<b><u>Confirm differed by user.</b></u>")
+                await handle_settings(mmes,True,f"<b><u>Confirm differed by user.</b></u>",sub_menu)
         else:
-            await handle_settings(mmes,True,f"<b><u>Confirm timed out [waited 60s for input].</b></u>")
+            await handle_settings(mmes,True,f"<b><u>Confirm timed out [waited 60s for input].</b></u>",sub_menu)
     else:
-        await handle_settings(mmes,True,f"<b><u>Entry Timed out [waited 60s for input].</b></u>")
+        await handle_settings(mmes,True,f"<b><u>Entry Timed out [waited 60s for input].</b></u>",sub_menu)
 
 
-async def get_value(e):
+async def get_value(e,file=False):
     # todo replace with conver.
     # this function gets the new value to be set from the user in current context
     lis = [False,None]
     #func tools works as expected ;);)
         
-    cbak = partial(val_input_callback,lis=lis)
+    cbak = partial(val_input_callback,lis=lis,file=file)
     
     e.client.add_event_handler(
         #lambda e: test_callback(e,lis),
@@ -174,11 +257,21 @@ async def get_confirm(e):
 
     return val
 
-async def val_input_callback(e,lis):
+async def val_input_callback(e,lis,file):
     # get the input value
-    lis[0] = True
-    lis[1] = e.text
-    await e.delete()
+    if not file:
+        lis[0] = True
+        lis[1] = e.text
+        await e.delete()
+    else:
+        if e.document is not None:
+            path = await e.download_media()
+            lis[0]  = True
+            lis[1] = path 
+            await e.delete()
+        else:
+            await e.delete()
+        
     raise events.StopPropagation
 
 async def get_confirm_callback(e,lis):
@@ -210,14 +303,29 @@ async def get_bool_variable(var_name,msg,menu,callback_name,session_id):
             [KeyboardButtonCallback(no+msg,f"settings {callback_name} true {session_id}".encode("UTF-8"))]
         ) 
 
+async def get_sub_menu(msg,sub_name,session_id,menu):
+    menu.append(
+        [KeyboardButtonCallback(msg,f"settings {sub_name} {session_id}".encode("UTF-8"))]
+    )
+
 async def get_string_variable(var_name,menu,callback_name,session_id):
     # handle the vars having string value
+    # condition for rclone config
 
     val = get_val(var_name)
-    msg = var_name + " " + val
+    if var_name == "RCLONE_CONFIG":
+        db = TorToolkitDB()
+        _, val1 = db.get_variable(var_name)
+        if val1 is not None:
+            val = "Custom file is loaded."
+        del db
+    msg = var_name + " " + str(val)
     menu.append(
         [KeyboardButtonCallback(msg,f"settings {callback_name} {session_id}".encode("UTF-8"))]
-    ) 
+    )
+
+    # Just in case
+    return val
 
 async def get_int_variable(var_name,menu,callback_name,session_id):
     # handle the vars having string value
