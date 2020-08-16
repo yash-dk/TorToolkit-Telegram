@@ -139,18 +139,30 @@ async def handle_leech_command(e):
             #if path is not None:
             #    pass
 
-#add admin checks here
+#add admin checks here - done
 async def handle_purge_command(e):
-    await purge_all(e)
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        await purge_all(e)
+    else:
+        await e.delete()
 
 async def handle_pauseall_command(e):
-    await pause_all(e)
-    
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        await pause_all(e)
+    else:
+        await e.delete()
+
 async def handle_resumeall_command(e):
-    await resume_all(e)
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        await resume_all(e)
+    else:
+        await e.delete()
 
 async def handle_settings_command(e):
-    await handle_settings(e)
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        await handle_settings(e)
+    else:
+        await e.delete()
 
 async def handle_status_command(e):
     cmds = e.text.split(" ")
@@ -164,10 +176,14 @@ async def handle_status_command(e):
         
 
 async def handle_test_command(e):
-    print(await is_admin(e.client,e.sender_id,e.chat_id))
+    #print(await is_admin(e.client,e.sender_id,e.chat_id))
+    pass
 
 async def handle_settings_cb(e):
-    await handle_setting_callback(e)
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        await handle_setting_callback(e)
+    else:
+        await e.answer("⚠️ WARN ⚠️ Dont Touch Admin Settings.",alert=True)
 
 async def handle_upcancel_cb(e):
     db = TtkUpload()
