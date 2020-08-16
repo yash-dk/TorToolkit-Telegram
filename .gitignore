@@ -4,3 +4,4 @@ __pycache__
 *.session
 test*.*
 splfil/
+*.session-journal
