@@ -22,25 +22,26 @@ async def get_client(host=None,port=None,uname=None,passw=None,retry=2) -> qba.T
     port = port if port is not None else "8080"
     uname = uname if uname is not None else "admin"
     passw = passw if passw is not None else "adminadmin"
-    logging.info(f"Trying to login in qBittorrent using creds {host} {port} {uname} {passw}")
+    torlog.info(f"Trying to login in qBittorrent using creds {host} {port} {uname} {passw}")
 
     client = qba.Client(host=host,port=port,username=uname,password=passw)
     
     #try to connect to the server :)
     try:
         client.auth_log_in()
-        logging.info("Client connected successfully to the torrent server. :)")
-        client.application.set_preferences({"disk_cache":200})
+        torlog.info("Client connected successfully to the torrent server. :)")
+        client.application.set_preferences({"disk_cache":300})
+        torlog.info("Setting the cache size to 300")
         return client
     except qba.LoginFailed as e:
-        logging.error("An errot occured invalid creds detected\n{}\n{}".format(e,traceback.format_exc()))
+        torlog.error("An errot occured invalid creds detected\n{}\n{}".format(e,traceback.format_exc()))
         return None
     except qba.APIConnectionError:
         if retry == 0:
-            logging.error("Tried to get the client 3 times no luck")
+            torlog.error("Tried to get the client 3 times no luck")
             return None
         
-        logging.info("Oddly enough the qbittorrent server is not running.... Attempting to start at port {}".format(port))
+        torlog.info("Oddly enough the qbittorrent server is not running.... Attempting to start at port {}".format(port))
         cmd = f"qbittorrent-nox -d --webui-port={port}"
         cmd = cmd.split(" ")
 
@@ -63,12 +64,12 @@ async def add_torrent_magnet(magnet,message):
             
             ext_res = client.torrents_info(torrent_hashes=ext_hash)
             if len(ext_res) > 0:
-                logging.info("Got torrent info from ext hash.")
+                torlog.info("Got torrent info from ext hash.")
                 return ext_res[0]
 
             while True:
                 if (datetime.now() - st).seconds >= 10:
-                    logging.warning("The provided torrent was not added and it was timed out. magnet was:- {}".format(magnet))
+                    torlog.warning("The provided torrent was not added and it was timed out. magnet was:- {}".format(magnet))
                     await message.edit("The torrent was not added due to an error.")
                     return False
                 ctor_new = client.torrents_info()
@@ -79,17 +80,17 @@ async def add_torrent_magnet(magnet,message):
             await message.edit("This is an unsupported/invalid link.")
     except qba.UnsupportedMediaType415Error as e:
         #will not be used ever ;)
-        logging.error("Unsupported file was detected in the magnet here")
+        torlog.error("Unsupported file was detected in the magnet here")
         await message.edit("This is an unsupported/invalid link.")
         return False
     except Exception as e:
-        logging.error("{}\n{}".format(e,traceback.format_exc()))
+        torlog.error("{}\n{}".format(e,traceback.format_exc()))
         await message.edit("Error occured check logs.")
         return False
 
 async def add_torrent_file(path,message):
     if not os.path.exists(path):
-        logging.error("The path supplied to the torrent file was invalid.\n path:-{}".format(path))
+        torlog.error("The path supplied to the torrent file was invalid.\n path:-{}".format(path))
         return False
 
     client = await get_client()
@@ -105,12 +106,12 @@ async def add_torrent_file(path,message):
             
             ext_res = client.torrents_info(torrent_hashes=ext_hash)
             if len(ext_res) > 0:
-                logging.info("Got torrent info from ext hash.")
+                torlog.info("Got torrent info from ext hash.")
                 return ext_res[0]
 
             while True:
                 if (datetime.now() - st).seconds >= 20:
-                    logging.warning("The provided torrent was not added and it was timed out. file path was:- {}".format(path))
+                    torlog.warning("The provided torrent was not added and it was timed out. file path was:- {}".format(path))
                     await message.edit("The torrent was not added due to an error.")
                     return False
                 ctor_new = client.torrents_info()
@@ -121,11 +122,11 @@ async def add_torrent_file(path,message):
             await message.edit("This is an unsupported/invalid link.")
     except qba.UnsupportedMediaType415Error as e:
         #will not be used ever ;)
-        logging.error("Unsupported file was detected in the magnet here")
+        torlog.error("Unsupported file was detected in the magnet here")
         await message.edit("This is an unsupported/invalid link.")
         return False
     except Exception as e:
-        logging.error("{}\n{}".format(e,traceback.format_exc()))
+        torlog.error("{}\n{}".format(e,traceback.format_exc()))
         await message.edit("Error occured check logs.")
         return False
 
@@ -166,7 +167,7 @@ async def update_progress(client,message,torrent,except_retry=0):
         #error condition
         if tor_info.state == "error":
             await message.edit("Torrent <code>{}</code> errored out.",buttons=message.reply_markup,parse_mode="html")
-            logging.error("An torrent has error clearing that torrent now. Torrent:- {} - {}".format(tor_info.hash,tor_info.name))
+            torlog.error("An torrent has error clearing that torrent now. Torrent:- {} - {}".format(tor_info.hash,tor_info.name))
             return False
         #stalled
         if tor_info.state == "stalledDL":
@@ -189,7 +190,7 @@ async def update_progress(client,message,torrent,except_retry=0):
             return await update_progress(client,message,torrent)
     except Exception as e:
         await message.edit("Error occure {}".format(e),buttons=None)
-        logging.error("{}\n\n{}\n\nn{}".format(e,traceback.format_exc(),tor_info))
+        torlog.error("{}\n\n{}\n\nn{}".format(e,traceback.format_exc(),tor_info))
         return False
 
 async def pause_all(message):
