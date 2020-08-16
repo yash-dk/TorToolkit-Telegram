@@ -3,6 +3,8 @@ from telethon.tl.types import ChannelParticipantAdmin,ChannelParticipantCreator,
 import logging,traceback
 torlog = logging.getLogger(__name__)
 
+#todo add alpha admin if needed
+
 async def is_admin(client,user_id,chat_id):
     res = await client(GetParticipantRequest(
         channel=chat_id,

@@ -7,6 +7,7 @@ from functools import partial
 import time,os,configparser,logging,traceback
 
 torlog = logging.getLogger(__name__)
+#logging.getLogger("telethon").setLevel(logging.DEBUG)
 
 TIMEOUT_SEC = 60
 
@@ -210,7 +211,7 @@ async def get_value(e,file=False):
     lis = [False,None]
     #func tools works as expected ;);)
         
-    cbak = partial(val_input_callback,lis=lis,file=file)
+    cbak = partial(val_input_callback,o_sender=e.sender_id,lis=lis,file=file)
     
     e.client.add_event_handler(
         #lambda e: test_callback(e,lis),
@@ -236,7 +237,7 @@ async def get_confirm(e):
     # abstract for getting the confirm in a context
 
     lis = [False,None]
-    cbak = partial(get_confirm_callback,lis=lis)
+    cbak = partial(get_confirm_callback,o_sender=e.sender_id,lis=lis)
     
     e.client.add_event_handler(
         #lambda e: test_callback(e,lis),
@@ -257,8 +258,10 @@ async def get_confirm(e):
 
     return val
 
-async def val_input_callback(e,lis,file):
+async def val_input_callback(e,o_sender,lis,file):
     # get the input value
+    if o_sender != e.sender_id:
+        return
     if not file:
         lis[0] = True
         lis[1] = e.text
@@ -274,8 +277,11 @@ async def val_input_callback(e,lis,file):
         
     raise events.StopPropagation
 
-async def get_confirm_callback(e,lis):
+async def get_confirm_callback(e,o_sender,lis):
     # handle the confirm callback
+
+    if o_sender != e.sender_id:
+        return
     lis[0] = True
     
     data = e.data.decode().split(" ")
