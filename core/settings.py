@@ -16,7 +16,7 @@ TIMEOUT_SEC = 60
 # todo make the code more modular
 no = "❌"
 yes = "✅"
-header =  "<b>**TorToolKit**</b>\n<u>ADMIN SETTINGS MENU - Beta v1</u>"   
+header =  '<b>**TorToolKit** by <a href="https://github.com/yash-dk">YashDK</a></b>\n<u>ADMIN SETTINGS MENU - Beta v1</u>'
 async def handle_setting_callback(e):
     db = TorToolkitDB()
     session_id,_ = db.get_variable("SETTING_AUTH_CODE")
@@ -44,6 +44,7 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for Complete Progress String. Note that only one character is expected.",alert=True)
 
         mmes = await e.get_message()
+        await mmes.edit(buttons=None)
         val = await get_value(e)
 
         await general_input_manager(e,mmes,"COMPLETED_STR","str",val[0],db,None)
@@ -55,6 +56,7 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for Remaining Progress String. Note that only one character is expected.",alert=True)
 
         mmes = await e.get_message()
+        await mmes.edit(buttons=None)
         val = await get_value(e)
         
         await general_input_manager(e,mmes,"REMAINING_STR","str",val[0],db,None)
@@ -65,19 +67,23 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for TELEGRAM UPLOAD LIMIT. Note that integer is expected.",alert=True)
 
         mmes = await e.get_message()
+        await mmes.edit(buttons=None)
         val = await get_value(e)
         
         await general_input_manager(e,mmes,"TG_UP_LIMIT","int",val,db,None)
 
     elif cmd[1] == "rclonemenu":
+        # this is menu
         mmes = await e.get_message()
         await handle_settings(mmes,True,"\nWelcome to Rclone Config Menu. TD= Team Drive, ND= Normal Drive",submenu="rclonemenu")
     elif cmd[1] == "mainmenu":
+        # this is menu
         mmes = await e.get_message()
         await handle_settings(mmes,True)
     elif cmd[1] == "rcloneconfig":
         await e.answer("Sned the rclone config file which you have generated.",alert=True)
         mmes = await e.get_message()
+        await mmes.edit(buttons=None)
         val = await get_value(e,True)
         
         await general_input_manager(e,mmes,"RCLONE_CONFIG","str",val,db,"rclonemenu")
@@ -86,7 +92,43 @@ async def handle_setting_callback(e):
         db.set_variable("DEF_RCLONE_DRIVE",cmd[2])
 
         await handle_settings(await e.get_message(),True,f"<b><u>Changed the default drive to {cmd[2]}</b></u>","rclonemenu")
-
+    elif cmd[1] == "usrlock":
+        await e.answer("")
+        if cmd[2] == "true":
+            val = True
+            await e.client.edit_permissions(e.chat_id,send_messages=False)
+        else:
+            await e.client.edit_permissions(e.chat_id,send_messages=True)
+            val = False
+        
+        db.set_variable("LOCKED_USERS",val)
+        await handle_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of user locked.</b></u>")
+        
+    elif cmd[1] == "ctrlacts":
+        # this is menu
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,"\nWelcome to Control Actions.",submenu="ctrlacts")
+    
+    elif cmd[1] == "rcloneenable":
+        await e.answer("Note that this parameter will only work if rclone config is loaded.")
+        if cmd[2] == "true":
+            val = True
+        else:
+            val = False
+        db.set_variable("RCLONE_ENABLED",val)
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Rclone Enabled.</b></u>","ctrlacts")
+    
+    elif cmd[1] == "leechenable":
+        await e.answer("")
+        if cmd[2] == "true":
+            val = True
+        else:
+            val = False
+        
+        db.set_variable("LEECH_ENABLED",val)
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Leech Enabled.</b></u>","ctrlacts")
 
         
 
@@ -103,18 +145,20 @@ async def handle_settings(e,edit=False,msg="",submenu=None):
     ]
     
     if submenu is None:
+        await get_bool_variable("LOCKED_USERS","Lock the Group",menu,"usrlock",session_id)
         await get_bool_variable("FORCE_DOCUMENTS","FORCE_DOCUMENTS",menu,"fdocs",session_id)
         await get_string_variable("COMPLETED_STR",menu,"compstr",session_id)
         await get_string_variable("REMAINING_STR",menu,"remstr",session_id)
         await get_int_variable("TG_UP_LIMIT",menu,"tguplimit",session_id)
         #await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
         await get_sub_menu("☁️ Open Rclone Menu ☁️","rclonemenu",session_id,menu)
+        await get_sub_menu("🕹️ Control Actions 🕹️","ctrlacts",session_id,menu)
 
 
         if edit:
-            rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu)
+            rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
         else:
-            rmess = await e.reply(header+"\nIts recommended to lock the group before setting vars.\n",parse_mode="html",buttons=menu)
+            rmess = await e.reply(header+"\nIts recommended to lock the group before setting vars.\n",parse_mode="html",buttons=menu,link_preview=False)
     elif submenu == "rclonemenu":
         rcval = await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
         if rcval != "None":
@@ -148,11 +192,21 @@ async def handle_settings(e,edit=False,msg="",submenu=None):
                             [KeyboardButtonCallback(f"{prev}{j} - ND",f"settings change_drive {j} {session_id}")]
                         )
 
-
-        await get_sub_menu("Go Back 🔙","mainmenu",session_id,menu)
+        await get_sub_menu("Go Back ⬅️","mainmenu",session_id,menu)
 
         if edit:
-            rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu)
+            rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
+
+    elif submenu == "ctrlacts":
+        await get_bool_variable("RCLONE_ENABLED","Enable Rclone.",menu,"rcloneenable",session_id)
+        await get_bool_variable("LEECH_ENABLED","Enable Leech.",menu,"leechenable",session_id)
+        await get_bool_variable("FORCE_DOCS_USER","Not Implemented.User will choose force docs.",menu,"forcedocsuser",session_id)
+
+
+        await get_sub_menu("Go Back ⬅️","mainmenu",session_id,menu)
+
+        if edit:
+            rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
 
 # an attempt to manager all the input
 async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
@@ -187,6 +241,7 @@ async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
                                 data = fi.read()
                                 db.set_variable("RCLONE_CONFIG",0,True,data)
                             os.remove(value)
+                            db.set_variable("LEECH_ENABLED",True)
                         except Exception:
                             torlog.error(traceback.format_exc())
                             await handle_settings(mmes,True,f"<b><u>The conf file is invalid check logs.</b></u>",sub_menu)
@@ -206,11 +261,11 @@ async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
 
 
 async def get_value(e,file=False):
-    # todo replace with conver.
+    # todo replace with conver. - or maybe not
     # this function gets the new value to be set from the user in current context
     lis = [False,None]
-    #func tools works as expected ;);)
-        
+
+    #func tools works as expected ;);)    
     cbak = partial(val_input_callback,o_sender=e.sender_id,lis=lis,file=file)
     
     e.client.add_event_handler(

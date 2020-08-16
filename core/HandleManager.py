@@ -133,8 +133,17 @@ async def handle_leech_command(e):
                 finally:
                     await conf_mes.delete()
 
-        
-        await check_link(e,rclone)
+        if rclone:
+            if get_val("RCLONE_ENABLED"):
+                await check_link(e,rclone)
+            else:
+                await e.reply("<b>DRIVE IS DISABLED BY THE ADMIN</b>",parse_mode="html")
+        else:
+            if get_val("LEECH_ENABLED"):
+                await check_link(e,rclone)
+            else:
+                await e.reply("<b>TG LEECH IS DISABLED BY THE ADMIN</b>",parse_mode="html")
+
             #path = await check_link(e)
             #if path is not None:
             #    pass
