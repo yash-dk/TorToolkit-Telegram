@@ -27,6 +27,7 @@ async def handle_setting_callback(e):
     val = ""
     
     if cmd[-1] != session_id:
+        print("Session id",session_id," - - ",cmd[-1])
         await e.answer("This Setting menu is expired.",alert=True)
         await e.delete()
         return

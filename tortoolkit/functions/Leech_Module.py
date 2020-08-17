@@ -76,7 +76,7 @@ async def check_link(msg,rclone=False):
                     await print_files(omess,rdict)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                 else:
-                    res = await rclone_driver(path,rmess)
+                    res = await rclone_driver(rval,rmess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
 
