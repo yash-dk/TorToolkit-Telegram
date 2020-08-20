@@ -130,6 +130,16 @@ async def handle_setting_callback(e):
         db.set_variable("LEECH_ENABLED",val)
         mmes = await e.get_message()
         await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Leech Enabled.</b></u>","ctrlacts")
+    
+    elif cmd[1] == "editsleepsec":
+        await e.answer("Type the new value for EDIT_SLEEP_SECS. Note that integer is expected.",alert=True)
+
+        mmes = await e.get_message()
+        await mmes.edit(buttons=None)
+        val = await get_value(e)
+        
+        await general_input_manager(e,mmes,"EDIT_SLEEP_SECS","int",val,db,None)
+
 
         
 
@@ -151,6 +161,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None):
         await get_string_variable("COMPLETED_STR",menu,"compstr",session_id)
         await get_string_variable("REMAINING_STR",menu,"remstr",session_id)
         await get_int_variable("TG_UP_LIMIT",menu,"tguplimit",session_id)
+        await get_int_variable("EDIT_SLEEP_SECS",menu,"editsleepsec",session_id)
         #await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
         await get_sub_menu("☁️ Open Rclone Menu ☁️","rclonemenu",session_id,menu)
         await get_sub_menu("🕹️ Control Actions 🕹️","ctrlacts",session_id,menu)
