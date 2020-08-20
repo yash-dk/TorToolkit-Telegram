@@ -7,6 +7,7 @@ from . import Hash_Fetch
 from .Human_Format import human_readable_bytes,human_readable_timedelta 
 from ..core.getVars import get_val
 from telethon.tl.types import KeyboardButtonCallback
+from telethon.errors.rpcerrorlist import MessageNotModifiedError,FloodWaitError
 
 #logging.basicConfig(level=logging.DEBUG)
 torlog = logging.getLogger(__name__)
@@ -131,67 +132,79 @@ async def add_torrent_file(path,message):
         return False
 
 async def update_progress(client,message,torrent,except_retry=0):
-    tor_info = client.torrents_info(torrent_hashes=torrent.hash)
     
-    #update cancellation
-    if len(tor_info) > 0:
-        tor_info = tor_info[0]
-    else:
-        await message.edit("Torrent canceled ```{}``` ".format(torrent.name),buttons=None)
-        return True
+    #switch to iteration from recursion as python dosent have tailing optimization :O
+    #RecursionError: maximum recursion depth exceeded
     
-    try:
-        msg = "<b>Downloading:</b> <code>{}</code>\n".format(
-            tor_info.name
-            )
-        msg += "<b>Down:</b> {} <b>Up:</b> {}\n".format(
-            human_readable_bytes(tor_info.dlspeed,postfix="/s"),
-            human_readable_bytes(tor_info.upspeed,postfix="/s")
-            )
-        msg += "<b>Progress:</b> {} - {}%\n".format(
-            progress_bar(tor_info.progress),
-            round(tor_info.progress*100,2)
-            )
-        msg += "<b>Downloaded:</b> {} of {}\n".format(
-            human_readable_bytes(tor_info.downloaded),
-            human_readable_bytes(tor_info.total_size)
-            )
-        msg += "<b>ETA:</b> <b>{} Mins</b>\n".format(
-            human_readable_timedelta(tor_info.eta)
-            )
-        msg += "<b>S:</b>{} <b>L:</b>{}\n".format(
-            tor_info.num_seeds,tor_info.num_leechs
-            )
-        msg += "<b>Using engine:</b> <code>qBittorrent</code>"
-        
-        #error condition
-        if tor_info.state == "error":
-            await message.edit("Torrent <code>{}</code> errored out.",buttons=message.reply_markup,parse_mode="html")
-            torlog.error("An torrent has error clearing that torrent now. Torrent:- {} - {}".format(tor_info.hash,tor_info.name))
-            return False
-        #stalled
-        if tor_info.state == "stalledDL":
-            await message.edit("Torrent <code>{}</code> is stalled(waiting for connection) temporarily.".format(tor_info.name),buttons=message.reply_markup,parse_mode="html")
-        #meta stage
-        if tor_info.state == "metaDL":
-            await message.edit("Getting metadata for {} - {}".format(tor_info.name,datetime.now().strftime("%H:%M:%S")),buttons=message.reply_markup)
-        elif tor_info.state == "downloading" or tor_info.state.lower().endswith("dl"):
-            await message.edit(msg,parse_mode="html",buttons=message.reply_markup) 
-
-        #aio timeout have to switch to global something
-        await aio.sleep(get_val("EDIT_SLEEP_SECS"))
-
-        #stop the download when download complete
-        if tor_info.state == "uploading" or tor_info.state.lower().endswith("up"):
-            client.torrents_pause(tor_info.hash)
-            await message.edit("Download completed ```{}```. To path ```{}```".format(tor_info.name,tor_info.save_path),buttons=None)
-            return os.path.join(tor_info.save_path,tor_info.name)
+    while True:
+        tor_info = client.torrents_info(torrent_hashes=torrent.hash)
+        #update cancellation
+        if len(tor_info) > 0:
+            tor_info = tor_info[0]
         else:
-            return await update_progress(client,message,torrent)
-    except Exception as e:
-        await message.edit("Error occure {}".format(e),buttons=None)
-        torlog.error("{}\n\n{}\n\nn{}".format(e,traceback.format_exc(),tor_info))
-        return False
+            await message.edit("Torrent canceled ```{}``` ".format(torrent.name),buttons=None)
+            return True
+        
+        try:
+            msg = "<b>Downloading:</b> <code>{}</code>\n".format(
+                tor_info.name
+                )
+            msg += "<b>Down:</b> {} <b>Up:</b> {}\n".format(
+                human_readable_bytes(tor_info.dlspeed,postfix="/s"),
+                human_readable_bytes(tor_info.upspeed,postfix="/s")
+                )
+            msg += "<b>Progress:</b> {} - {}%\n".format(
+                progress_bar(tor_info.progress),
+                round(tor_info.progress*100,2)
+                )
+            msg += "<b>Downloaded:</b> {} of {}\n".format(
+                human_readable_bytes(tor_info.downloaded),
+                human_readable_bytes(tor_info.total_size)
+                )
+            msg += "<b>ETA:</b> <b>{} Mins</b>\n".format(
+                human_readable_timedelta(tor_info.eta)
+                )
+            msg += "<b>S:</b>{} <b>L:</b>{}\n".format(
+                tor_info.num_seeds,tor_info.num_leechs
+                )
+            msg += "<b>Using engine:</b> <code>qBittorrent</code>"
+            
+            #error condition
+            try:
+                if tor_info.state == "error":
+                    await message.edit("Torrent <code>{}</code> errored out.",buttons=message.reply_markup,parse_mode="html")
+                    torlog.error("An torrent has error clearing that torrent now. Torrent:- {} - {}".format(tor_info.hash,tor_info.name))
+                    return False
+                #stalled
+                if tor_info.state == "stalledDL":
+                    await message.edit("Torrent <code>{}</code> is stalled(waiting for connection) temporarily.".format(tor_info.name),buttons=message.reply_markup,parse_mode="html")
+                #meta stage
+                if tor_info.state == "metaDL":
+                    await message.edit("Getting metadata for {} - {}".format(tor_info.name,datetime.now().strftime("%H:%M:%S")),buttons=message.reply_markup)
+                elif tor_info.state == "downloading" or tor_info.state.lower().endswith("dl"):
+                    await message.edit(msg,parse_mode="html",buttons=message.reply_markup) 
+
+                #aio timeout have to switch to global something
+                await aio.sleep(get_val("EDIT_SLEEP_SECS"))
+
+                #stop the download when download complete
+                if tor_info.state == "uploading" or tor_info.state.lower().endswith("up"):
+                    client.torrents_pause(tor_info.hash)
+                    await message.edit("Download completed ```{}```. To path ```{}```".format(tor_info.name,tor_info.save_path),buttons=None)
+                    return os.path.join(tor_info.save_path,tor_info.name)
+                else:
+                    #return await update_progress(client,message,torrent)
+                    pass
+
+            except (MessageNotModifiedError,FloodWaitError) as e:
+                torlog.error("{}\n\n{}\n\nn{}".format(e,traceback.format_exc(),tor_info))
+            
+        except Exception as e:
+            torlog.error("{}\n\n{}\n\nn{}".format(e,traceback.format_exc(),tor_info))
+            try:
+                await message.edit("Error occure {}".format(e),buttons=None)
+            except:pass
+            return False
 
 async def pause_all(message):
     client = await get_client()
