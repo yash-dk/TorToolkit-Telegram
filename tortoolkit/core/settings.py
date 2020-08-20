@@ -39,7 +39,7 @@ async def handle_setting_callback(e):
             val = False
         
         db.set_variable("FORCE_DOCUMENTS",val)
-        await handle_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of force documents.</b></u>")
+        await handle_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of force documents.</b></u>",session_id=session_id)
     
     elif cmd[1] == "compstr":
         await e.answer("Type the new value for Complete Progress String. Note that only one character is expected.",alert=True)
@@ -76,11 +76,11 @@ async def handle_setting_callback(e):
     elif cmd[1] == "rclonemenu":
         # this is menu
         mmes = await e.get_message()
-        await handle_settings(mmes,True,"\nWelcome to Rclone Config Menu. TD= Team Drive, ND= Normal Drive",submenu="rclonemenu")
+        await handle_settings(mmes,True,"\nWelcome to Rclone Config Menu. TD= Team Drive, ND= Normal Drive",submenu="rclonemenu",session_id=session_id)
     elif cmd[1] == "mainmenu":
         # this is menu
         mmes = await e.get_message()
-        await handle_settings(mmes,True)
+        await handle_settings(mmes,True,session_id=session_id)
     elif cmd[1] == "rcloneconfig":
         await e.answer("Sned the rclone config file which you have generated.",alert=True)
         mmes = await e.get_message()
@@ -92,7 +92,7 @@ async def handle_setting_callback(e):
         await e.answer(f"Changed default drive to {cmd[2]}.",alert=True)
         db.set_variable("DEF_RCLONE_DRIVE",cmd[2])
 
-        await handle_settings(await e.get_message(),True,f"<b><u>Changed the default drive to {cmd[2]}</b></u>","rclonemenu")
+        await handle_settings(await e.get_message(),True,f"<b><u>Changed the default drive to {cmd[2]}</b></u>","rclonemenu",session_id=session_id)
     elif cmd[1] == "usrlock":
         await e.answer("")
         if cmd[2] == "true":
@@ -103,12 +103,12 @@ async def handle_setting_callback(e):
             val = False
         
         db.set_variable("LOCKED_USERS",val)
-        await handle_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of user locked.</b></u>")
+        await handle_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of user locked.</b></u>",session_id=session_id)
         
     elif cmd[1] == "ctrlacts":
         # this is menu
         mmes = await e.get_message()
-        await handle_settings(mmes,True,"\nWelcome to Control Actions.",submenu="ctrlacts")
+        await handle_settings(mmes,True,"\nWelcome to Control Actions.",submenu="ctrlacts",session_id=session_id)
     
     elif cmd[1] == "rcloneenable":
         await e.answer("Note that this parameter will only work if rclone config is loaded.")
@@ -118,7 +118,7 @@ async def handle_setting_callback(e):
             val = False
         db.set_variable("RCLONE_ENABLED",val)
         mmes = await e.get_message()
-        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Rclone Enabled.</b></u>","ctrlacts")
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Rclone Enabled.</b></u>","ctrlacts",session_id=session_id)
     
     elif cmd[1] == "leechenable":
         await e.answer("")
@@ -129,7 +129,7 @@ async def handle_setting_callback(e):
         
         db.set_variable("LEECH_ENABLED",val)
         mmes = await e.get_message()
-        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Leech Enabled.</b></u>","ctrlacts")
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Leech Enabled.</b></u>","ctrlacts",session_id=session_id)
     
     elif cmd[1] == "editsleepsec":
         await e.answer("Type the new value for EDIT_SLEEP_SECS. Note that integer is expected.",alert=True)
@@ -144,13 +144,15 @@ async def handle_setting_callback(e):
         
 
 
-async def handle_settings(e,edit=False,msg="",submenu=None):
+async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
     # this function creates the menu
     # and now submenus too
-    session_id = time.time()
-    db = TorToolkitDB()
-    db.set_variable("SETTING_AUTH_CODE",str(session_id))
-    del db
+    if session_id is None:
+        session_id = time.time()
+        db = TorToolkitDB()
+        db.set_variable("SETTING_AUTH_CODE",str(session_id))
+        del db
+    
     menu = [
         #[KeyboardButtonCallback(yes+" Allow TG Files Leech123456789-","settings data".encode("UTF-8"))], # for ref
     ]
