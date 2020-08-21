@@ -166,10 +166,10 @@ async def upload_a_file(path,message,force_edit,database=None):
     start_time = time.time()
     tout = get_val("EDIT_SLEEP_SECS")
     opath = path
-    with open(path,"rb") as filee:
-        path = await upload_file(message.client,filee,file_name,
-        lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
-        )
+    #with open(path,"rb") as filee:
+    #    path = await upload_file(message.client,filee,file_name,
+    #    lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+    #    )
 
 
     try:
