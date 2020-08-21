@@ -139,7 +139,10 @@ async def handle_setting_callback(e):
         val = await get_value(e)
         
         await general_input_manager(e,mmes,"EDIT_SLEEP_SECS","int",val,db,None)
-
+    elif cmd[1] == "selfdest":
+        await e.answer("Closed")
+        await e.delete()
+        
 
         
 
@@ -167,6 +170,9 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
         #await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
         await get_sub_menu("☁️ Open Rclone Menu ☁️","rclonemenu",session_id,menu)
         await get_sub_menu("🕹️ Control Actions 🕹️","ctrlacts",session_id,menu)
+        menu.append(
+            [KeyboardButtonCallback("Close Menu",f"settings selfdest {session_id}".encode("UTF-8"))]
+        )
 
 
         if edit:
@@ -207,7 +213,9 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
                         )
 
         await get_sub_menu("Go Back ⬅️","mainmenu",session_id,menu)
-
+        menu.append(
+            [KeyboardButtonCallback("Close Menu",f"settings selfdest {session_id}".encode("UTF-8"))]
+        )
         if edit:
             rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
 
@@ -218,7 +226,9 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
 
 
         await get_sub_menu("Go Back ⬅️","mainmenu",session_id,menu)
-
+        menu.append(
+            [KeyboardButtonCallback("Close Menu",f"settings selfdest {session_id}".encode("UTF-8"))]
+        )
         if edit:
             rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
 
@@ -275,7 +285,7 @@ async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
 
 
 async def get_value(e,file=False):
-    # todo replace with conver. - or maybe not
+    # todo replace with conver. - or maybe not Fix Dont switch to conversion
     # this function gets the new value to be set from the user in current context
     lis = [False,None]
 

@@ -89,58 +89,25 @@ def add_handlers(bot: TelegramClient):
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
-    # get the callback in convs
-    async def get_c_data(e,sid,li):
-        if e.sender_id == sid:
-            li[0] = e.data.decode("UTF-8")
-            await e.answer("Got the selection")
-            return True
-        else:
-            await e.answer("Dont touch someone eles leech.",alert=True)
-            return False
-
-    # get the value in list [only way ]
-    choice = [""]
-    #create a partial for lambda
-    get_c_par = partial(get_c_data,li=choice)
-
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
         rclone = False
         # convo init
+        # todo errors when multiple leech command fired 
         if await get_config() is not None:
-            async with e.client.conversation(e.chat_id) as conv:
-                buts = [[KeyboardButtonCallback("To Drive",data="leechselect drive")],[KeyboardButtonCallback("To Telegram",data="leechselect tg")]]
-                conf_mes = await conv.send_message("<b>Choose where to upload your files:- </b>",parse_mode="html",buttons=buts,reply_to=e.id)
+            tsp = time.time()
+            #async with e.client.conversation(e.chat_id) as conv:
+            buts = [[KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")],[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
+            conf_mes = await e.respond("<b>Choose where to upload your files:- </b>",parse_mode="html",buttons=buts,reply_to=e.id)
                 
-                try:
-                    await conv.wait_event(
-                        events.CallbackQuery(
-                            pattern="leechselect",
-                            func=lambda ne: get_c_par(ne,e.sender_id)
-                        ),
-                        timeout=60
-                    )
-                except aio.exceptions.TimeoutError:
-                    torlog.error("Choice for the user got timeout fallback to default")
-                    defleech = get_val("DEFAULT_TIMEOUT")
-                    
-                    if defleech == "leech":
-                        rclone = False
-                    elif defleech == "rclone":
-                        rclone = True
-                    else:
-                        # just in case something goes wrong
-                        rclone = False
-                else:
-                    if choice[0].find("drive") != -1:
-                        rclone = True
-                    else:
-                        rclone = False
-                finally:
-                    await conf_mes.delete()
-
+            choice = await get_leech_choice(e,tsp)
+            if choice == "drive":
+                rclone = True
+            else:
+                rclone = False
+            
+            await conf_mes.delete()
         if rclone:
             if get_val("RCLONE_ENABLED"):
                 await check_link(e,rclone)
@@ -155,6 +122,53 @@ async def handle_leech_command(e):
             #path = await check_link(e)
             #if path is not None:
             #    pass
+
+
+async def get_leech_choice(e,timestamp):
+    # abstract for getting the confirm in a context
+
+    lis = [False,None]
+    cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
+    
+    e.client.add_event_handler(
+        #lambda e: test_callback(e,lis),
+        cbak,
+        events.CallbackQuery(pattern="leechselect")
+    )
+
+    start = time.time()
+    defleech = get_val("DEFAULT_TIMEOUT")
+
+    while not lis[0]:
+        if (time.time() - start) >= 60: #TIMEOUT_SEC:
+            
+            if defleech == "leech":
+                return "tg"
+            elif defleech == "rclone":
+                return "drive"
+            else:
+                # just in case something goes wrong
+                return "tg"
+            break
+        await aio.sleep(1)
+
+    val = lis[1]
+    
+    e.client.remove_event_handler(cbak)
+
+    return val
+
+async def get_leech_choice_callback(e,o_sender,lis,ts):
+    # handle the confirm callback
+
+    if o_sender != e.sender_id:
+        return
+    data = e.data.decode().split(" ")
+    if data [2] != str(ts):
+        return
+    
+    lis[0] = True
+    lis[1] = data[1]
 
 #add admin checks here - done
 async def handle_purge_command(e):
@@ -195,7 +209,8 @@ async def handle_status_command(e):
 async def handle_test_command(e):
     #print(await is_admin(e.client,e.sender_id,e.chat_id))
     db = TtkUpload()
-    await upload_a_file("/mnt/d/oc/The.Dude.In.Me.2019.720p.HDRip.850MB.Ganool.mkv",e,False,db)
+    msg = await e.reply("test reply")
+    await upload_a_file("/mnt/d/oc/The.Dude.In.Me.2019.720p.HDRip.850MB.Ganool.mkv",msg,False,db)
     pass
 
 async def handle_settings_cb(e):
