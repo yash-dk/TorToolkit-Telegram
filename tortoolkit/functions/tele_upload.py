@@ -165,19 +165,8 @@ async def upload_a_file(path,message,force_edit,database=None):
     out_msg = None
     start_time = time.time()
     tout = get_val("EDIT_SLEEP_SECS")
-    opath = path
-    try:
-        with open(opath,"rb") as filee:
-            path = await upload_file(
-                msg.client,
-                filee,
-                file_name,
-                lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
-            )
-    except Exception as e:
-        path = opath
-        torlog.error("{}\n{}".format("Fallback to single connection.",traceback.format_exc()))
-    
+
+
     try:
         if message.media and force_edit:
             out_msg = await msg.edit(
@@ -195,10 +184,10 @@ async def upload_a_file(path,message,force_edit,database=None):
                         caption=file_name,
                         reply_to=message.id,
                         force_document=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
                     )
                 else:
-                    thumb = await thumb_manage.get_thumbnail(opath)
+                    thumb = await thumb_manage.get_thumbnail(path)
                     try:
                         out_msg = await msg.client.send_file(
                             msg.to_id,
@@ -207,7 +196,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                             caption=file_name,
                             reply_to=message.id,
                             supports_streaming=True,
-                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
+                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
                         )
                     except VideoContentTypeInvalidError:
                         torlog.warning("Streamable file send failed fallback to document.")
@@ -218,7 +207,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                             thumb=thumb,
                             reply_to=message.id,
                             force_document=True,
-                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
+                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
                         )
                     except Exception:
                         torlog.error("Error:- {}".format(traceback.format_exc()))
@@ -229,7 +218,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                     file=path,
                     caption=file_name,
                     reply_to=message.id,
-                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
+                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
                 )
             else:
                 if get_val("FORCE_DOCUMENTS"):
@@ -239,7 +228,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                         caption=file_name,
                         reply_to=message.id,
                         force_document=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
                     )
                 else:
                     out_msg = await msg.client.send_file(
@@ -247,7 +236,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                         file=path,
                         caption=file_name,
                         reply_to=message.id,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
                     )
     except Exception as e:
         if str(e).find("cancel") != -1:
