@@ -8,6 +8,7 @@ from hachoir.metadata import extractMetadata
 from telethon.errors import VideoContentTypeInvalidError
 from ..core.database_handle import TtkUpload
 from telethon.tl.types import KeyboardButtonCallback
+from .Ftele import upload_file
 
 torlog = logging.getLogger(__name__)
 
@@ -107,7 +108,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
                 buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
-
+            print(updb)
             sentmsg = await upload_a_file(
                 path,
                 message,
@@ -130,6 +131,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
 
 
 async def upload_a_file(path,message,force_edit,database=None):
+    
     if database is not None:
         if database.get_cancel_status(message.chat_id,message.id):
             # add os remove here
@@ -161,6 +163,15 @@ async def upload_a_file(path,message,force_edit,database=None):
         msg = message
 
     out_msg = None
+    start_time = time.time()
+    tout = get_val("EDIT_SLEEP_SECS")
+    with open(path,"rb") as filee:
+        path = await upload_file(
+            msg.client,
+            filee,
+            file_name,
+            lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+        )
     
     try:
         if message.media and force_edit:
@@ -169,7 +180,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                 text=file_name
             )
         else:
-            start_time = time.time()
+            
             if ftype == "video":
                 if get_val("FORCE_DOCUMENTS") == True:
                     # add the thumbs for the docs too
@@ -179,7 +190,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                         caption=file_name,
                         reply_to=message.id,
                         force_document=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
                     )
                 else:
                     thumb = await thumb_manage.get_thumbnail(path)
@@ -191,7 +202,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                             caption=file_name,
                             reply_to=message.id,
                             supports_streaming=True,
-                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
                         )
                     except VideoContentTypeInvalidError:
                         torlog.warning("Streamable file send failed fallback to document.")
@@ -202,7 +213,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                             thumb=thumb,
                             reply_to=message.id,
                             force_document=True,
-                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
                         )
                     except Exception:
                         torlog.error("Error:- {}".format(traceback.format_exc()))
@@ -213,7 +224,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                     file=path,
                     caption=file_name,
                     reply_to=message.id,
-                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
                 )
             else:
                 if get_val("FORCE_DOCUMENTS"):
@@ -223,7 +234,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                         caption=file_name,
                         reply_to=message.id,
                         force_document=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
                     )
                 else:
                     out_msg = await msg.client.send_file(
@@ -231,7 +242,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                         file=path,
                         caption=file_name,
                         reply_to=message.id,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message)
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
                     )
     except Exception as e:
         if str(e).find("cancel") != -1:

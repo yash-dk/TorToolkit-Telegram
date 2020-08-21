@@ -186,6 +186,8 @@ async def handle_status_command(e):
 
 async def handle_test_command(e):
     #print(await is_admin(e.client,e.sender_id,e.chat_id))
+    db = TtkUpload()
+    await upload_a_file("/mnt/d/oc/The.Dude.In.Me.2019.720p.HDRip.850MB.Ganool.mkv",e,False,db)
     pass
 
 async def handle_settings_cb(e):
