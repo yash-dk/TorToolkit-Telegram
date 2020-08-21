@@ -11,7 +11,7 @@ from functools import partial
 from ..functions.rclone_upload import get_config
 from ..functions.admin_check import is_admin
 import asyncio as aio
-import re,logging
+import re,logging,time,os
 
 
 torlog = logging.getLogger(__name__)
@@ -53,6 +53,12 @@ def add_handlers(bot: TelegramClient):
         events.NewMessage(pattern=command_process(get_command("SETTINGS")),
         chats=ExecVars.ALD_USR)
     )
+
+    bot.add_event_handler(
+        handle_exec_message_f,
+        events.NewMessage(pattern=command_process(get_command("EXEC")),
+        chats=ExecVars.ALD_USR)
+    )
     
     
     bot.add_event_handler(
@@ -60,6 +66,8 @@ def add_handlers(bot: TelegramClient):
         events.NewMessage(pattern="/test",
         chats=ExecVars.ALD_USR)
     )
+
+    
 
     #*********** Callback Handlers *********** 
     
@@ -235,6 +243,51 @@ async def callback_handler(e):
         await e.answer("The torrent has been cancled in ADMIN MODE XD ;)",alert=True)
     else:
         await e.answer("You can cancel only your torrents ;)", alert=True)
+
+
+async def handle_exec_message_f(e):
+    message = e
+    client = e.client
+    if await is_admin(client, message.sender_id, message.chat_id):
+        PROCESS_RUN_TIME = 100
+        cmd = message.text.split(" ", maxsplit=1)[1]
+
+        reply_to_id = message.id
+        if message.is_reply:
+            reply_to_id = message.reply_to_msg_id
+
+        start_time = time.time() + PROCESS_RUN_TIME
+        process = await aio.create_subprocess_shell(
+            cmd,
+            stdout=aio.subprocess.PIPE,
+            stderr=aio.subprocess.PIPE
+        )
+        stdout, stderr = await process.communicate()
+        e = stderr.decode()
+        if not e:
+            e = "No Error"
+        o = stdout.decode()
+        if not o:
+            o = "No Output"
+        else:
+            _o = o.split("\n")
+            o = "`\n".join(_o)
+        OUTPUT = f"**QUERY:**\n__Command:__\n`{cmd}` \n__PID:__\n`{process.pid}`\n\n**stderr:** \n`{e}`\n**Output:**\n{o}"
+
+        if len(OUTPUT) > 3900:
+            with open("exec.text", "w+", encoding="utf8") as out_file:
+                out_file.write(str(OUTPUT))
+            await client.send_file(
+                chat_id=message.chat_id,
+                document="exec.text",
+                caption=cmd,
+                reply_to=reply_to_id
+            )
+            os.remove("exec.text")
+            await message.delete()
+        else:
+            await message.reply(OUTPUT)
+
 
 def command_process(command):
     return re.compile(command,re.IGNORECASE)

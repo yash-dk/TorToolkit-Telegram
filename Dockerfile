@@ -11,7 +11,7 @@ RUN apt -qq install -y curl git gnupg2 wget \
     apt-transport-https \
     python3 python3-pip \
     coreutils aria2 jq pv \
-    ffmpeg mediainfo unzip
+    ffmpeg mediainfo unzip redis-server
 
 RUN curl https://rclone.org/install.sh | bash
 

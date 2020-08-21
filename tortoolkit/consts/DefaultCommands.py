@@ -5,4 +5,5 @@ class Commands:
     RESUMEALL = "resumeall"
     STATUS = "status"
     SETTINGS = "settings"
+    EXEC = "exec"
     
