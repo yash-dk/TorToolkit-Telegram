@@ -67,7 +67,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
         logging.info("Uplaoding the file:- {}".format(path))
         if os.path.getsize(path) > get_val("TG_UP_LIMIT"):
             # the splitted file will be considered as a single upload ;)
-
+            del_mes = await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....") 
             split_dir = await vids_helpers.split_file(path,get_val("TG_UP_LIMIT"))
             dircon = os.listdir(split_dir)
             dircon.sort()
@@ -165,13 +165,18 @@ async def upload_a_file(path,message,force_edit,database=None):
     out_msg = None
     start_time = time.time()
     tout = get_val("EDIT_SLEEP_SECS")
-    with open(path,"rb") as filee:
-        path = await upload_file(
-            msg.client,
-            filee,
-            file_name,
-            lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
-        )
+    opath = path
+    try:
+        with open(opath,"rb") as filee:
+            path = await upload_file(
+                msg.client,
+                filee,
+                file_name,
+                lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+            )
+    except Exception as e:
+        path = opath
+        torlog.error("{}\n{}".format("Fallback to single connection.",traceback.format_exc()))
     
     try:
         if message.media and force_edit:
@@ -193,7 +198,7 @@ async def upload_a_file(path,message,force_edit,database=None):
                         progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,message,database)
                     )
                 else:
-                    thumb = await thumb_manage.get_thumbnail(path)
+                    thumb = await thumb_manage.get_thumbnail(opath)
                     try:
                         out_msg = await msg.client.send_file(
                             msg.to_id,
