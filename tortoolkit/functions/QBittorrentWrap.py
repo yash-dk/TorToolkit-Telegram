@@ -272,6 +272,8 @@ async def get_status(message,all=False):
                     i.num_leechs,
                     i.state
                 )
+        if msg.strip() == "":
+            return "No torrents running currently...." 
         return msg
     else:
         msg = "No torrents running currently...."
