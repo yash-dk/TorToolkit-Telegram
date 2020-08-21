@@ -26,8 +26,11 @@ p { font-size: 12px; margin: 24px;}
 </head>
 <body>
 <h1>TorToolKit : <a href="#">Github</a></h1>
-{My_content}
+<form action="/" method="POST">
 
+{My_content}
+<input type="submit" name="Select these files ;)">
+</form>
 
 <script>
 $('input[type="checkbox"]').change(function(e) {
@@ -103,7 +106,8 @@ async def hello(request):
 
 @routes.post('/')
 async def hello1(request):
-    print(await request.text())
+    data = await request.post()
+    print(data)
     
     return web.Response(text="got it")
 
