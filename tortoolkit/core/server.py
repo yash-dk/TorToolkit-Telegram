@@ -1,6 +1,9 @@
 from aiohttp import web
 import qbittorrentapi as qba
-import nodes
+from . import nodes
+import asyncio,logging
+
+torlog = logging.getLogger(__name__)
 
 routes = web.RouteTableDef()
 
@@ -105,8 +108,8 @@ async def list_torrent_contents(request):
     txt = "<html><form method=\"POST\" action=\"/\"><table>"
     j = 0
     par = nodes.make_tree(res)
-    nodes.print_tree(par)
-    cont = ["",0,0]
+    
+    cont = ["",0]
     nodes.create_list(par,cont)
 
     rend_page = page.replace("{My_content}",cont[0])
@@ -137,8 +140,8 @@ async def set_priority(request):
             
     pause = pause.strip("|")
     resume = resume.strip("|")
-    print(pause)
-    print(resume)
+    torlog.info(f"Paused {pause} of {torr}")
+    torlog.info(f"Resumed {resume} of {torr}")
     
     try:
         client.torrents_filePrio(torrent_hash=torr,file_ids=pause,priority=0)
@@ -147,13 +150,28 @@ async def set_priority(request):
         client.torrents_filePrio(torrent_hash=torr,file_ids=resume,priority=1)
     except:pass
 
+    await asyncio.sleep(2)
+
     return await list_torrent_contents(request)
 
 @routes.get('/')
 async def homepage(request):
     return web.Response(text="<h1>See TorTookit <a href=\"#\">@GitHub</a> By YashDK</h1>",content_type="text/html")
 
-app = web.Application()
+async def e404_middleware(app, handler):
+  async def middleware_handler(request):
+      try:
+          response = await handler(request)
+          if response.status == 404:
+              return web.Response(text="<h1>404: Page not found</h2><br><h3>Tortoolkit</h3>",content_type="text/html")
+          return response
+      except web.HTTPException as ex:
+          if ex.status == 404:
+              return web.Response(text="<h1>404: Page not found</h2><br><h3>Tortoolkit</h3>",content_type="text/html")
+          raise
+  return middleware_handler
+
+app = web.Application(middlewares=[e404_middleware])
 app.add_routes(routes)
 
 web.run_app(app)

@@ -29,24 +29,55 @@ def get_folders(path):
 
 def make_tree(res):
     parent = TorNode("Torrent")
-    nodes = dict()
-    k = 0
+    #nodes = dict()
+    l = 0
     
     for i in res:
         folders = get_folders(i.name)
         if len(folders) > 1:
+            previous_node = parent
             for j in range(len(folders)-1):
-                if not (folders[j] in nodes.keys()):
-                    if j != 0:
-                        nodes[folders[j]] = TorNode(folders[j],True,parent=nodes[folders[j-1]])
-                    else:
-                        nodes[folders[j]] = TorNode(folders[j],True,parent=parent)
-            TorNode(folders[-1],is_file=True,parent=nodes[folders[-2]],progress=i.progress,size=i.size,priority=i.priority,file_id=k)
-            k += 1
+                current_node = None
+                if previous_node is not None:
+                    for k in previous_node.children:
+                        if k.name == folders[j]:
+                            current_node = k 
+                            break
+                else:
+                    for k in parent.children:
+                        if k.name == folders[j]:
+                            current_node = k
+                            break
+
+                if current_node is None:
+                    previous_node = TorNode(folders[j],parent=previous_node,is_folder=True)
+                else:
+                    previous_node = current_node
+            TorNode(folders[-1],is_file=True,parent=previous_node,progress=i.progress,size=i.size,priority=i.priority,file_id=l)
+            l += 1
         else:
-            TorNode(folders[-1],is_file=True,parent=parent,progress=i.progress,size=i.size,priority=i.priority,file_id=k)
-            k += 1
+            TorNode(folders[-1],is_file=True,parent=parent,progress=i.progress,size=i.size,priority=i.priority,file_id=l)
+            l += 1
+
+
     return parent
+
+    # Will be depricated after testing 
+    #for i in res:
+    #    folders = get_folders(i.name)
+    #    if len(folders) > 1:
+    #        for j in range(len(folders)-1):
+    #            if not (folders[j] in nodes.keys()):
+    #                if j != 0:
+    #                    nodes[folders[j]] = TorNode(folders[j],True,parent=nodes[folders[j-1]])
+    #                else:
+    #                    nodes[folders[j]] = TorNode(folders[j],True,parent=parent)
+    #        TorNode(folders[-1],is_file=True,parent=nodes[folders[-2]],progress=i.progress,size=i.size,priority=i.priority,file_id=k)
+    #        k += 1
+    #    else:
+    #        TorNode(folders[-1],is_file=True,parent=parent,progress=i.progress,size=i.size,priority=i.priority,file_id=k)
+    #        k += 1
+    #return parent
 
 def print_tree(parent):
     for pre, _, node in RenderTree(parent):
