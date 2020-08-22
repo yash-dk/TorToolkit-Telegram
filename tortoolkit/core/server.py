@@ -26,9 +26,10 @@ p { font-size: 12px; margin: 24px;}
 </head>
 <body>
 <h1>TorToolKit : <a href="#">Github</a></h1>
-<form action="/" method="POST">
+<form action="{form_url}" method="POST">
 
 {My_content}
+
 <input type="submit" name="Select these files ;)">
 </form>
 
@@ -38,7 +39,11 @@ $('input[type="checkbox"]').change(function(e) {
   var checked = $(this).prop("checked"),
       container = $(this).parent(),
       siblings = container.siblings();
-
+/*
+  $(this).attr('value', function(index, attr){
+     return attr == 'yes' ? 'noo' : 'yes';
+  });
+*/
   container.find('input[type="checkbox"]').prop({
     indeterminate: false,
     checked: checked
@@ -88,29 +93,65 @@ $('input[type="checkbox"]').change(function(e) {
 
 """
 
-@routes.get('/')
-async def hello(request):
-    torr = "937712b36beb9f9e4a878c5acce72250c646443d"
+@routes.get('/tortk/files/{hash_id}')
+async def list_torrent_contents(request):
+    # not using templates cuz wanted to keem things in one file, might change in future #todo
+
+    torr = request.match_info["hash_id"]
     client = qba.Client(host="localhost",port="8090",username="admin",password="adminadmin")
     client.auth_log_in()
-    txt = ""
+
     res = client.torrents_files(torrent_hash=torr)
     txt = "<html><form method=\"POST\" action=\"/\"><table>"
     j = 0
     par = nodes.make_tree(res)
-    
-    cont = [""]
+    nodes.print_tree(par)
+    cont = ["",0,0]
     nodes.create_list(par,cont)
-        
-    return web.Response(text=page.replace("{My_content}",cont[0]),content_type='text/html')
 
-@routes.post('/')
-async def hello1(request):
-    data = await request.post()
-    print(data)
+    rend_page = page.replace("{My_content}",cont[0])
+    rend_page = rend_page.replace("{form_url}",f"/tortk/files/{torr}")
+
+    return web.Response(text=rend_page,content_type='text/html')
     
-    return web.Response(text="got it")
 
+@routes.post('/tortk/files/{hash_id}')
+async def set_priority(request):
+    torr = request.match_info["hash_id"]
+    client = qba.Client(host="localhost",port="8090",username="admin",password="adminadmin")
+    client.auth_log_in()
+
+    data = await request.post()
+    resume = ""
+    pause = ""
+    data = dict(data)
+    
+    for i in data.keys():
+        if i.find("filenode") != -1:
+            node_no = i.split("_")[-1]
+
+            if data[i] == "on":
+                resume += f"{node_no}|"
+            else:
+                pause += f"{node_no}|"
+            
+    pause = pause.strip("|")
+    resume = resume.strip("|")
+    print(pause)
+    print(resume)
+    
+    try:
+        client.torrents_filePrio(torrent_hash=torr,file_ids=pause,priority=0)
+    except:pass
+    try:
+        client.torrents_filePrio(torrent_hash=torr,file_ids=resume,priority=1)
+    except:pass
+
+    return await list_torrent_contents(request)
+
+@routes.get('/')
+async def homepage(request):
+    return web.Response(text="<h1>See TorTookit <a href=\"#\">@GitHub</a> By YashDK</h1>",content_type="text/html")
 
 app = web.Application()
 app.add_routes(routes)

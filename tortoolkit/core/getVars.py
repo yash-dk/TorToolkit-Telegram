@@ -1,9 +1,10 @@
-from ..consts.ExecVarsSample import ExecVars 
-from ..core.database_handle import TorToolkitDB
+from ..consts.ExecVarsSample import ExecVars
+#from ..core.database_handle import TorToolkitDB
+from tortoolkit import var_db
 import os
 
 def get_val(variable):
-    db = TorToolkitDB()
+    db = var_db
     val = None
 
     #Get the variable from the constants supplied

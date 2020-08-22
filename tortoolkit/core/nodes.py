@@ -3,7 +3,7 @@ import qbittorrentapi as qba
 #from ..functions.Human_Format import human_readable_bytes
 
 class TorNode(NodeMixin):
-    def __init__(self,name,is_folder=False,is_file=False,parent=None,progress=None,size=None,priority=None):
+    def __init__(self,name,is_folder=False,is_file=False,parent=None,progress=None,size=None,priority=None,file_id=None):
         super().__init__()
         self.name = name
         self.is_folder = is_folder
@@ -18,6 +18,8 @@ class TorNode(NodeMixin):
             self.size = size
         if priority is not None:
             self.priority = priority
+        if file_id is not None:
+            self.file_id = file_id
         
 
 def get_folders(path):
@@ -28,7 +30,8 @@ def get_folders(path):
 def make_tree(res):
     parent = TorNode("Torrent")
     nodes = dict()
-
+    k = 0
+    
     for i in res:
         folders = get_folders(i.name)
         if len(folders) > 1:
@@ -38,9 +41,11 @@ def make_tree(res):
                         nodes[folders[j]] = TorNode(folders[j],True,parent=nodes[folders[j-1]])
                     else:
                         nodes[folders[j]] = TorNode(folders[j],True,parent=parent)
-            TorNode(folders[-1],is_file=True,parent=nodes[folders[-2]],progress=i.progress,size=i.size,priority=i.priority)
+            TorNode(folders[-1],is_file=True,parent=nodes[folders[-2]],progress=i.progress,size=i.size,priority=i.priority,file_id=k)
+            k += 1
         else:
-            TorNode(folders[-1],is_file=True,parent=parent,progress=i.progress,size=i.size,priority=i.priority)
+            TorNode(folders[-1],is_file=True,parent=parent,progress=i.progress,size=i.size,priority=i.priority,file_id=k)
+            k += 1
     return parent
 
 def print_tree(parent):
@@ -49,25 +54,29 @@ def print_tree(parent):
         print(treestr.ljust(8), node.is_folder, node.is_file)
 
 
-def create_list(par,msg,file_id=0,folder_id=0):
+def create_list(par,msg):
     if par.name != ".unwanted":
         msg[0] += "<ul>"
     for i in par.children:
         if i.is_folder:
             msg[0] += "<li>"
             if i.name != ".unwanted":
-                msg[0] += f"<input type=\"checkbox\" name=\"foldernode_{folder_id}\"> <label for=\"{i.name}\">{i.name}</label>"
-            create_list(i,msg,file_id,folder_id)
+                msg[0] += f"<input type=\"checkbox\" name=\"foldernode_{msg[1]}\"> <label for=\"{i.name}\">{i.name}</label>"
+            create_list(i,msg)
             msg[0] += "</li>"
-            folder_id += 1
+            msg[1] += 1
         else:
             msg[0] += "<li>"
             if i.priority == 0:
-                msg[0] += f"<input type=\"checkbox\" name=\"filenode_{file_id}\"> <label for=\"{i.name}\">{i.name}</label>"
+                msg[0] += f"<input type=\"checkbox\" name=\"filenode_{i.file_id}\"> <label for=\"filenode_{i.file_id}\">{i.name}</label>"
+                msg[0] += f"<input type=\"hidden\" value=\"off\" name=\"filenode_{i.file_id}\">"
+                
             else:
-                msg[0] += f"<input type=\"checkbox\" checked name=\"filenode_{file_id}\"> <label for=\"{i.name}\">{i.name}</label>"
+                msg[0] += f"<input type=\"checkbox\" checked name=\"filenode_{i.file_id}\"> <label for=\"filenode_{i.file_id}\">{i.name}</label>"
+                msg[0] += f"<input type=\"hidden\" value=\"off\" name=\"filenode_{i.file_id}\">"
+            
+
             msg[0] += "</li>"
-            file_id += 1
     
     if par.name != ".unwanted":
         msg[0] += "</ul>"
