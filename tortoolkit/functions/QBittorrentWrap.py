@@ -1,13 +1,14 @@
 import qbittorrentapi as qba
 import asyncio as aio
-import os
-import logging,traceback
+import os,logging,traceback,time
 from datetime import datetime,timedelta
 from . import Hash_Fetch
 from .Human_Format import human_readable_bytes,human_readable_timedelta 
 from ..core.getVars import get_val
 from telethon.tl.types import KeyboardButtonCallback
 from telethon.errors.rpcerrorlist import MessageNotModifiedError,FloodWaitError
+from telethon import events
+from functools import partial
 
 #logging.basicConfig(level=logging.DEBUG)
 torlog = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ async def get_client(host=None,port=None,uname=None,passw=None,retry=2) -> qba.T
     """
     #getting the conn 
     host = host if host is not None else "localhost"
-    port = port if port is not None else "8080"
+    port = port if port is not None else "8090"
     uname = uname if uname is not None else "admin"
     passw = passw if passw is not None else "adminadmin"
     torlog.info(f"Trying to login in qBittorrent using creds {host} {port} {uname} {passw}")
@@ -313,7 +314,9 @@ async def register_torrent(entity,message,magnet=False,file=False):
             return True
         else:
             data = "torcancel {}".format(torrent.hash)
-            message = await message.edit(buttons=[[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))]])
+            message = await message.edit(buttons=[
+                [KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))]
+                ])
             return await update_progress(client,message,torrent)
     if file:
         torrent = await add_torrent_file(entity,message)
@@ -324,3 +327,41 @@ async def register_torrent(entity,message,magnet=False,file=False):
             data = "torcancel {}".format(torrent.hash)
             message = await message.edit(buttons=[[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))]])
             return await update_progress(client,message,torrent)
+
+async def get_confirm(e):
+    # abstract for getting the confirm in a context
+
+    lis = [False,None]
+    cbak = partial(get_confirm_callback,o_sender=e.sender_id,lis=lis)
+    
+    e.client.add_event_handler(
+        #lambda e: test_callback(e,lis),
+        cbak,
+        events.CallbackQuery(pattern="confirmsetting")
+    )
+
+    start = time.time()
+
+    while not lis[0]:
+        if (time.time() - start) >= 60:
+            break
+        await aio.sleep(1)
+
+    val = lis[1]
+    
+    e.client.remove_event_handler(cbak)
+
+    return val
+
+async def get_confirm_callback(e,o_sender,lis):
+    # handle the confirm callback
+
+    if o_sender != e.sender_id:
+        return
+    lis[0] = True
+    
+    data = e.data.decode().split(" ")
+    if data[1] == "true":
+        lis[1] = True
+    else:
+        lis[1] = False

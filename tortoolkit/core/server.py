@@ -96,24 +96,62 @@ $('input[type="checkbox"]').change(function(e) {
 
 """
 
+code_page = """
+<html>
+<head>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+<title>
+TorToolkit Torrent Files
+</title>
+</head>
+<body>
+<div class="container">
+<form action="{form_url}">
+  <div class="form-group">
+    <label for="pin_code">Pin Code</label>
+    <input type="text" class="form-control" name="pin_code" placeholder="Enter code to access the torrent">
+    <small class="form-text text-muted">Dont mess around. You download will get messed up.</small>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+</div>
+</body>
+</html>
+"""
+
+
 @routes.get('/tortk/files/{hash_id}')
 async def list_torrent_contents(request):
     # not using templates cuz wanted to keem things in one file, might change in future #todo
-
     torr = request.match_info["hash_id"]
+
+    gets = request.query
+
+    if not "pin_code" in gets.keys():
+        rend_page = code_page.replace("{form_url}",f"/tortk/files/{torr}")
+        return web.Response(text=rend_page,content_type='text/html')
+
+    
     client = qba.Client(host="localhost",port="8090",username="admin",password="adminadmin")
     client.auth_log_in()
+    try:
+      res = client.torrents_files(torrent_hash=torr)
+    except qba.NotFound404Error:
+      raise web.HTTPNotFound()
 
-    res = client.torrents_files(torrent_hash=torr)
-    txt = "<html><form method=\"POST\" action=\"/\"><table>"
-    j = 0
+    ctor = client.torrents_info(torrent_hashes=torr)[0]
+    pincode = torr[0]+torr[-1]+torr[1]+str(ctor.added_on)[-3:]
+    if gets["pin_code"] != pincode:
+        return web.Response(text="Incorrect pin code")
+
+    
     par = nodes.make_tree(res)
     
     cont = ["",0]
     nodes.create_list(par,cont)
 
     rend_page = page.replace("{My_content}",cont[0])
-    rend_page = rend_page.replace("{form_url}",f"/tortk/files/{torr}")
+    rend_page = rend_page.replace("{form_url}",f"/tortk/files/{torr}?pin_code={pincode}")
 
     return web.Response(text=rend_page,content_type='text/html')
     
@@ -145,9 +183,12 @@ async def set_priority(request):
     
     try:
         client.torrents_filePrio(torrent_hash=torr,file_ids=pause,priority=0) # pylint: disable=no-member
+    except qba.NotFound404Error:
+      raise web.HTTPNotFound()
     except:pass
     try:
         client.torrents_filePrio(torrent_hash=torr,file_ids=resume,priority=1) # pylint: disable=no-member
+        raise web.HTTPNotFound()
     except:pass
 
     await asyncio.sleep(2)
@@ -177,4 +218,5 @@ async def start_server():
 
   runner = web.AppRunner(app)
   await runner.setup()
+  #todo provide the config for the host and port
   await web.TCPSite(runner,"0.0.0.0",8080).start()
