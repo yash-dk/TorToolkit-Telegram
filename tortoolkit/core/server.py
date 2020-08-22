@@ -144,10 +144,10 @@ async def set_priority(request):
     torlog.info(f"Resumed {resume} of {torr}")
     
     try:
-        client.torrents_filePrio(torrent_hash=torr,file_ids=pause,priority=0)
+        client.torrents_filePrio(torrent_hash=torr,file_ids=pause,priority=0) # pylint: disable=no-member
     except:pass
     try:
-        client.torrents_filePrio(torrent_hash=torr,file_ids=resume,priority=1)
+        client.torrents_filePrio(torrent_hash=torr,file_ids=resume,priority=1) # pylint: disable=no-member
     except:pass
 
     await asyncio.sleep(2)
@@ -171,7 +171,10 @@ async def e404_middleware(app, handler):
           raise
   return middleware_handler
 
-app = web.Application(middlewares=[e404_middleware])
-app.add_routes(routes)
+async def start_server():
+  app = web.Application(middlewares=[e404_middleware])
+  app.add_routes(routes)
 
-web.run_app(app)
+  runner = web.AppRunner(app)
+  await runner.setup()
+  await web.TCPSite(runner,"0.0.0.0",8080).start()
