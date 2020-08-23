@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 WORKDIR /torapp
 
@@ -7,11 +7,10 @@ RUN apt -qq update
 ENV TZ Asia/Kolkata
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt -qq install -y curl git gnupg2 wget \
-    apt-transport-https \
-    python3.8 python3-pip \
-    coreutils aria2 jq pv \
-    ffmpeg mediainfo unzip redis-server
+RUN apt -qq install -y curl git wget \
+    python3 python3-pip \
+    aria2 \
+    ffmpeg mediainfo unzip
 
 RUN curl https://rclone.org/install.sh | bash
 
