@@ -2,7 +2,7 @@ from aiohttp import web
 import qbittorrentapi as qba
 from . import nodes
 from .database_handle import TtkTorrents
-import asyncio,logging
+import asyncio,logging,os
 
 torlog = logging.getLogger(__name__)
 
@@ -226,4 +226,5 @@ async def start_server():
     runner = web.AppRunner(app)
     await runner.setup()
     #todo provide the config for the host and port
-    await web.TCPSite(runner,"localhost",8080).start()
+    port = int(os.environ.get("PORT",8080))
+    await web.TCPSite(runner,"0.0.0.0",port).start()
