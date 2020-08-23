@@ -227,4 +227,4 @@ async def start_server():
     await runner.setup()
     #todo provide the config for the host and port
     port = int(os.environ.get("PORT",8080))
-    await web.TCPSite(runner,"0.0.0.0",port).start()
+    await web.TCPSite(runner,"localhost",port).start()
