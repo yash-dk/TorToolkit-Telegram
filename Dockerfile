@@ -26,6 +26,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# run as non root user inorder to bind to the heroku web port 
 RUN useradd -ms /bin/bash  myuser
 USER myuser
 
