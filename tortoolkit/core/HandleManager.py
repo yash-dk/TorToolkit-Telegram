@@ -8,7 +8,7 @@ from ..functions.tele_upload import upload_a_file,upload_handel
 from .database_handle import TtkUpload,TtkTorrents
 from .settings import handle_settings,handle_setting_callback
 from functools import partial
-from ..functions.rclone_upload import get_config
+from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
 import asyncio as aio
 import re,logging,time,os
@@ -212,12 +212,9 @@ async def handle_status_command(e):
         
 
 async def handle_test_command(e):
-    #print(await is_admin(e.client,e.sender_id,e.chat_id))
-    db = TtkUpload()
-    msg = await e.reply("test reply")
-    await upload_a_file("/mnt/d/oc/The.Dude.In.Me.2019.720p.HDRip.850MB.Ganool.mkv",msg,False,db)
-    pass
-
+    print(os.path.exists("/mnt/d/GitMajors/TorToolkit/편의점 샛별이[.txt"))
+    res = await rclone_driver("/mnt/d/GitMajors/TorToolkit/편의점 샛별이[.txt",e)
+    print(res)
 async def handle_settings_cb(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
         await handle_setting_callback(e)

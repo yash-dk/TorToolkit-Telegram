@@ -223,8 +223,13 @@ async def start_server():
     app = web.Application(middlewares=[e404_middleware])
     app.add_routes(routes)
     return app
+
+async def start_server_async():
+    
+    app = web.Application(middlewares=[e404_middleware])
+    app.add_routes(routes)
     runner = web.AppRunner(app)
     await runner.setup()
-    #todo provide the config for the host and port
+    #todo provide the config for the host and port for vps only
     port = int(os.environ.get("PORT",8080))
     await web.TCPSite(runner,"localhost",port).start()
