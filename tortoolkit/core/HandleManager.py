@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from telethon import TelegramClient,events 
 from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
