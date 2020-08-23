@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt -qq install -y curl git gnupg2 wget \
     apt-transport-https \
-    python3 python3-pip \
+    python3.8 python3-pip \
     coreutils aria2 jq pv \
     ffmpeg mediainfo unzip redis-server
 
