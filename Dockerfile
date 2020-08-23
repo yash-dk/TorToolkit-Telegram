@@ -30,4 +30,4 @@ COPY . .
 RUN useradd -ms /bin/bash  myuser
 USER myuser
 
-CMD gunicorn tortoolkit:start_server --bind 0.0.0.0:$PORT --worker-class aiohttp.GunicornWebWorker & python3 -m tortoolkit
+CMD ./alive & gunicorn tortoolkit:start_server --bind 0.0.0.0:$PORT --worker-class aiohttp.GunicornWebWorker & python3 -m tortoolkit
