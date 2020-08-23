@@ -222,7 +222,7 @@ async def start_server():
     
     app = web.Application(middlewares=[e404_middleware])
     app.add_routes(routes)
-    
+    return app
     runner = web.AppRunner(app)
     await runner.setup()
     #todo provide the config for the host and port

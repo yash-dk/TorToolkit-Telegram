@@ -1,1 +1,1 @@
-web: python3 -m tortoolkit
+web: gunicorn tortoolkit:start_server --bind localhost:$PORT --worker-class aiohttp.GunicornWebWorker & python3 -m tortoolkit

@@ -26,4 +26,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python3", "-m", "tortoolkit"]
+RUN useradd -ms /bin/bash  myuser
+USER myuser
+
+CMD gunicorn tortoolkit:start_server --bind 0.0.0.0:$PORT --worker-class aiohttp.GunicornWebWorker & python3 -m tortoolkit
