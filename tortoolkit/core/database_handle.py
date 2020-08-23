@@ -188,3 +188,63 @@ class TtkUpload(DataBaseHandle):
 
     def __del__(self):
         super().__del__()
+
+class TtkTorrents(DataBaseHandle):
+    def __init__(self,dburl=None):
+        if dburl is None:
+            dburl = os.environ.get("DB_URI",None)
+            if dburl is None:
+                dburl = ExecVars.DB_URI
+
+        super().__init__(dburl)
+        cur = self.scur()
+        table = """CREATE TABLE IF NOT EXISTS ttk_torrents(
+            id SERIAL PRIMARY KEY NOT NULL,
+            hash_id VARCHAR(100) NOT NULL,
+            passw VARCHAR(10) NOT NULL,
+            enab BOOLEAN DEFAULT true
+        )
+        """
+        cur.execute(table)
+        self.ccur(cur)
+
+    def add_torrent(self,hash_id,passw):
+        sql = "SELECT * FROM ttk_torrents WHERE hash_id=%s"
+        cur = self.scur()
+        cur.execute(sql,(hash_id,))
+        if cur.rowcount > 0:
+            sql = "UPDATE ttk_torrents SET passw=%s WHERE hash_id=%s"
+            cur.execute(sql,(passw,hash_id))
+        else:
+            sql = "INSERT INTO ttk_torrents(hash_id,passw) VALUES(%s,%s)"
+            cur.execute(sql,(hash_id,passw))
+        
+        self.ccur(cur)
+
+    def disable_torrent(self,hash_id):
+        sql = "SELECT * FROM ttk_torrents WHERE hash_id=%s"
+        cur = self.scur()
+        cur.execute(sql,(hash_id,))
+        if cur.rowcount > 0:
+            sql = "UPDATE ttk_torrents SET enab=false WHERE hash_id=%s"
+            cur.execute(sql,(hash_id,))
+
+        self.ccur(cur)
+        
+    def get_password(self,hash_id):
+        sql = "SELECT * FROM ttk_torrents WHERE hash_id=%s"
+        cur = self.scur()
+        cur.execute(sql,(hash_id,))
+        if cur.rowcount > 0:
+            row = cur.fetchone()
+            self.ccur(cur)
+            return row[2]
+        else:
+            self.ccur(cur)
+            return False
+
+    def purge_all_torrents(self):
+        sql = "DELETE FROM ttk_torrents"
+        cur = self.scur()
+        cur.execute(sql)
+        self.ccur(cur)

@@ -1,6 +1,7 @@
 from aiohttp import web
 import qbittorrentapi as qba
 from . import nodes
+from .database_handle import TtkTorrents
 import asyncio,logging
 
 torlog = logging.getLogger(__name__)
@@ -140,7 +141,12 @@ async def list_torrent_contents(request):
       raise web.HTTPNotFound()
 
     ctor = client.torrents_info(torrent_hashes=torr)[0]
-    pincode = torr[0]+torr[-1]+torr[1]+str(ctor.added_on)[-3:]
+    
+    db = TtkTorrents()
+    passw = db.get_password(torr)
+    if isinstance(passw,bool):
+          raise web.HTTPNotFound()
+    pincode = passw
     if gets["pin_code"] != pincode:
         return web.Response(text="Incorrect pin code")
 
@@ -213,10 +219,11 @@ async def e404_middleware(app, handler):
   return middleware_handler
 
 async def start_server():
-  app = web.Application(middlewares=[e404_middleware])
-  app.add_routes(routes)
-
-  runner = web.AppRunner(app)
-  await runner.setup()
-  #todo provide the config for the host and port
-  await web.TCPSite(runner,"0.0.0.0",8080).start()
+    
+    app = web.Application(middlewares=[e404_middleware])
+    app.add_routes(routes)
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    #todo provide the config for the host and port
+    await web.TCPSite(runner,"0.0.0.0",8080).start()

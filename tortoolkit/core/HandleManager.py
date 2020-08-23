@@ -5,7 +5,7 @@ from ..core.getCommand import get_command
 from ..core.getVars import get_val
 from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files
 from ..functions.tele_upload import upload_a_file,upload_handel
-from .database_handle import TtkUpload
+from .database_handle import TtkUpload,TtkTorrents
 from .settings import handle_settings,handle_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config
@@ -84,6 +84,11 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         handle_upcancel_cb,
         events.CallbackQuery(pattern="upcancel")
+    )
+
+    bot.add_event_handler(
+        handle_pincode_cb,
+        events.CallbackQuery(pattern="getpin")
     )
 
 #*********** Handlers Below ***********
@@ -302,6 +307,20 @@ async def handle_exec_message_f(e):
             await message.delete()
         else:
             await message.reply(OUTPUT)
+
+async def handle_pincode_cb(e):
+    data = e.data.decode("UTF-8")
+    data = data.split(" ")
+    
+    if str(e.sender_id) == data[2]:
+        db = TtkTorrents()
+        passw = db.get_password(data[1])
+        if isinstance(passw,bool):
+            await e.answer("torrent expired download has been started now.")
+        else:
+            await e.answer(f"Your Pincode if \"{passw}\"",alert=True)
+
+        del db
 
 
 def command_process(command):

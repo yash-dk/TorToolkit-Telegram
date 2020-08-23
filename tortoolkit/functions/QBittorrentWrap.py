@@ -5,10 +5,12 @@ from datetime import datetime,timedelta
 from . import Hash_Fetch
 from .Human_Format import human_readable_bytes,human_readable_timedelta 
 from ..core.getVars import get_val
-from telethon.tl.types import KeyboardButtonCallback
+from telethon.tl.types import KeyboardButtonCallback,KeyboardButtonUrl
 from telethon.errors.rpcerrorlist import MessageNotModifiedError,FloodWaitError
 from telethon import events
 from functools import partial
+from random import randint
+from ..core.database_handle import TtkTorrents
 
 #logging.basicConfig(level=logging.DEBUG)
 torlog = logging.getLogger(__name__)
@@ -32,7 +34,7 @@ async def get_client(host=None,port=None,uname=None,passw=None,retry=2) -> qba.T
     try:
         client.auth_log_in()
         torlog.info("Client connected successfully to the torrent server. :)")
-        client.application.set_preferences({"disk_cache":300})
+        client.application.set_preferences({"disk_cache":300,"incomplete_files_ext":True})
         torlog.info("Setting the cache size to 300")
         return client
     except qba.LoginFailed as e:
@@ -307,16 +309,48 @@ async def deregister_torrent(hashid):
 
 async def register_torrent(entity,message,magnet=False,file=False):
     client = await get_client()
+
+    #refresh message
+    message = await message.client.get_messages(message.chat_id,ids=message.id)
+    omess = await message.get_reply_message()
+    
     if magnet:
         torrent = await add_torrent_magnet(entity,message)
         if torrent.progress == 1:
             await message.edit("The provided torrent was already completly downloaded.")
             return True
         else:
+            
+            pincode = randint(100000,999999)
+            db = TtkTorrents()
+            db.add_torrent(torrent.hash,pincode)
+            
+            pincodetxt = f"getpin {torrent.hash} {omess.sender_id}"
+
             data = "torcancel {}".format(torrent.hash)
+            base = get_val("BASE_URL_OF_BOT")
+
+            urll = f"{base}/tortk/files/{torrent.hash}"
+            print(urll)
+
             message = await message.edit(buttons=[
-                [KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))]
-                ])
+                [
+                    KeyboardButtonUrl("Choose File from link",urll),
+                    KeyboardButtonCallback("Get Pincode",data=pincodetxt.encode("UTF-8"))
+                ],
+                [
+                    KeyboardButtonCallback("Done Selecting Files.",data=f"doneselection {omess.sender_id}".encode("UTF-8"))
+                ]
+            ])
+
+            await get_confirm(omess)
+
+            message = await message.edit(buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
+
+            db.disable_torrent(torrent.hash)
+            del db
+
+
             return await update_progress(client,message,torrent)
     if file:
         torrent = await add_torrent_file(entity,message)
@@ -332,18 +366,18 @@ async def get_confirm(e):
     # abstract for getting the confirm in a context
 
     lis = [False,None]
-    cbak = partial(get_confirm_callback,o_sender=e.sender_id,lis=lis)
+    cbak = partial(get_confirm_callback,lis=lis)
     
     e.client.add_event_handler(
         #lambda e: test_callback(e,lis),
         cbak,
-        events.CallbackQuery(pattern="confirmsetting")
+        events.CallbackQuery(pattern="doneselection")
     )
 
     start = time.time()
 
     while not lis[0]:
-        if (time.time() - start) >= 60:
+        if (time.time() - start) >= 180:
             break
         await aio.sleep(1)
 
@@ -353,15 +387,13 @@ async def get_confirm(e):
 
     return val
 
-async def get_confirm_callback(e,o_sender,lis):
+async def get_confirm_callback(e,lis):
     # handle the confirm callback
-
-    if o_sender != e.sender_id:
+    data = e.data.decode("UTF-8")
+    o_sender = data.split(" ")[1]
+    await e.answer("Dont Touch it.......")
+    if o_sender != str(e.sender_id):
         return
+    await e.answer("Starting the download with the selected files.")
     lis[0] = True
-    
-    data = e.data.decode().split(" ")
-    if data[1] == "true":
-        lis[1] = True
-    else:
-        lis[1] = False
+    raise events.StopPropagation()
