@@ -2,6 +2,8 @@ FROM ubuntu:20.04
 
 WORKDIR /torapp
 
+RUN chmod -R 777 /torapp
+
 RUN apt -qq update
 
 ENV TZ Asia/Kolkata
