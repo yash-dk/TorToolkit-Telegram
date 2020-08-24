@@ -34,8 +34,8 @@ async def get_client(host=None,port=None,uname=None,passw=None,retry=2) -> qba.T
     try:
         client.auth_log_in()
         torlog.info("Client connected successfully to the torrent server. :)")
-        client.application.set_preferences({"disk_cache":200,"incomplete_files_ext":True})
-        torlog.info("Setting the cache size to 200")
+        client.application.set_preferences({"disk_cache":200,"incomplete_files_ext":True,"max_connec":3000,"max_connec_per_torrent":300,"async_io_threads":6})
+        torlog.info("Setting the cache size to 200 incomplete_files_ext:True,max_connec:3000,max_connec_per_torrent:300,async_io_threads:6")
         return client
     except qba.LoginFailed as e:
         torlog.error("An errot occured invalid creds detected\n{}\n{}".format(e,traceback.format_exc()))
@@ -134,8 +134,9 @@ async def add_torrent_file(path,message):
         await message.edit("Error occured check logs.")
         return False
 
-async def update_progress(client,message,torrent,except_retry=0):
-    
+async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
+    if sleepsec is None:
+        sleepsec = get_val("EDIT_SLEEP_SECS")
     #switch to iteration from recursion as python dosent have tailing optimization :O
     #RecursionError: maximum recursion depth exceeded
     
@@ -188,7 +189,7 @@ async def update_progress(client,message,torrent,except_retry=0):
                     await message.edit(msg,parse_mode="html",buttons=message.reply_markup) 
 
                 #aio timeout have to switch to global something
-                await aio.sleep(get_val("EDIT_SLEEP_SECS"))
+                await aio.sleep(sleepsec)
 
                 #stop the download when download complete
                 if tor_info.state == "uploading" or tor_info.state.lower().endswith("up"):
@@ -200,7 +201,7 @@ async def update_progress(client,message,torrent,except_retry=0):
                     pass
 
             except (MessageNotModifiedError,FloodWaitError) as e:
-                torlog.error("{}\n\n{}\n\nn{}".format(e,traceback.format_exc(),tor_info))
+                torlog.error("{}".format(e))
             
         except Exception as e:
             torlog.error("{}\n\n{}\n\nn{}".format(e,traceback.format_exc(),tor_info))

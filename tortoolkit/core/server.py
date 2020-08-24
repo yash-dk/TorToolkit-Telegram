@@ -2,7 +2,7 @@ from aiohttp import web
 import qbittorrentapi as qba
 from . import nodes
 from .database_handle import TtkTorrents
-import asyncio,logging,os
+import asyncio,logging,os,traceback
 
 torlog = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ async def list_torrent_contents(request):
     except qba.NotFound404Error:
       raise web.HTTPNotFound()
 
-    ctor = client.torrents_info(torrent_hashes=torr)[0]
+    
     
     db = TtkTorrents()
     passw = db.get_password(torr)
@@ -158,7 +158,7 @@ async def list_torrent_contents(request):
 
     rend_page = page.replace("{My_content}",cont[0])
     rend_page = rend_page.replace("{form_url}",f"/tortk/files/{torr}?pin_code={pincode}")
-
+    client.auth_log_out()
     return web.Response(text=rend_page,content_type='text/html')
     
 
@@ -188,17 +188,20 @@ async def set_priority(request):
     torlog.info(f"Resumed {resume} of {torr}")
     
     try:
-        client.torrents_filePrio(torrent_hash=torr,file_ids=pause,priority=0) # pylint: disable=no-member
+        client.torrents_file_priority(torrent_hash=torr,file_ids=pause,priority=0)
     except qba.NotFound404Error:
-      raise web.HTTPNotFound()
-    except:pass
-    try:
-        client.torrents_filePrio(torrent_hash=torr,file_ids=resume,priority=1) # pylint: disable=no-member
         raise web.HTTPNotFound()
-    except:pass
+    except:
+        torlog.info(traceback.format_exc())
+    try:
+        client.torrents_file_priority(torrent_hash=torr,file_ids=resume,priority=1)
+    except qba.NotFound404Error:
+        raise web.HTTPNotFound()
+    except:
+        torlog.info(traceback.format_exc())
 
     await asyncio.sleep(2)
-
+    client.auth_log_out()
     return await list_torrent_contents(request)
 
 @routes.get('/')
