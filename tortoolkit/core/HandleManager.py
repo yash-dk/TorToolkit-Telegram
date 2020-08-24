@@ -215,9 +215,9 @@ async def handle_status_command(e):
         
 
 async def handle_test_command(e):
-    print(os.path.exists("/mnt/d/GitMajors/TorToolkit/편의점 샛별이[.txt"))
-    res = await rclone_driver("/mnt/d/GitMajors/TorToolkit/편의점 샛별이[.txt",e)
-    print(res)
+    res = await rclone_driver("",e)
+
+
 async def handle_settings_cb(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
         await handle_setting_callback(e)

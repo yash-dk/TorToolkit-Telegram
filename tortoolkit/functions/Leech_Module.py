@@ -70,7 +70,7 @@ async def check_link(msg,rclone=False):
             path = await msg.download_media()
             rval =  await QBittorrentWrap.register_torrent(path,rmess,file=True)
             
-            if not isinstance(path,bool):
+            if not isinstance(rval,bool):
                 if not rclone:
                     rdict = await upload_handel(rval,rmess,omess.from_id,dict())
                     await print_files(omess,rdict)

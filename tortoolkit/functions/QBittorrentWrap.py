@@ -332,7 +332,6 @@ async def register_torrent(entity,message,magnet=False,file=False):
             base = get_val("BASE_URL_OF_BOT")
 
             urll = f"{base}/tortk/files/{torrent.hash}"
-            print(urll)
 
             message = await message.edit(buttons=[
                 [
@@ -359,8 +358,35 @@ async def register_torrent(entity,message,magnet=False,file=False):
             await message.edit("The provided torrent was already completly downloaded.")
             return True
         else:
+            pincode = randint(100000,999999)
+            db = TtkTorrents()
+            db.add_torrent(torrent.hash,pincode)
+            
+            pincodetxt = f"getpin {torrent.hash} {omess.sender_id}"
+
             data = "torcancel {}".format(torrent.hash)
-            message = await message.edit(buttons=[[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))]])
+
+            base = get_val("BASE_URL_OF_BOT")
+
+            urll = f"{base}/tortk/files/{torrent.hash}"
+
+            message = await message.edit(buttons=[
+                [
+                    KeyboardButtonUrl("Choose File from link",urll),
+                    KeyboardButtonCallback("Get Pincode",data=pincodetxt.encode("UTF-8"))
+                ],
+                [
+                    KeyboardButtonCallback("Done Selecting Files.",data=f"doneselection {omess.sender_id}".encode("UTF-8"))
+                ]
+            ])
+
+            await get_confirm(omess)
+
+            message = await message.edit(buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
+
+            db.disable_torrent(torrent.hash)
+            del db
+
             return await update_progress(client,message,torrent)
 
 async def get_confirm(e):
