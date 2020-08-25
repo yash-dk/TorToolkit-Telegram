@@ -139,6 +139,18 @@ async def handle_setting_callback(e):
         val = await get_value(e)
         
         await general_input_manager(e,mmes,"EDIT_SLEEP_SECS","int",val,db,None)
+    elif cmd[1] == "fastupload":
+        await e.answer("")
+
+        if cmd[2] == "true":
+            val = True
+        else:
+            val = False
+        
+        db.set_variable("FAST_UPLOAD",val)
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Fast Upload Enabled.</b></u>","ctrlacts",session_id=session_id)
+
     elif cmd[1] == "selfdest":
         await e.answer("Closed")
         await e.delete()
@@ -222,6 +234,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
     elif submenu == "ctrlacts":
         await get_bool_variable("RCLONE_ENABLED","Enable Rclone.",menu,"rcloneenable",session_id)
         await get_bool_variable("LEECH_ENABLED","Enable Leech.",menu,"leechenable",session_id)
+        await get_bool_variable("FAST_UPLOAD","Enable Fast Upload.(Turn off if errored)",menu,"fastupload",session_id)
         await get_bool_variable("FORCE_DOCS_USER","Not Implemented.User will choose force docs.",menu,"forcedocsuser",session_id)
 
 
