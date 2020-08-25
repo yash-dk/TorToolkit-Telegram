@@ -6,4 +6,5 @@ class Commands:
     STATUS = "status"
     SETTINGS = "settings"
     EXEC = "exec"
+    UPLOAD = "upload"
     

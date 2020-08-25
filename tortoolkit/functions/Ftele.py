@@ -116,7 +116,7 @@ class ParallelTransferrer:
         self.senders = None
 
     @staticmethod
-    def _get_connection_count(file_size: int, max_count: int = 20,
+    def _get_connection_count(file_size: int, max_count: int = 5,
                               full_size: int = 100 * 1024 * 1024) -> int:
         if file_size > full_size:
             return max_count
@@ -232,13 +232,14 @@ parallel_transfer_locks: DefaultDict[int, asyncio.Lock] = defaultdict(lambda: as
 async def _internal_transfer_to_telegram(client: TelegramClient,
                                          response: BinaryIO,
                                          progress_callback: callable,
-                                         file_name: str
+                                         file_name: str,
+                                         dc_id=None
                                          ) -> Tuple[TypeInputFile, int]:
     file_id = helpers.generate_random_long()
     file_size = os.path.getsize(response.name)
 
     hash_md5 = hashlib.md5()
-    uploader = ParallelTransferrer(client)
+    uploader = ParallelTransferrer(client,dc_id)
     part_size, part_count, is_large = await uploader.init_upload(file_id, file_size)
     buffer = bytearray()
     for data in stream_file(response):
@@ -293,7 +294,7 @@ async def upload_file(client: TelegramClient,
                                         file: BinaryIO,
                                         file_name: str,
                                         progress_callback: callable = None,
-
+                                        dc_id=None
                                         ) -> TypeInputFile:
-    res = (await _internal_transfer_to_telegram(client, file, progress_callback,file_name))[0]
+    res = (await _internal_transfer_to_telegram(client, file, progress_callback,file_name, dc_id))[0]
     return res

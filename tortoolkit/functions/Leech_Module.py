@@ -47,7 +47,7 @@ def get_entities(msg):
     else:
         return None
 
-async def check_link(msg,rclone=False):
+async def check_link(msg,rclone=False,queue=None):
     urls = None
     omess = msg
     msg = await msg.get_reply_message()

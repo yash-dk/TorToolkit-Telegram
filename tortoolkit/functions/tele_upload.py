@@ -13,7 +13,7 @@ from .Ftele import upload_file
 torlog = logging.getLogger(__name__)
 
 #thanks @SpEcHlDe for this concept of recursion
-async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False):
+async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,queue=None):
     # creting here so connections are kept low
     if updb is None:
         updb = TtkUpload()
@@ -53,7 +53,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 job_id,
                 force_edit,
                 updb,
-                from_in=True
+                from_in=True,
+                queue=queue
             )
         
         if not from_in:
@@ -91,7 +92,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                     job_id,
                     force_edit,
                     updb=updb,
-                    from_in=True
+                    from_in=True,
+                    queue=queue
                 )
 
             if not from_in:
@@ -113,7 +115,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 path,
                 message,
                 force_edit,
-                updb
+                updb,
+                queue
             )
 
             if not from_in:
@@ -130,7 +133,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
 
 
 
-async def upload_a_file(path,message,force_edit,database=None):
+async def upload_a_file(path,message,force_edit,database=None,queue=None):
     
     if database is not None:
         if database.get_cancel_status(message.chat_id,message.id):
@@ -142,15 +145,19 @@ async def upload_a_file(path,message,force_edit,database=None):
     #todo improve this uploading ✔️
     file_name = os.path.basename(path)
     metadata = extractMetadata(createParser(path))
-    
-    metadata = metadata.exportDictionary()
-    try:
-        mime = metadata.get("Common").get("MIME type")
-    except:
-        mime = metadata.get("Metadata").get("MIME type")
 
-    ftype = mime.split("/")[0]
-    ftype = ftype.lower().strip()
+    if metadata is not None:
+        # handle none for unknown
+        metadata = metadata.exportDictionary()
+        try:
+            mime = metadata.get("Common").get("MIME type")
+        except:
+            mime = metadata.get("Metadata").get("MIME type")
+
+        ftype = mime.split("/")[0]
+        ftype = ftype.lower().strip()
+    else:
+        ftype = "unknown"
     
 
 
@@ -162,10 +169,18 @@ async def upload_a_file(path,message,force_edit,database=None):
     else:
         msg = message
 
+    uploader_id = None
+    if queue is not None:
+        torlog.info(f"Waiting for the worker here for {file_name}")
+        msg = await msg.edit(f"{msg.text} - Waiting for a uploaders to get free")
+        uploader_id = await queue.get()
+        torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
+
     out_msg = None
     start_time = time.time()
     tout = get_val("EDIT_SLEEP_SECS")
     opath = path
+
     #with open(path,"rb") as filee:
     #    path = await upload_file(message.client,filee,file_name,
     #    lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
@@ -249,6 +264,10 @@ async def upload_a_file(path,message,force_edit,database=None):
             await msg.delete()
         else:
             torlog.info(traceback.format_exc())
+    finally:
+        if queue is not None:
+            await queue.put(uploader_id)
+            torlog.info(f"Freed uploader with id {uploader_id}")
                 
 
     if out_msg is None:

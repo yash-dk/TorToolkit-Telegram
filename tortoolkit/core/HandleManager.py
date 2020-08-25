@@ -19,10 +19,10 @@ import re,logging,time,os
 
 torlog = logging.getLogger(__name__)
 
-def add_handlers(bot: TelegramClient):
+def add_handlers(bot: TelegramClient, queue: aio.Queue):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
     bot.add_event_handler(
-        handle_leech_command,
+        partial(handle_leech_command,queue=queue),
         events.NewMessage(pattern=command_process(get_command("LEECH")),
         chats=ExecVars.ALD_USR)
     )
@@ -63,12 +63,19 @@ def add_handlers(bot: TelegramClient):
         chats=ExecVars.ALD_USR)
     )
     
+    bot.add_event_handler(
+        partial(upload_document_f,queue=queue),
+        events.NewMessage(pattern=command_process(get_command("UPLOAD")),
+        chats=ExecVars.ALD_USR)
+    )
     
     bot.add_event_handler(
-        handle_test_command,
+        partial(handle_test_command,queue=queue),
         events.NewMessage(pattern="/test",
         chats=ExecVars.ALD_USR)
     )
+
+
 
     
 
@@ -96,7 +103,7 @@ def add_handlers(bot: TelegramClient):
 
 #*********** Handlers Below ***********
 
-async def handle_leech_command(e):
+async def handle_leech_command(e,queue):
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
@@ -118,12 +125,12 @@ async def handle_leech_command(e):
             await conf_mes.delete()
         if rclone:
             if get_val("RCLONE_ENABLED"):
-                await check_link(e,rclone)
+                await check_link(e,rclone,queue)
             else:
                 await e.reply("<b>DRIVE IS DISABLED BY THE ADMIN</b>",parse_mode="html")
         else:
             if get_val("LEECH_ENABLED"):
-                await check_link(e,rclone)
+                await check_link(e,rclone,queue)
             else:
                 await e.reply("<b>TG LEECH IS DISABLED BY THE ADMIN</b>",parse_mode="html")
 
@@ -214,8 +221,13 @@ async def handle_status_command(e):
         await get_status(e)
         
 
-async def handle_test_command(e):
-    res = await rclone_driver("",e)
+async def handle_test_command(e,queue=None):
+    db = TtkUpload()
+    msg = await e.reply("test")
+    msg = await e.client.get_messages(e.chat_id,ids=msg.id)
+    print(await msg.get_reply_message(),"-------------------")
+    await upload_a_file("/mnt/d/GitMajors/yolo.mkv",msg,False,db,queue=queue)
+    del db
 
 
 async def handle_settings_cb(e):
@@ -322,6 +334,23 @@ async def handle_pincode_cb(e):
 
         del db
 
+async def upload_document_f(message,queue):
+    imsegd = await message.reply(
+        "processing ..."
+    )
+    imsegd = await message.client.get_messages(message.chat_id,ids=imsegd.id)
+    if await is_admin(message.client, message.sender_id, message.chat_id):
+        if " " in message.text:
+            recvd_command, local_file_name = message.text.split(" ", 1)
+            recvd_response = await upload_a_file(
+                local_file_name,
+                imsegd,
+                False,
+                TtkUpload(),
+                queue
+            )
+            #torlog.info(recvd_response)
+    await imsegd.delete()
 
 def command_process(command):
     return re.compile(command,re.IGNORECASE)
