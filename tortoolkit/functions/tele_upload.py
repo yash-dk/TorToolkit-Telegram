@@ -8,6 +8,7 @@ from hachoir.metadata import extractMetadata
 from telethon.errors import VideoContentTypeInvalidError
 from ..core.database_handle import TtkUpload
 from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio
+from telethon.utils import get_attributes
 from .Ftele import upload_file
 
 torlog = logging.getLogger(__name__)
@@ -199,27 +200,9 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
         else:
             
             if ftype == "video":
-                attrs = None
-                if not isinstance(path,str):
-                    dura,w,h = 1,1,1
-                    try:
-                        dura = ometa.get("duration").seconds
-                    except:pass
-                    try:
-                        w = ometa.get("width")
-                    except:pass
-                    try:
-                        h = ometa.get("height")
-                    except:pass
-                    attrs = DocumentAttributeVideo(
-                        duration=dura,
-                        w=w,
-                        h=h,
-                        round_message=False,
-                        supports_streaming=True
-                    )
-
+                
                 if get_val("FORCE_DOCUMENTS") == True:
+                    attrs, _ = get_attributes(opath,force_document=True)
                     # add the thumbs for the docs too
                     out_msg = await msg.client.send_file(
                         msg.to_id,
@@ -228,10 +211,13 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
                         reply_to=message.id,
                         force_document=True,
                         progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
+                        attributes=attrs
                     )
                 else:
                     thumb = await thumb_manage.get_thumbnail(opath)
+                    
                     try:
+                        attrs, _ = get_attributes(opath,supports_streaming=True)
                         out_msg = await msg.client.send_file(
                             msg.to_id,
                             file=path,
@@ -243,6 +229,7 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
                             attributes=attrs
                         )
                     except VideoContentTypeInvalidError:
+                        attrs, _ = get_attributes(opath,force_document=True)
                         torlog.warning("Streamable file send failed fallback to document.")
                         out_msg = await msg.client.send_file(
                             msg.to_id,
@@ -258,30 +245,36 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
                         torlog.error("Error:- {}".format(traceback.format_exc()))
             elif ftype == "audio":
                 # not sure about this if
+                attrs, _ = get_attributes(opath)
                 out_msg = await msg.client.send_file(
                     msg.to_id,
                     file=path,
                     caption=file_name,
                     reply_to=message.id,
-                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
+                    attributes=attrs
                 )
             else:
                 if get_val("FORCE_DOCUMENTS"):
+                    attrs, _ = get_attributes(opath,force_document=True)
                     out_msg = await msg.client.send_file(
                         msg.to_id,
                         file=path,
                         caption=file_name,
                         reply_to=message.id,
                         force_document=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
+                        attributes=attrs
                     )
                 else:
+                    attrs, _ = get_attributes(opath)
                     out_msg = await msg.client.send_file(
                         msg.to_id,
                         file=path,
                         caption=file_name,
                         reply_to=message.id,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
+                        attributes=attrs
                     )
     except Exception as e:
         if str(e).find("cancel") != -1:
