@@ -1,7 +1,9 @@
-import asyncio,shlex,logging
+import asyncio,shlex,logging,time,os
 import orjson as json
 from telethon.hints import MessageLike
+from telethon.tl.types import KeyboardButtonCallback
 from typing import Union,List,Tuple,Dict
+from ..functions.Human_Format import human_readable_bytes
 
 torlog = logging.getLogger(__name__)
 
@@ -60,8 +62,9 @@ async def get_max_thumb(data: dict) -> str:
     
     return thumb_url
 
-async def create_quality_menu(url: str):
+async def create_quality_menu(url: str,message: MessageLike, message1: MessageLike):
     data = await get_yt_link_details(url)
+    suid = str(time.time()).replace(".","")
     if data is None:
         return None
     else:
@@ -76,20 +79,69 @@ async def create_quality_menu(url: str):
                 else:
                     unique_formats[c_format][1] = i.get("filesize")
 
-
+        buttons = list()
         for i in unique_formats.keys():
+            
             # add human bytes here
             if i == "tiny":
-                text = f"tiny/audios {unique_formats[i][0]} - {unique_formats[i][1]}"
-                data = f"ytdlsmenu {i}" # add user id
+                text = f"tiny/audios [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
+                cdata = f"ytdlsmenu {i} {message1.sender_id} {suid}" # add user id
             else:
-                text = f"{i} {unique_formats[i][0]} - {unique_formats[i][1]}"
-                data = f"ytdlsmenu {i}" # add user id
+                text = f"{i} [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
+                cdata = f"ytdlsmenu {i} {message1.sender_id} {suid}" # add user id
+            buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
 
+        await message.edit("Choose a quality/option available below.",buttons=buttons)
+        path = os.path.join(os.getcwd(),'userdata')
         
+        if not os.path.exists(path):
+            os.mkdir(path)
+        
+        path = os.path.join(path,f"{suid}.json")
+        
+        with open(path,"w",encoding="UTF-8") as file:
+            file.write(json.dumps(data).decode("UTF-8"))
 
 
 
+    return True
+        
+async def handle_ytdl_command(e: MessageLike):
+    msg = await e.get_reply_message()
+    msg1 = await e.reply("Processing the given link.....")
+    if msg.text.find("http") != -1:
+        res = await create_quality_menu(msg.text.strip(),msg1,msg)
+        if res is None:
+            await msg1.edit("Invalid link provided.")
+    else:
+        await e.reply("Invalid link provided.")
 
-if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(create_quality_menu("https://www.youtube.com/watch?v=SlNTVljJf3g"))
+async def handle_ytdl_callbacks(e: MessageLike):
+    data = e.data.decode("UTF-8")
+    data = data.split(" ")
+    
+    if data[2] != str(e.sender_id):
+        await e.answer("Not valid user, Dont touch.")
+        return
+    
+    path = os.path.join(os.getcwd(),'userdata',data[3]+".json")
+    if os.path.exists(path):
+        with open(path) as file:
+            ytdata = json.loads(file.read())
+            buttons = list()
+            for i in ytdata.get("formats"):
+                
+                c_format = i.get("format_note")
+                if not c_format == data[1]:
+                    continue
+                text = f"{i.get('format')}"
+                cdata = f"ytdldfile {i.get('format_id')} {e.sender_id} {data[3]}"
+                buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
+
+            await e.edit(f"Files for quality {data[1]}",buttons=buttons)
+            
+
+
+    else:
+        await e.answer("Try again something went wrong.",alert=True)
+        await e.delete()

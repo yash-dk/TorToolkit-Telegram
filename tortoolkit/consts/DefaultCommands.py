@@ -7,4 +7,5 @@ class Commands:
     SETTINGS = "settings"
     EXEC = "exec"
     UPLOAD = "upload"
+    YTDL = "ytdl"
     
