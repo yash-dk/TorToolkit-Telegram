@@ -77,12 +77,19 @@ async def create_quality_menu(url: str):
                     unique_formats[c_format][1] = i.get("filesize")
 
 
-        print(unique_formats)
+        for i in unique_formats.keys():
+            # add human bytes here
+            if i == "tiny":
+                text = f"tiny/audios {unique_formats[i][0]} - {unique_formats[i][1]}"
+                data = f"ytdlsmenu {i}" # add user id
+            else:
+                text = f"{i} {unique_formats[i][0]} - {unique_formats[i][1]}"
+                data = f"ytdlsmenu {i}" # add user id
+
         
-        
-        
+
 
 
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(create_quality_menu(""))
+    asyncio.get_event_loop().run_until_complete(create_quality_menu("https://www.youtube.com/watch?v=SlNTVljJf3g"))
