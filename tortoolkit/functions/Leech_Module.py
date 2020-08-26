@@ -72,7 +72,7 @@ async def check_link(msg,rclone=False,queue=None):
             
             if not isinstance(rval,bool):
                 if not rclone:
-                    rdict = await upload_handel(rval,rmess,omess.from_id,dict())
+                    rdict = await upload_handel(rval,rmess,omess.from_id,dict(),queue=queue)
                     await print_files(omess,rdict)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                 else:
@@ -96,7 +96,7 @@ async def check_link(msg,rclone=False,queue=None):
             
             if not isinstance(path,bool):
                 if not rclone:
-                    rdict = await upload_handel(path,rmess,omess.from_id,dict())
+                    rdict = await upload_handel(path,rmess,omess.from_id,dict(),queue=queue)
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:

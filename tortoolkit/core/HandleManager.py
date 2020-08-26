@@ -310,8 +310,8 @@ async def handle_exec_message_f(e):
             with open("exec.text", "w+", encoding="utf8") as out_file:
                 out_file.write(str(OUTPUT))
             await client.send_file(
-                chat_id=message.chat_id,
-                document="exec.text",
+                entity=message.chat_id,
+                file="exec.text",
                 caption=cmd,
                 reply_to=reply_to_id
             )
