@@ -133,8 +133,11 @@ async def print_files(e,files):
     msg = ""
     if len(files) == 0:
         return
+    
+    chat_id = e.chat_id
+
     for i in files.keys():
-        link = f'https://t.me/c/{e.chat_id}/{files[i]}'
+        link = f'https://t.me/c/{chat_id}/{files[i]}'
         msg += f'🚩 <a href="{link}">{i}</a>\n'
     
     await e.reply(msg,parse_mode="html")
