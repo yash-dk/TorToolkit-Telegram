@@ -65,7 +65,19 @@ async def create_quality_menu(url: str):
     if data is None:
         return None
     else:
-        pass
+        unique_formats = dict()
+        for i in data.get("formats"):
+            c_format = i.get("format_note")
+            if not c_format in unique_formats:
+                unique_formats[c_format] = [i.get("filesize"),i.get("filesize")]
+            else:
+                if unique_formats[c_format][0] > i.get("filesize"):
+                    unique_formats[c_format][0] = i.get("filesize")
+                else:
+                    unique_formats[c_format][1] = i.get("filesize")
+
+
+        print(unique_formats)
         
         
         
@@ -73,4 +85,4 @@ async def create_quality_menu(url: str):
 
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(create_quality_menu("https://www.youtube.com/watch?v=SlNTVljJf3g"))
+    asyncio.get_event_loop().run_until_complete(create_quality_menu(""))

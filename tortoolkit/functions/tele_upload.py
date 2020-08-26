@@ -7,7 +7,7 @@ from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 from telethon.errors import VideoContentTypeInvalidError
 from ..core.database_handle import TtkUpload
-from telethon.tl.types import KeyboardButtonCallback
+from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio
 from .Ftele import upload_file
 
 torlog = logging.getLogger(__name__)
@@ -145,7 +145,8 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
     #todo improve this uploading ✔️
     file_name = os.path.basename(path)
     metadata = extractMetadata(createParser(path))
-
+    ometa = metadata
+    
     if metadata is not None:
         # handle none for unknown
         metadata = metadata.exportDictionary()
@@ -158,8 +159,8 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
         ftype = ftype.lower().strip()
     else:
         ftype = "unknown"
+    print(metadata)
     
-
 
     if not force_edit:
         sup_mes = await message.get_reply_message()
@@ -198,6 +199,26 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
         else:
             
             if ftype == "video":
+                attrs = None
+                if not isinstance(path,str):
+                    dura,w,h = 1,1,1
+                    try:
+                        dura = ometa.get("duration").seconds
+                    except:pass
+                    try:
+                        w = ometa.get("width")
+                    except:pass
+                    try:
+                        h = ometa.get("height")
+                    except:pass
+                    attrs = DocumentAttributeVideo(
+                        duration=dura,
+                        w=w,
+                        h=h,
+                        round_message=False,
+                        supports_streaming=True
+                    )
+
                 if get_val("FORCE_DOCUMENTS") == True:
                     # add the thumbs for the docs too
                     out_msg = await msg.client.send_file(
@@ -206,7 +227,7 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
                         caption=file_name,
                         reply_to=message.id,
                         force_document=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
                     )
                 else:
                     thumb = await thumb_manage.get_thumbnail(opath)
@@ -218,7 +239,8 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
                             caption=file_name,
                             reply_to=message.id,
                             supports_streaming=True,
-                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
+                            attributes=attrs
                         )
                     except VideoContentTypeInvalidError:
                         torlog.warning("Streamable file send failed fallback to document.")
@@ -229,7 +251,8 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
                             thumb=thumb,
                             reply_to=message.id,
                             force_document=True,
-                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
+                            attributes=attrs
                         )
                     except Exception:
                         torlog.error("Error:- {}".format(traceback.format_exc()))
