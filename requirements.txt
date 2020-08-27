@@ -11,6 +11,7 @@ gunicorn==20.0.4
 hachoir==3.1.1
 idna==2.10
 multidict==4.7.6
+orjson==3.3.1
 Pillow==7.2.0
 psycopg2-binary==2.8.5
 pyaes==1.6.1
@@ -25,3 +26,4 @@ TgCrypto==1.2.1
 torrentool==1.1.0
 urllib3==1.25.10
 yarl==1.5.1
+youtube-dl==2020.7.28

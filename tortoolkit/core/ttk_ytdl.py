@@ -81,10 +81,11 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
             if not c_format in unique_formats:
                 unique_formats[c_format] = [i.get("filesize"),i.get("filesize")]
             else:
-                if unique_formats[c_format][0] > i.get("filesize"):
-                    unique_formats[c_format][0] = i.get("filesize")
-                else:
-                    unique_formats[c_format][1] = i.get("filesize")
+                if i.get("filesize") is not None:
+                    if unique_formats[c_format][0] > i.get("filesize"):
+                        unique_formats[c_format][0] = i.get("filesize")
+                    else:
+                        unique_formats[c_format][1] = i.get("filesize")
 
         buttons = list()
         for i in unique_formats.keys():
@@ -92,10 +93,10 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
             # add human bytes here
             if i == "tiny":
                 text = f"tiny/audios [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
-                cdata = f"ytdlsmenu {i} {message1.sender_id} {suid}" # add user id
+                cdata = f"ytdlsmenu|{i}|{message1.sender_id}|{suid}" # add user id
             else:
                 text = f"{i} [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
-                cdata = f"ytdlsmenu {i} {message1.sender_id} {suid}" # add user id
+                cdata = f"ytdlsmenu|{i}|{message1.sender_id}|{suid}" # add user id
             buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
         
         await message.edit("Choose a quality/option available below.",buttons=buttons)
@@ -127,7 +128,7 @@ async def handle_ytdl_command(e: MessageLike):
 
 async def handle_ytdl_callbacks(e: MessageLike):
     data = e.data.decode("UTF-8")
-    data = data.split(" ")
+    data = data.split("|")
     
     if data[0] == "ytdlsmenu":
         if data[2] != str(e.sender_id):
@@ -145,10 +146,10 @@ async def handle_ytdl_callbacks(e: MessageLike):
                     if not c_format == data[1]:
                         continue
                     text = f"{i.get('format')} [{human_readable_bytes(i.get('filesize'))}]"
-                    cdata = f"ytdldfile {i.get('format_id')} {e.sender_id} {data[3]}"
+                    cdata = f"ytdldfile|{i.get('format_id')}|{e.sender_id}|{data[3]}"
                     buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
                 
-                buttons.append([KeyboardButtonCallback("Go Back 😒",f"ytdlmmenu {data[2]} {data[3]}")])
+                buttons.append([KeyboardButtonCallback("Go Back 😒",f"ytdlmmenu|{data[2]}|{data[3]}")])
                 await e.edit(f"Files for quality {data[1]}",buttons=buttons)
                 
 
@@ -162,13 +163,31 @@ async def handle_ytdl_callbacks(e: MessageLike):
             return
         path = os.path.join(os.getcwd(),'userdata',data[2]+".json")
         if os.path.exists(path):
-            with open(path) as file:
+            with open(path,encoding="UTF-8") as file:
                 ytdata = json.loads(file.read())
                 await create_quality_menu("",await e.get_message(),e,ytdata,data[2])
 
         else:
             await e.answer("Try again something went wrong.",alert=True)
             await e.delete()
+
+async def handle_ytdl_file_download(e: MessageLike):
+    data = e.data.decode("UTF-8")
+    data = data.split("|")
+
+    if data[2] != str(e.sender_id):
+        await e.answer("Not valid user, Dont touch.")
+        return
+    
+    path = os.path.join(os.getcwd(),'userdata',data[3]+".json")
+    if os.path.exists(path):
+        with open(path,encoding="UTF-8") as file:
+            ytdata = json.loads(file.read())
+            yt_url = ytdata.get("webpage_url")
+            
+    else:
+        await e.answer("Try again something went wrong.",alert=True)
+        await e.delete()
 
 #todo
 # Add the YT playlist feature here
