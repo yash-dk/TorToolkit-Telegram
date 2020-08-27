@@ -265,9 +265,10 @@ async def get_status(message,all=False):
                 continue
             else:
                 olen += 1
-                msg += "📥 <b>{} | {}% | {}/{} | {} | {} | S:{} | L:{} | {}</b>\n\n".format(
+                msg += "📥 <b>{} | {}% | {}/{}({}) | {} | {} | S:{} | L:{} | {}</b>\n\n".format(
                     i.name,
                     round(i.progress*100,2),
+                    human_readable_bytes(i.completed),
                     human_readable_bytes(i.size),
                     human_readable_bytes(i.total_size),
                     human_readable_bytes(i.dlspeed,postfix="/s"),
