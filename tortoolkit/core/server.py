@@ -161,6 +161,63 @@ async def list_torrent_contents(request):
     client.auth_log_out()
     return web.Response(text=rend_page,content_type='text/html')
     
+# this will be a depri if causes more traffic
+# mostly will not as internal routing
+async def re_verfiy(paused,resumed,client,torr):
+    paused = paused.strip()
+    resumed = resumed.strip()
+    if paused:
+        paused = paused.split("|")
+    if resumed:
+        resumed = resumed.split("|")
+    
+    k = 0
+    while True:
+        
+        res = client.torrents_files(torrent_hash=torr)
+        j = 0
+        verify = True
+        for i in res:
+            if str(j) in paused:
+                if i.priority == 0:
+                    continue
+                else:
+                    verify = False
+                    break
+
+            if str(j) in resumed:
+                if i.priority != 0:
+                    continue
+                else:
+                    verify = False
+                    break
+
+            j += 1
+
+        if not verify:
+            torlog.info("Reverification Failed :- correcting stuff")
+            # reconnect and issue the request again
+            client.auth_log_out()
+            client = qba.Client(host="localhost",port="8090",username="admin",password="adminadmin")
+            client.auth_log_in()
+            try:
+                client.torrents_file_priority(torrent_hash=torr,file_ids=paused,priority=0)
+            except:
+                torlog.error("Errored in reverification paused")
+            try:
+                client.torrents_file_priority(torrent_hash=torr,file_ids=resumed,priority=1)
+            except:
+                torlog.error("Errored in reverification resumed")
+            client.auth_log_out()
+        else:
+            break
+        k += 1
+        if k >= 3:
+            # avoid an infite loop here
+            return False
+    return True
+
+
 
 @routes.post('/tortk/files/{hash_id}')
 async def set_priority(request):
@@ -192,15 +249,18 @@ async def set_priority(request):
     except qba.NotFound404Error:
         raise web.HTTPNotFound()
     except:
-        torlog.info(traceback.format_exc())
+        torlog.info("Errored in paused")
+    
     try:
         client.torrents_file_priority(torrent_hash=torr,file_ids=resume,priority=1)
     except qba.NotFound404Error:
         raise web.HTTPNotFound()
     except:
-        torlog.info(traceback.format_exc())
+        torlog.info("Errored in resumed")
 
     await asyncio.sleep(2)
+    if not await re_verfiy(pause,resume,client,torr):
+        torlog.error("The torrent choose erroed reverification failed")
     client.auth_log_out()
     return await list_torrent_contents(request)
 
