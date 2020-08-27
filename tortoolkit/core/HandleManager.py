@@ -112,6 +112,11 @@ def add_handlers(bot: TelegramClient, queue: aio.Queue):
         events.CallbackQuery(pattern="ytdlsmenu")
     )
 
+    bot.add_event_handler(
+        handle_ytdl_callbacks,
+        events.CallbackQuery(pattern="ytdlmmenu")
+    )
+
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e,queue):

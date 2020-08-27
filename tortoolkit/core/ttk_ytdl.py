@@ -2,7 +2,7 @@ import asyncio,shlex,logging,time,os
 import orjson as json
 from telethon.hints import MessageLike
 from telethon.tl.types import KeyboardButtonCallback
-from typing import Union,List,Tuple,Dict
+from typing import Union,List,Tuple,Dict,Optional
 from ..functions.Human_Format import human_readable_bytes
 
 torlog = logging.getLogger(__name__)
@@ -62,9 +62,16 @@ async def get_max_thumb(data: dict) -> str:
     
     return thumb_url
 
-async def create_quality_menu(url: str,message: MessageLike, message1: MessageLike):
-    data = await get_yt_link_details(url)
-    suid = str(time.time()).replace(".","")
+async def create_quality_menu(url: str,message: MessageLike, message1: MessageLike,jsons: Optional[str] = None, suid: Optional[str] = None):
+    if jsons is None:
+        data = await get_yt_link_details(url)
+        suid = str(time.time()).replace(".","")
+    else:
+        data = jsons
+
+    with open("test.txt","w") as f:
+        f.write(json.dumps(data).decode("UTF-8"))
+
     if data is None:
         return None
     else:
@@ -90,17 +97,19 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
                 text = f"{i} [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
                 cdata = f"ytdlsmenu {i} {message1.sender_id} {suid}" # add user id
             buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
-
+        
         await message.edit("Choose a quality/option available below.",buttons=buttons)
-        path = os.path.join(os.getcwd(),'userdata')
         
-        if not os.path.exists(path):
-            os.mkdir(path)
-        
-        path = os.path.join(path,f"{suid}.json")
-        
-        with open(path,"w",encoding="UTF-8") as file:
-            file.write(json.dumps(data).decode("UTF-8"))
+        if jsons is None:
+            path = os.path.join(os.getcwd(),'userdata')
+            
+            if not os.path.exists(path):
+                os.mkdir(path)
+            
+            path = os.path.join(path,f"{suid}.json")
+            
+            with open(path,"w",encoding="UTF-8") as file:
+                file.write(json.dumps(data).decode("UTF-8"))
 
 
 
@@ -120,28 +129,47 @@ async def handle_ytdl_callbacks(e: MessageLike):
     data = e.data.decode("UTF-8")
     data = data.split(" ")
     
-    if data[2] != str(e.sender_id):
-        await e.answer("Not valid user, Dont touch.")
-        return
-    
-    path = os.path.join(os.getcwd(),'userdata',data[3]+".json")
-    if os.path.exists(path):
-        with open(path) as file:
-            ytdata = json.loads(file.read())
-            buttons = list()
-            for i in ytdata.get("formats"):
+    if data[0] == "ytdlsmenu":
+        if data[2] != str(e.sender_id):
+            await e.answer("Not valid user, Dont touch.")
+            return
+        
+        path = os.path.join(os.getcwd(),'userdata',data[3]+".json")
+        if os.path.exists(path):
+            with open(path) as file:
+                ytdata = json.loads(file.read())
+                buttons = list()
+                for i in ytdata.get("formats"):
+                    
+                    c_format = i.get("format_note")
+                    if not c_format == data[1]:
+                        continue
+                    text = f"{i.get('format')} [{human_readable_bytes(i.get('filesize'))}]"
+                    cdata = f"ytdldfile {i.get('format_id')} {e.sender_id} {data[3]}"
+                    buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
                 
-                c_format = i.get("format_note")
-                if not c_format == data[1]:
-                    continue
-                text = f"{i.get('format')}"
-                cdata = f"ytdldfile {i.get('format_id')} {e.sender_id} {data[3]}"
-                buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
-
-            await e.edit(f"Files for quality {data[1]}",buttons=buttons)
-            
+                buttons.append([KeyboardButtonCallback("Go Back 😒",f"ytdlmmenu {data[2]} {data[3]}")])
+                await e.edit(f"Files for quality {data[1]}",buttons=buttons)
+                
 
 
-    else:
-        await e.answer("Try again something went wrong.",alert=True)
-        await e.delete()
+        else:
+            await e.answer("Try again something went wrong.",alert=True)
+            await e.delete()
+    elif data[0] == "ytdlmmenu":
+        if data[1] != str(e.sender_id):
+            await e.answer("Not valid user, Dont touch.")
+            return
+        path = os.path.join(os.getcwd(),'userdata',data[2]+".json")
+        if os.path.exists(path):
+            with open(path) as file:
+                ytdata = json.loads(file.read())
+                await create_quality_menu("",await e.get_message(),e,ytdata,data[2])
+
+        else:
+            await e.answer("Try again something went wrong.",alert=True)
+            await e.delete()
+
+#todo
+# Add the YT playlist feature here
+# Add the YT channels feature here 
