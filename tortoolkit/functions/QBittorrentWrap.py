@@ -34,8 +34,8 @@ async def get_client(host=None,port=None,uname=None,passw=None,retry=2) -> qba.T
     try:
         client.auth_log_in()
         torlog.info("Client connected successfully to the torrent server. :)")
-        client.application.set_preferences({"disk_cache":200,"incomplete_files_ext":True,"max_connec":3000,"max_connec_per_torrent":300,"async_io_threads":6})
-        torlog.info("Setting the cache size to 200 incomplete_files_ext:True,max_connec:3000,max_connec_per_torrent:300,async_io_threads:6")
+        client.application.set_preferences({"disk_cache":20,"incomplete_files_ext":True,"max_connec":3000,"max_connec_per_torrent":300,"async_io_threads":6})
+        torlog.info("Setting the cache size to 20 incomplete_files_ext:True,max_connec:3000,max_connec_per_torrent:300,async_io_threads:6")
         return client
     except qba.LoginFailed as e:
         torlog.error("An errot occured invalid creds detected\n{}\n{}".format(e,traceback.format_exc()))

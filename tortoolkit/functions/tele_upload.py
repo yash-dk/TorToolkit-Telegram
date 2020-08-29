@@ -214,8 +214,11 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
                         attributes=attrs
                     )
                 else:
-                    thumb = await thumb_manage.get_thumbnail(opath)
-                    
+                    try:
+                        thumb = await thumb_manage.get_thumbnail(opath)
+                    except:
+                        thumb = None
+                        torlog.exception("Error in thumb")
                     try:
                         attrs, _ = get_attributes(opath,supports_streaming=True)
                         out_msg = await msg.client.send_file(

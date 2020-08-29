@@ -4,6 +4,7 @@ from telethon.hints import MessageLike
 from telethon.tl.types import KeyboardButtonCallback
 from typing import Union,List,Tuple,Dict,Optional
 from ..functions.Human_Format import human_readable_bytes
+from ..functions.tele_upload import upload_handel
 
 torlog = logging.getLogger(__name__)
 
@@ -171,20 +172,32 @@ async def handle_ytdl_callbacks(e: MessageLike):
             await e.answer("Try again something went wrong.",alert=True)
             await e.delete()
 
-async def handle_ytdl_file_download(e: MessageLike):
+async def handle_ytdl_file_download(e: MessageLike, queue: asyncio.Queue):
+    # ytdldfile | format_id | sender_id | suid
     data = e.data.decode("UTF-8")
     data = data.split("|")
-
+    
     if data[2] != str(e.sender_id):
         await e.answer("Not valid user, Dont touch.")
         return
-    
+
     path = os.path.join(os.getcwd(),'userdata',data[3]+".json")
     if os.path.exists(path):
         with open(path,encoding="UTF-8") as file:
             ytdata = json.loads(file.read())
             yt_url = ytdata.get("webpage_url")
-            
+
+            op_dir = os.path.join(os.getcwd(),'userdata',data[3])
+            if not os.path.exists(op_dir):
+                os.mkdir(op_dir)
+
+            cmd = f"youtube-dl --continue --embed-subs --no-warnings --prefer-ffmpeg -f {data[1]} -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+            out, err = await cli_call(cmd)
+            print(out,"  -  ",err)
+            if not err:
+                
+                await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),queue=queue)
+
     else:
         await e.answer("Try again something went wrong.",alert=True)
         await e.delete()
