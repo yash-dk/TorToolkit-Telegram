@@ -106,7 +106,7 @@ async def add_torrent_file(path,message):
         if op.lower() == "ok.":
             st = datetime.now()
             #ayehi wait karna hai
-            aio.sleep(2)
+            await aio.sleep(2)
             
             ext_res = client.torrents_info(torrent_hashes=ext_hash)
             if len(ext_res) > 0:
