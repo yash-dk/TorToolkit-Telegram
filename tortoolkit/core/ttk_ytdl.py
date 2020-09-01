@@ -1,10 +1,11 @@
-import asyncio,shlex,logging,time,os
+import asyncio,shlex,logging,time,os,aiohttp,shutil
 import orjson as json
 from telethon.hints import MessageLike
 from telethon.tl.types import KeyboardButtonCallback
 from typing import Union,List,Tuple,Dict,Optional
 from ..functions.Human_Format import human_readable_bytes
 from ..functions.tele_upload import upload_handel
+from PIL import Image
 
 torlog = logging.getLogger(__name__)
 
@@ -48,20 +49,28 @@ async def get_yt_link_details(url: str) -> Union[Dict[str,str], None]:
         torlog.exception("Error occured while parsing the json.\n")
         return None 
 
-async def get_max_thumb(data: dict) -> str:
-    thumbnail = data.get("thumbnails")
-    
-    if thumbnail is None:
-        thumb_url = None
-    else:
-        max_w = 0
-        thumb_url = None
-        for i in thumbnail:
-            if i.get("width") > max_w:
-                thumb_url = i.get("url")
-                max_w = i.get("width")
-    
-    return thumb_url
+async def get_max_thumb(data: dict, suid: str) -> str:
+    thumbnail = data.get("thumbnail")
+    thumb_path = None
+
+    # alot of context management XD
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(thumbnail) as resp:
+                thumb_path = os.path.join(os.getcwd(),"userdata")
+                if not os.path.exists(thumb_path):
+                    os.mkdir(thumb_path)
+
+                thumb_path = os.path.join(thumb_path,f"{suid}.webp")
+                with open(thumb_path,"wb") as ifile:
+                    ifile.write(await resp.read())
+
+        Image.open(thumb_path).convert("RGB").save(thumb_path)
+
+        return thumb_path
+    except:
+        torlog.exception("Error in thumb gen")
+        return None
 
 async def create_quality_menu(url: str,message: MessageLike, message1: MessageLike,jsons: Optional[str] = None, suid: Optional[str] = None):
     if jsons is None:
@@ -180,12 +189,15 @@ async def handle_ytdl_file_download(e: MessageLike, queue: asyncio.Queue):
     if data[2] != str(e.sender_id):
         await e.answer("Not valid user, Dont touch.")
         return
-
+    else:
+        await e.answer("Crunching Data.....")
+    
     path = os.path.join(os.getcwd(),'userdata',data[3]+".json")
     if os.path.exists(path):
         with open(path,encoding="UTF-8") as file:
             ytdata = json.loads(file.read())
             yt_url = ytdata.get("webpage_url")
+            thumb_path = await get_max_thumb(ytdata,data[3])
 
             op_dir = os.path.join(os.getcwd(),'userdata',data[3])
             if not os.path.exists(op_dir):
@@ -196,7 +208,9 @@ async def handle_ytdl_file_download(e: MessageLike, queue: asyncio.Queue):
             print(out,"  -  ",err)
             if not err:
                 
-                await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),queue=queue)
+                await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),queue=queue,thumb_path=thumb_path)
+                shutil.rmtree(op_dir)
+                os.remove(thumb_path)
 
     else:
         await e.answer("Try again something went wrong.",alert=True)

@@ -14,7 +14,7 @@ from .Ftele import upload_file
 torlog = logging.getLogger(__name__)
 
 #thanks @SpEcHlDe for this concept of recursion
-async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,queue=None):
+async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,queue=None,thumb_path=None):
     # creting here so connections are kept low
     if updb is None:
         updb = TtkUpload()
@@ -55,7 +55,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 force_edit,
                 updb,
                 from_in=True,
-                queue=queue
+                queue=queue,
+                thumb_path=thumb_path
             )
         
         if not from_in:
@@ -94,7 +95,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                     force_edit,
                     updb=updb,
                     from_in=True,
-                    queue=queue
+                    queue=queue,
+                    thumb_path=thumb_path
                 )
 
             if not from_in:
@@ -117,7 +119,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 message,
                 force_edit,
                 updb,
-                queue
+                queue,
+                thumb_path
             )
 
             if not from_in:
@@ -134,7 +137,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
 
 
 
-async def upload_a_file(path,message,force_edit,database=None,queue=None):
+async def upload_a_file(path,message,force_edit,database=None,queue=None,thumb_path=None):
     
     if database is not None:
         if database.get_cancel_status(message.chat_id,message.id):
@@ -215,7 +218,10 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None):
                     )
                 else:
                     try:
-                        thumb = await thumb_manage.get_thumbnail(opath)
+                        if thumb_path is not None:
+                            thumb = thumb_path
+                        else:
+                            thumb = await thumb_manage.get_thumbnail(opath)
                     except:
                         thumb = None
                         torlog.exception("Error in thumb")
