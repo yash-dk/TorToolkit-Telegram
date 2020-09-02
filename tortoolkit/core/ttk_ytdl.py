@@ -248,7 +248,6 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         await msg.edit(f"Failed to load the playlist with the error:- <code>{err}</code>",parse_mode="html")
         return
     
-    print(cmd)
 
     try:
         pldata = json.loads(out)
@@ -268,6 +267,11 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
 
         keybr.append([KeyboardButtonCallback(text=f"Best All videos",data=f"ytdlplaylist|best|{suid}")])
         
+        
+        keybr.append([KeyboardButtonCallback(text="Best all audio only. [340k]",data=f"ytdlplaylist|320k|{suid}")])
+        keybr.append([KeyboardButtonCallback(text="Medium all audio only. [128k]",data=f"ytdlplaylist|128k|{suid}")])
+        keybr.append([KeyboardButtonCallback(text="Worst all audio only. [64k]",data=f"ytdlplaylist|64k|{suid}")])
+
         await msg.edit(f"Found {entlen} videos in the playlist.",buttons=keybr) 
 
         path = os.path.join(os.getcwd(),'userdata')
@@ -284,6 +288,31 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         await msg.edit("Failed to parse the playlist. Check log if you think its error.")
         torlog.exception("Playlist Parse failed") 
 
+async def handle_ytdl_playlist_down(e: MessageLike, queue: asyncio.Queue) -> None:
+    # ytdlplaylist | quality | suid
+    data = e.data.decode("UTF-8").split("|")
+    
+    path = os.path.join(os.getcwd(),"userdata",data[2]+".json")
+    if os.path.exists(path):
+        await e.answer("Processing Please wait")
+        opdir = os.path.join(os.getcwd(),"userdata",data[2])
+        if not os.path.exists(opdir):
+            os.mkdir(opdir)
+
+        with open(path) as file:
+            pldata = json.loads(file.read())
+        url = pldata.get("webpage_url")
+
+        if data[1].endswith("k"):
+            audcmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
+            out, err = await cli_call(audcmd)
+            if err:
+                await e.reply(f"Failed to download the audios <code>{err}</code>",parse_mode="html")
+            else:
+                await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), queue=queue)
+    else:
+        await e.answer("Something went wrong try again.")
+        torlog.error("the file for that suid was not found.")
 
 #todo
 # Add the YT playlist feature here

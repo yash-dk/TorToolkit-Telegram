@@ -15,7 +15,7 @@ from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
 import asyncio as aio
 import re,logging,time,os
-from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist
+from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
 
 torlog = logging.getLogger(__name__)
 
@@ -126,6 +126,11 @@ def add_handlers(bot: TelegramClient, queue: aio.Queue):
     bot.add_event_handler(
         partial(handle_ytdl_file_download,queue=queue),
         events.CallbackQuery(pattern="ytdldfile")
+    )
+
+    bot.add_event_handler(
+        partial(handle_ytdl_playlist_down,queue=queue),
+        events.CallbackQuery(pattern="ytdlplaylist")
     )
 
 #*********** Handlers Below ***********
