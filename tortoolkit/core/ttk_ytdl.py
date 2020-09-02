@@ -9,6 +9,17 @@ from PIL import Image
 
 torlog = logging.getLogger(__name__)
 
+# attempt to decorate error prone areas
+import traceback
+def skipTorExp(func):
+    def wrap_func(*args,**kwargs):
+        try:
+            return func(*args,**kwargs)
+        except Exception as e:
+            torlog.error(e)
+            return
+    return wrap_func
+
 async def cli_call(cmd: Union[str,List[str]]) -> Tuple[str,str]:
     if isinstance(cmd,str):
         cmd = shlex.split(cmd)
@@ -209,12 +220,70 @@ async def handle_ytdl_file_download(e: MessageLike, queue: asyncio.Queue):
             if not err:
                 
                 await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),queue=queue,thumb_path=thumb_path)
+                
+                
                 shutil.rmtree(op_dir)
                 os.remove(thumb_path)
+                os.remove(path)
 
     else:
         await e.answer("Try again something went wrong.",alert=True)
         await e.delete()
+
+async def handle_ytdl_playlist(e: MessageLike) -> None:
+    url = await e.get_reply_message()
+    url = url.text.strip()
+    cmd = f"youtube-dl -i --flat-playlist --dump-single-json {url}"
+    
+    msg = await e.reply("Processing your Youtube Playlist download request")
+
+    # cancel the playlist if time exceed 3 mins
+    try:
+        out, err = await asyncio.wait_for(cli_call(cmd),180)
+    except asyncio.TimeoutError:
+        await msg.edit("Processing time exceeded... The playlist seem to long to be worked with 😢\n If the playlist is short and you think its error report back.")
+        return
+    
+    if err:
+        await msg.edit(f"Failed to load the playlist with the error:- <code>{err}</code>",parse_mode="html")
+        return
+    
+    print(cmd)
+
+    try:
+        pldata = json.loads(out)
+        entities = pldata.get("entries")
+        if len(entities) <= 0:
+            await msg.edit("Cannot load the videos from this playlist ensure that the playlist is not <code>'My Mix or Mix'</code>. It shuold be a public or unlisted youtube playlist.")
+            return
+
+        entlen = len(entities)
+        keybr = list()
+        
+        # format> ytdlplaylist | quality | suid
+        suid = str(time.time()).replace(".","")
+
+        for i in ["144","240","360","480","720","1080","1440","2160"]:
+            keybr.append([KeyboardButtonCallback(text=f"{i}p All videos",data=f"ytdlplaylist|{i}|{suid}")])
+
+        keybr.append([KeyboardButtonCallback(text=f"Best All videos",data=f"ytdlplaylist|best|{suid}")])
+        
+        await msg.edit(f"Found {entlen} videos in the playlist.",buttons=keybr) 
+
+        path = os.path.join(os.getcwd(),'userdata')
+        
+        if not os.path.exists(path):
+            os.mkdir(path)
+        
+        path = os.path.join(path,f"{suid}.json")
+        
+        with open(path,"w",encoding="UTF-8") as file:
+            file.write(json.dumps(pldata).decode("UTF-8"))
+
+    except:
+        await msg.edit("Failed to parse the playlist. Check log if you think its error.")
+        torlog.exception("Playlist Parse failed") 
+
 
 #todo
 # Add the YT playlist feature here

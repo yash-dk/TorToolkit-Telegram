@@ -8,4 +8,5 @@ class Commands:
     EXEC = "exec"
     UPLOAD = "upload"
     YTDL = "ytdl"
+    PYTDL = "pytdl"
     
