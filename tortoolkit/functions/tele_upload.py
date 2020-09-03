@@ -1,7 +1,7 @@
 import os,logging,time,traceback
 from ..core.getVars import get_val
 from ..core import thumb_manage # i guess i will dodge this one ;) as i am importing the vids helper anyways
-from . import vids_helpers
+from . import vids_helpers,zip7_utils
 from .progress_for_telethon import progress
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
@@ -71,7 +71,27 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
         if os.path.getsize(path) > get_val("TG_UP_LIMIT"):
             # the splitted file will be considered as a single upload ;)
             del_mes = await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....") 
-            split_dir = await vids_helpers.split_file(path,get_val("TG_UP_LIMIT"))
+            
+            metadata = extractMetadata(createParser(path))
+            
+            if metadata is not None:
+                # handle none for unknown
+                metadata = metadata.exportDictionary()
+                try:
+                    mime = metadata.get("Common").get("MIME type")
+                except:
+                    mime = metadata.get("Metadata").get("MIME type")
+
+                ftype = mime.split("/")[0]
+                ftype = ftype.lower().strip()
+            else:
+                ftype = "unknown"
+            
+            if ftype == "video":
+                split_dir = await vids_helpers.split_file(path,get_val("TG_UP_LIMIT"))
+            else:
+                split_dir = await zip7_utils.split_in_zip(path)
+            
             dircon = os.listdir(split_dir)
             dircon.sort()
 

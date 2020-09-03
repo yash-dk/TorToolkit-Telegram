@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt -qq install -y curl git wget \
     python3 python3-pip \
     aria2 \
-    ffmpeg mediainfo unzip
+    ffmpeg mediainfo unzip p7zip-full p7zip-rar
 
 RUN curl https://rclone.org/install.sh | bash
 
