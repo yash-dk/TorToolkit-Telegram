@@ -419,8 +419,9 @@ async def get_confirm_callback(e,lis):
     # handle the confirm callback
     data = e.data.decode("UTF-8")
     o_sender = data.split(" ")[1]
-    await e.answer("Dont Touch it.......")
+    
     if o_sender != str(e.sender_id):
+        await e.answer("Dont Touch it.......")
         return
     await e.answer("Starting the download with the selected files.")
     lis[0] = True
