@@ -113,13 +113,13 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
             
             # add human bytes here
             if i == "tiny":
-                text = f"tiny/audios [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
+                text = f"tiny [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
                 cdata = f"ytdlsmenu|{i}|{message1.sender_id}|{suid}" # add user id
             else:
                 text = f"{i} [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
                 cdata = f"ytdlsmenu|{i}|{message1.sender_id}|{suid}" # add user id
             buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
-        
+        buttons.append([KeyboardButtonCallback("Audios ➡️",f"ytdlsmenu|audios|{message1.sender_id}|{suid}")])
         await message.edit("Choose a quality/option available below.",buttons=buttons)
         
         if jsons is None:
@@ -161,14 +161,25 @@ async def handle_ytdl_callbacks(e: MessageLike):
             with open(path) as file:
                 ytdata = json.loads(file.read())
                 buttons = list()
-                for i in ytdata.get("formats"):
-                    
-                    c_format = i.get("format_note")
-                    if not c_format == data[1]:
-                        continue
-                    text = f"{i.get('format')} [{human_readable_bytes(i.get('filesize'))}]"
-                    cdata = f"ytdldfile|{i.get('format_id')}|{e.sender_id}|{data[3]}"
-                    buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
+                if data[1] == "audios":
+                    for i in ["64K","128K","320K"]:
+                        text = f"{i} [MP3]"
+                        cdata = f"ytdldfile|{i}|{e.sender_id}|{data[3]}"
+                        buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
+                else:
+                    for i in ytdata.get("formats"):
+                        
+                        c_format = i.get("format_note")
+                        if not c_format == data[1]:
+                            continue
+                        height = i.get('height')
+                        
+                        if not height:
+                            continue
+                            
+                        text = f"{height} [{i.get('ext')}] [{human_readable_bytes(i.get('filesize'))}]"
+                        cdata = f"ytdldfile|{i.get('format_id')}|{e.sender_id}|{data[3]}"
+                        buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
                 
                 buttons.append([KeyboardButtonCallback("Go Back 😒",f"ytdlmmenu|{data[2]}|{data[3]}")])
                 await e.edit(f"Files for quality {data[1]}",buttons=buttons)
@@ -193,9 +204,10 @@ async def handle_ytdl_callbacks(e: MessageLike):
             await e.delete()
 
 async def handle_ytdl_file_download(e: MessageLike, queue: asyncio.Queue):
-    # ytdldfile | format_id | sender_id | suid
+    # ytdldfile | format_id | sender_id | suid | is_audio
     data = e.data.decode("UTF-8")
     data = data.split("|")
+    await e.edit(buttons=None)
     
     if data[2] != str(e.sender_id):
         await e.answer("Not valid user, Dont touch.")
@@ -214,9 +226,14 @@ async def handle_ytdl_file_download(e: MessageLike, queue: asyncio.Queue):
             if not os.path.exists(op_dir):
                 os.mkdir(op_dir)
 
-            cmd = f"youtube-dl --continue --embed-subs --no-warnings --prefer-ffmpeg -f {data[1]} -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+            if data[1].endswith("K"):
+                cmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{op_dir}/%(title)s.%(ext)s' {yt_url}"
+
+            else:
+                cmd = f"youtube-dl --continue --embed-subs --no-warnings --prefer-ffmpeg -f {data[1]}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+            
             out, err = await cli_call(cmd)
-            print(out,"  -  ",err)
+            
             if not err:
                 
                 await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),queue=queue,thumb_path=thumb_path)
@@ -227,6 +244,7 @@ async def handle_ytdl_file_download(e: MessageLike, queue: asyncio.Queue):
                 os.remove(path)
 
     else:
+        await e.delete()
         await e.answer("Try again something went wrong.",alert=True)
         await e.delete()
 
@@ -291,7 +309,7 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
 async def handle_ytdl_playlist_down(e: MessageLike, queue: asyncio.Queue) -> None:
     # ytdlplaylist | quality | suid
     data = e.data.decode("UTF-8").split("|")
-    
+    await e.edit(buttons=None)
     path = os.path.join(os.getcwd(),"userdata",data[2]+".json")
     if os.path.exists(path):
         await e.answer("Processing Please wait")
@@ -320,7 +338,8 @@ async def handle_ytdl_playlist_down(e: MessageLike, queue: asyncio.Queue) -> Non
         shutil.rmtree(opdir)
         os.remove(path)
     else:
-        await e.answer("Something went wrong try again.")
+        await e.delete()
+        await e.answer("Something went wrong try again.",alert=True)
         torlog.error("the file for that suid was not found.")
 
 #todo

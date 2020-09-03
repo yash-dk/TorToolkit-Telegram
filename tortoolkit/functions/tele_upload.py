@@ -113,7 +113,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
                 buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
-            print(updb)
+            #print(updb)
             sentmsg = await upload_a_file(
                 path,
                 message,
@@ -163,7 +163,7 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None,thumb_p
         ftype = ftype.lower().strip()
     else:
         ftype = "unknown"
-    print(metadata)
+    #print(metadata)
     
 
     if not force_edit:
