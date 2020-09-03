@@ -25,7 +25,7 @@ async def cli_call(cmd: Union[str,List[str]]) -> Tuple[str,str]:
     
     return stdout, stderr
 
-async def split_in_zip(path):
+async def split_in_zip(path,size=None):
     if os.path.exists(path):
         if os.path.isfile(path):
             fname = os.path.basename(path)
@@ -34,7 +34,12 @@ async def split_in_zip(path):
             if not os.path.exists(bdir):
                 os.mkdir(bdir)
 
-            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' -v1900m "
+            if size is None:
+                size = 1900
+            else:
+                size = int(size)
+                size = int(size/1000000) - 10 #for safe
+            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' -v{size}m "
 
             out, err = await cli_call(cmd)
             

@@ -90,7 +90,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             if ftype == "video":
                 split_dir = await vids_helpers.split_file(path,get_val("TG_UP_LIMIT"))
             else:
-                split_dir = await zip7_utils.split_in_zip(path)
+                split_dir = await zip7_utils.split_in_zip(path,get_val("TG_UP_LIMIT"))
             
             dircon = os.listdir(split_dir)
             dircon.sort()
