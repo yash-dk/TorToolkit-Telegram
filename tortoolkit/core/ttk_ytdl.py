@@ -310,6 +310,15 @@ async def handle_ytdl_playlist_down(e: MessageLike, queue: asyncio.Queue) -> Non
                 await e.reply(f"Failed to download the audios <code>{err}</code>",parse_mode="html")
             else:
                 await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), queue=queue)
+        else:
+            vidcmd = f"youtube-dl --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4,height<={data[1]}]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
+            out, err = await cli_call(vidcmd)
+            if err:
+                await e.reply(f"Failed to download the videos <code>{err}</code>",parse_mode="html")
+            else:
+                await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), queue=queue) 
+        shutil.rmtree(opdir)
+        os.remove(path)
     else:
         await e.answer("Something went wrong try again.")
         torlog.error("the file for that suid was not found.")
