@@ -6,3 +6,4 @@ test*.*
 splfil/
 *.session-journal
 userdata/
+torlog.txt
