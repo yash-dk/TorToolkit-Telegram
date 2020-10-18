@@ -125,6 +125,17 @@ async def check_link(msg,rclone=False,queue=None):
             torlog.info("Downloadinf Url")
             #consider it as a direct link LOL
             await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
+
+            path = await ariatools.aria_dl(omess.text,"",rmsg)
+            if not isinstance(path,bool):
+                if not rclone:
+                    rdict = await upload_handel(path,rmsg,omess.from_id,dict(),queue=queue)
+                    await print_files(omess,rdict)
+                    torlog.info("Here are the files to be uploaded {}".format(rdict))
+                else:
+                    res = await rclone_driver(path,rmess)
+                    if res is None:
+                        await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
     
     return None
 
