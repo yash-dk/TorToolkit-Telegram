@@ -3,6 +3,7 @@ from telethon.tl import types
 import logging
 import asyncio as aio
 from . import QBittorrentWrap
+from . import ariatools
 from .tele_upload import upload_handel
 from .rclone_upload import rclone_driver
 
@@ -107,8 +108,11 @@ async def check_link(msg,rclone=False,queue=None):
         elif msg.entities is not None:
             url = get_entities(msg)
             torlog.info("Downloadinf Urls")
-            await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
+            rmsg = await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
             #todo implement direct links ;)
+            print(
+                await ariatools.aria_dl(url,"",rmsg)
+            )
         else:
             torlog.info("Downloadinf Url")
             #consider it as a direct link LOL
