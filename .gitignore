@@ -1,10 +1,19 @@
+# custom config
 ExecVars.py
+
+# you know these
 venv
 __pycache__
+
+# Telethon sessions
 *.session
+*.session-journal
+
+# tests
 test*.*
 splfil/
-*.session-journal
+
+# runtime files
 userdata/
 torlog.txt
-rclone-config.conf
+*.conf

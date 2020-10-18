@@ -94,12 +94,18 @@ async def handle_setting_callback(e):
 
         await handle_settings(await e.get_message(),True,f"<b><u>Changed the default drive to {cmd[2]}</b></u>","rclonemenu",session_id=session_id)
     elif cmd[1] == "usrlock":
-        await e.answer("")
         if cmd[2] == "true":
             val = True
-            await e.client.edit_permissions(e.chat_id,send_messages=False)
+            try:
+                # JIC is user does manual stuff
+                await e.client.edit_permissions(e.chat_id,send_messages=False)
+            except:
+                await e.answer("An error occured try again if dosent work report this issue")
         else:
-            await e.client.edit_permissions(e.chat_id,send_messages=True)
+            try:
+                await e.client.edit_permissions(e.chat_id,send_messages=True)
+            except:
+                await e.answer("An error occured try again if dosent work report this issue")
             val = False
         
         db.set_variable("LOCKED_USERS",val)
