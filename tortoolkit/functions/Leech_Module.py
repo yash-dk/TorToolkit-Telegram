@@ -110,9 +110,17 @@ async def check_link(msg,rclone=False,queue=None):
             torlog.info("Downloadinf Urls")
             rmsg = await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
             #todo implement direct links ;)
-            print(
-                await ariatools.aria_dl(url,"",rmsg)
-            )
+            
+            path = await ariatools.aria_dl(url,"",rmsg)
+            if not isinstance(path,bool):
+                if not rclone:
+                    rdict = await upload_handel(path,rmsg,omess.from_id,dict(),queue=queue)
+                    await print_files(omess,rdict)
+                    torlog.info("Here are the files to be uploaded {}".format(rdict))
+                else:
+                    res = await rclone_driver(path,rmess)
+                    if res is None:
+                        await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
         else:
             torlog.info("Downloadinf Url")
             #consider it as a direct link LOL
@@ -141,7 +149,7 @@ async def print_files(e,files):
     chat_id = e.chat_id
 
     for i in files.keys():
-        link = f'https://t.me/c/{chat_id}/{files[i]}'
+        link = f'https://t.me/c/{str(chat_id)[4:]}/{files[i]}'
         msg += f'🚩 <a href="{link}">{i}</a>\n'
     
     await e.reply(msg,parse_mode="html")
