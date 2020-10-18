@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM python:3.8.5-slim-buster
 
 WORKDIR /torapp
 
@@ -10,7 +10,6 @@ ENV TZ Asia/Kolkata
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt -qq install -y curl git wget \
-    python3 python3-pip \
     aria2 \
     ffmpeg mediainfo unzip p7zip-full p7zip-rar
 
@@ -34,4 +33,4 @@ RUN chmod 777 alive.sh
 RUN useradd -ms /bin/bash  myuser
 USER myuser
 
-CMD ./alive.sh & gunicorn tortoolkit:start_server --bind 0.0.0.0:$PORT --worker-class aiohttp.GunicornWebWorker & python3 -m tortoolkit
+CMD ./start.sh
