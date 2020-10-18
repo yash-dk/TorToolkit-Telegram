@@ -1,4 +1,4 @@
-FROM python:3.8.5-slim-buster
+FROM ubuntu:20.04
 
 WORKDIR /torapp
 
@@ -10,6 +10,7 @@ ENV TZ Asia/Kolkata
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt -qq install -y curl git wget \
+    python3 python3-pip \
     aria2 \
     ffmpeg mediainfo unzip p7zip-full p7zip-rar
 
