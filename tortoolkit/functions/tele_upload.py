@@ -88,10 +88,10 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 ftype = "unknown"
             
             if ftype == "video":    
-                await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....\n```Using Algo FFMPEG SPLIT```") 
+                todel = await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....\n```Using Algo FFMPEG SPLIT```") 
                 split_dir = await vids_helpers.split_file(path,get_val("TG_UP_LIMIT"))
             else:
-                await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....\n```Using Algo PARTED ZIP SPLIT```") 
+                todel = await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....\n```Using Algo PARTED ZIP SPLIT```") 
                 split_dir = await zip7_utils.split_in_zip(path,get_val("TG_UP_LIMIT"))
             
             dircon = os.listdir(split_dir)
@@ -124,6 +124,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             if not from_in:
                 if updb.get_cancel_status(message.chat_id,message.id):
                     await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
+                    await todel.delete()
                 else:
                     await message.edit(buttons=None)
                 updb.deregister_upload(message.chat_id,message.id)
@@ -208,15 +209,16 @@ async def upload_a_file(path,message,force_edit,database=None,queue=None,thumb_p
     tout = get_val("EDIT_SLEEP_SECS")
     opath = path
     
-    if get_val("FAST_UPLOAD"):
-        torlog.info("Fast upload is enabled")
-        with open(path,"rb") as filee:
-            path = await upload_file(message.client,filee,file_name,
-            lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
-            )
-
-
     try:
+        if get_val("FAST_UPLOAD"):
+            torlog.info("Fast upload is enabled")
+            with open(path,"rb") as filee:
+                path = await upload_file(message.client,filee,file_name,
+                lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
+                )
+
+
+    
         if message.media and force_edit:
             out_msg = await msg.edit(
                 file=path,
