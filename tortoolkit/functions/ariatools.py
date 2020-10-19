@@ -141,7 +141,7 @@ async def aria_dl(
     else:
         return False
 
-async def check_progress_for_dl(aria2, gid, event, previous_message):
+async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0):
     try:
         file = aria2.get_download(gid)
         complete = file.is_complete
@@ -168,11 +168,15 @@ async def check_progress_for_dl(aria2, gid, event, previous_message):
                 #msg += f"\n<code>/cancel {gid}</code>"
                 
                 # format :- torcancel <provider> <identifier>
-                data = f"torcancel aria2 {gid}"
+                mes = await event.get_reply_message()
+                data = f"torcancel aria2 {gid} "
                 
                 # LOGGER.info(msg)
                 if msg != previous_message:
-                    await event.edit(msg,parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))])
+                    if rdepth < 3:
+                        await event.edit(msg,parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))])
+                    else:
+                        await event.edit(msg,parse_mode="html")
                     previous_message = msg
             else:
                 msg = file.error_message
@@ -185,7 +189,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message):
                 aria2, gid, event, previous_message
             )
         else:
-            await event.edit(f"File Downloaded Successfully: <code>{file.name}</code>",parse_mode="html", buttons=None)
+            await event.edit(f"Download completed: <code>{file.name}</code> to path <code>{file.name}</code>",parse_mode="html", buttons=None)
             return True
     except aria2p.client.ClientException:
         pass

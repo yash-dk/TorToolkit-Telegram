@@ -94,7 +94,7 @@ def add_handlers(bot: TelegramClient, queue: aio.Queue):
     #*********** Callback Handlers *********** 
     
     bot.add_event_handler(
-        callback_handler,
+        callback_handler_canc,
         events.CallbackQuery(pattern="torcancel")
     )
 
@@ -282,8 +282,8 @@ async def handle_upcancel_cb(e):
         await e.answer("Cant Cancel others upload 😡",alert=True)
 
 
-async def callback_handler(e):
-    
+async def callback_handler_canc(e):
+    # TODO the msg can be deleted
     mes = await e.get_message()
     mes = await mes.get_reply_message()
     
