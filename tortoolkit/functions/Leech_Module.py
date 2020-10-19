@@ -202,5 +202,8 @@ async def print_files(e,files):
 
 
 
-async def cancel_torrent(hashid):
-    await QBittorrentWrap.deregister_torrent(hashid)
+async def cancel_torrent(hashid, is_aria = False):
+    if not is_aria:
+        await QBittorrentWrap.deregister_torrent(hashid)
+    else:
+        await ariatools.remove_dl(hashid)

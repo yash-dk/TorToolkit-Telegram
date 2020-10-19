@@ -284,26 +284,34 @@ async def handle_upcancel_cb(e):
 
 async def callback_handler_canc(e):
     # TODO the msg can be deleted
-    mes = await e.get_message()
-    mes = await mes.get_reply_message()
+    #mes = await e.get_message()
+    #mes = await mes.get_reply_message()
     
+
+
     torlog.info(f"Here the sender _id is {e.sender_id}")
     torlog.info("here is the allower users list {} {}".format(get_val("ALD_USR"),type(get_val("ALD_USR"))))
 
-    if mes.sender_id == e.sender_id:
-        hashid = str(e.data).split(" ")[1]
+    data = str(e.data).split(" ")
+    is_aria = False
+    if data[1] == "aria2":
+        is_aria = True
+        data.remove("aria2")
+
+    if data[2] == e.sender_id:
+        hashid = data[1]
         hashid = hashid.strip("'")
         torlog.info(f"Hashid :- {hashid}")
 
-        await cancel_torrent(hashid)
+        await cancel_torrent(hashid, is_aria)
         await e.answer("The torrent has been cancled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
-        hashid = str(e.data).split(" ")[1]
+        hashid = data[1]
         hashid = hashid.strip("'")
         
         torlog.info(f"Hashid :- {hashid}")
         
-        await cancel_torrent(hashid)
+        await cancel_torrent(hashid, is_aria)
         await e.answer("The torrent has been cancled in ADMIN MODE XD ;)",alert=True)
     else:
         await e.answer("You can cancel only your torrents ;)", alert=True)

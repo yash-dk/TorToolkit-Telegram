@@ -169,7 +169,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0)
                 
                 # format :- torcancel <provider> <identifier>
                 mes = await event.get_reply_message()
-                data = f"torcancel aria2 {gid} "
+                data = f"torcancel aria2 {gid} {mes.sender_id}"
                 
                 # LOGGER.info(msg)
                 if msg != previous_message:
@@ -191,7 +191,18 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0)
         else:
             await event.edit(f"Download completed: <code>{file.name}</code> to path <code>{file.name}</code>",parse_mode="html", buttons=None)
             return True
-    except aria2p.client.ClientException:
+    except aria2p.client.ClientException as e:
+        if " not found" in str(e) or "'file'" in str(e):
+            fname = "N/A"
+            try:
+                fname = file.name
+            except:pass
+            
+            await event.edit(
+                "Download Canceled :\n<code>{}</code>".format(),
+                parse_mode="html"
+            )
+            return False
         pass
     except MessageNotModifiedError:
         pass
@@ -217,3 +228,12 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0)
             torlog.info(str(e))
             await event.edit("<u>error</u> :\n<code>{}</code> \n\n#error".format(str(e)),parse_mode="html")
             return False
+
+async def remove_dl(gid):
+    aria2 = await aria_start()
+    try:
+        downloads = aria2.get_download(gid)
+        downloads.remove(force=True, files=True)
+    except:
+        torlog.exception("exc")
+        pass
