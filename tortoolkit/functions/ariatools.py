@@ -197,9 +197,9 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0)
             try:
                 fname = file.name
             except:pass
-            
+
             await event.edit(
-                "Download Canceled :\n<code>{}</code>".format(),
+                "Download Canceled :\n<code>{}</code>".format(fname),
                 parse_mode="html"
             )
             return False
