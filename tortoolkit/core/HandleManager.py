@@ -298,7 +298,7 @@ async def callback_handler_canc(e):
         is_aria = True
         data.remove("aria2")
 
-    if data[2] == e.sender_id:
+    if data[2] == str(e.sender_id):
         hashid = data[1]
         hashid = hashid.strip("'")
         torlog.info(f"Hashid :- {hashid}")

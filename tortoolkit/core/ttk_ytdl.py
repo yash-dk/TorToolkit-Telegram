@@ -94,6 +94,7 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
         f.write(json.dumps(data).decode("UTF-8"))
 
     if data is None:
+        await message.edit("Errored failed parsing.")
         return None
     else:
         unique_formats = dict()
