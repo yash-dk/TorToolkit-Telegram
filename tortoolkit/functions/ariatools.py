@@ -1,5 +1,6 @@
 import asyncio, aria2p, logging, os
 from ..core.getVars import get_val
+from telethon.tl.types import KeyboardButtonCallback
 from telethon.errors.rpcerrorlist import MessageNotModifiedError
 
 # referenced from public leech
@@ -12,10 +13,6 @@ async def aria_start():
     aria2_daemon_start_cmd.append("aria2c")
     # aria2_daemon_start_cmd.append("--allow-overwrite=true")
     aria2_daemon_start_cmd.append("--daemon=true")
-    # aria2_daemon_start_cmd.append(f"--dir={DOWNLOAD_LOCATION}")
-    # TODO: this does not work, need to investigate this.
-    # but for now, https://t.me/TrollVoiceBot?start=858
-    # maybe, :\ but https://t.me/c/1374712761/1142
     aria2_daemon_start_cmd.append("--enable-rpc")
     aria2_daemon_start_cmd.append("--follow-torrent=mem")
     aria2_daemon_start_cmd.append("--max-connection-per-server=10")
@@ -94,7 +91,6 @@ async def check_metadata(aria2, gid):
     file = aria2.get_download(gid)
     torlog.info(file)
     if not file.followed_by_ids:
-        # https://t.me/c/1213160642/496
         return None
     new_gid = file.followed_by_ids[0]
     torlog.info("Changing GID " + gid + " to " + new_gid)
@@ -106,7 +102,6 @@ async def aria_dl(
     sent_message_to_update_tg_p
 ):
     aria_instance = await aria_start()
-    # TODO: duplicate code -_-
     if incoming_link.lower().startswith("magnet:"):
         sagtus, err_message = add_magnet(aria_instance, incoming_link, c_file_name)
     elif incoming_link.lower().endswith(".torrent"):
@@ -116,7 +111,7 @@ async def aria_dl(
     if not sagtus:
         return sagtus, err_message
     torlog.info(err_message)
-    # https://stackoverflow.com/a/58213653/4723940
+
     op = await check_progress_for_dl(
         aria_instance,
         err_message,
@@ -153,42 +148,44 @@ async def check_progress_for_dl(aria2, gid, event, previous_message):
         if not complete:
             if not file.error_message:
                 msg = ""
-                # sometimes, this weird https://t.me/c/1220993104/392975
-                # error creeps up
-                # TODO: temporary workaround
                 downloading_dir_name = "N/A"
                 try:
-                    # another derp -_-
-                    # https://t.me/c/1220993104/423318
                     downloading_dir_name = str(file.name)
                 except:
                     pass
                 #
                 msg = f"\nDownloading File: <code>{downloading_dir_name}</code>"
-                msg += f"\nSpeed: {file.download_speed_string()} 🔽 / {file.upload_speed_string()} 🔼"
-                msg += f"\nProgress: {file.progress_string()}"
-                msg += f"\nTotal Size: {file.total_length_string()}"
+                msg += f"\n<b>Down:</b> {file.download_speed_string()} 🔽 <b>Up</b>: {file.upload_speed_string()} 🔼"
+                msg += f"\n<b>Progress:</b> {file.progress_string()}"
+                msg += f"\n<b>Size:</b> {file.total_length_string()}"
                 msg += f"\n<b>Info:</b>| P: {file.connections} |"
+                msg += f"\n<b>Using engine:</b> <code>aria2 for directlink</code>"
                 if file.seeder is False:
                     """https://t.me/c/1220993104/670177"""
                     msg += f"| S: {file.num_seeders} |"
                 # msg += f"\nStatus: {file.status}"
                 msg += f"\nETA: {file.eta_string()}"
-                msg += f"\n<code>/cancel {gid}</code>"
+                #msg += f"\n<code>/cancel {gid}</code>"
+                
+                # format :- torcancel <provider> <identifier>
+                data = f"torcancel aria2 {gid}"
+                
                 # LOGGER.info(msg)
                 if msg != previous_message:
-                    await event.edit(msg,parse_mode="html")
+                    await event.edit(msg,parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))])
                     previous_message = msg
             else:
                 msg = file.error_message
-                await event.edit(f"`{msg}`",parse_mode="html")
+                await event.edit(f"`{msg}`",parse_mode="html", buttons=None)
                 return False
             await asyncio.sleep(get_val("EDIT_SLEEP_SECS"))
+            
+            # TODO idk not intrested in using recursion here
             return await check_progress_for_dl(
                 aria2, gid, event, previous_message
             )
         else:
-            await event.edit(f"File Downloaded Successfully: <code>{file.name}</code>",parse_mode="html")
+            await event.edit(f"File Downloaded Successfully: <code>{file.name}</code>",parse_mode="html", buttons=None)
             return True
     except aria2p.client.ClientException:
         pass
