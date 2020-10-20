@@ -45,7 +45,7 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for Complete Progress String. Note that only one character is expected.",alert=True)
 
         mmes = await e.get_message()
-        await mmes.edit(buttons=None)
+        await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
         val = await get_value(e)
 
         await general_input_manager(e,mmes,"COMPLETED_STR","str",val[0],db,None)
@@ -57,7 +57,7 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for Remaining Progress String. Note that only one character is expected.",alert=True)
 
         mmes = await e.get_message()
-        await mmes.edit(buttons=None)
+        await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
         val = await get_value(e)
         
         await general_input_manager(e,mmes,"REMAINING_STR","str",val[0],db,None)
@@ -68,7 +68,7 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for TELEGRAM UPLOAD LIMIT. Note that integer is expected.",alert=True)
 
         mmes = await e.get_message()
-        await mmes.edit(buttons=None)
+        await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
         val = await get_value(e)
         
         await general_input_manager(e,mmes,"TG_UP_LIMIT","int",val,db,None)
@@ -84,7 +84,7 @@ async def handle_setting_callback(e):
     elif cmd[1] == "rcloneconfig":
         await e.answer("Sned the rclone config file which you have generated.",alert=True)
         mmes = await e.get_message()
-        await mmes.edit(buttons=None)
+        await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
         val = await get_value(e,True)
         
         await general_input_manager(e,mmes,"RCLONE_CONFIG","str",val,db,"rclonemenu")
@@ -141,7 +141,7 @@ async def handle_setting_callback(e):
         await e.answer("Type the new value for EDIT_SLEEP_SECS. Note that integer is expected.",alert=True)
 
         mmes = await e.get_message()
-        await mmes.edit(buttons=None)
+        await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
         val = await get_value(e)
         
         await general_input_manager(e,mmes,"EDIT_SLEEP_SECS","int",val,db,None)
@@ -253,7 +253,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
 
 # an attempt to manager all the input
 async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
-    if value is not None:
+    if value is not None and not "ignore" in value:
         await confirm_buttons(mmes,value)
         conf = await get_confirm(e)
         if conf is not None:
@@ -300,7 +300,7 @@ async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
         else:
             await handle_settings(mmes,True,f"<b><u>Confirm timed out [waited 60s for input].</b></u>",sub_menu)
     else:
-        await handle_settings(mmes,True,f"<b><u>Entry Timed out [waited 60s for input].</b></u>",sub_menu)
+        await handle_settings(mmes,True,f"<b><u>Entry Timed out [waited 60s for input]. OR else ignored.</b></u>",sub_menu)
 
 
 async def get_value(e,file=False):
@@ -371,7 +371,12 @@ async def val_input_callback(e,o_sender,lis,file):
             lis[1] = path 
             await e.delete()
         else:
-            await e.delete()
+            if "ignore" in e.text:
+                lis[0]  = True
+                lis[1] = "ignore"
+                await e.delete()
+            else:
+                await e.delete()
         
     raise events.StopPropagation
 
