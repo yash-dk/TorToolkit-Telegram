@@ -194,11 +194,14 @@ async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
                 #stop the download when download complete
                 if tor_info.state == "uploading" or tor_info.state.lower().endswith("up"):
                     # this is to address the situations where the name would cahnge abdruptly
+                    client.torrents_pause(tor_info.hash)
+
                     tor_info1 = client.torrents_info(torrent_hashes=torrent.hash)
                     if len(tor_info1) > 0:
+                        torlog.info("Refreshed the tor_info")
                         tor_info = tor_info1[0]
-                    
-                    client.torrents_pause(tor_info.hash)
+                        torlog.info(f"name is {tor_info.name}")
+
                     await message.edit("Download completed ```{}```. To path ```{}```".format(tor_info.name,tor_info.save_path),buttons=None)
                     return os.path.join(tor_info.save_path,tor_info.name)
                 else:
