@@ -9,4 +9,5 @@ class Commands:
     UPLOAD = "upload"
     YTDL = "ytdl"
     PYTDL = "pytdl"
+    ABOUT = "about"
     

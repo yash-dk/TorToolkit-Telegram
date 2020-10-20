@@ -8,13 +8,14 @@ from ..core.getCommand import get_command
 from ..core.getVars import get_val
 from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files
 from ..functions.tele_upload import upload_a_file,upload_handel
-from .database_handle import TtkUpload,TtkTorrents
+from .database_handle import TtkUpload,TtkTorrents, TorToolkitDB
 from .settings import handle_settings,handle_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
 import asyncio as aio
 import re,logging,time,os
+from tortoolkit import __version__
 from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
 
 torlog = logging.getLogger(__name__)
@@ -81,6 +82,12 @@ def add_handlers(bot: TelegramClient, queue: aio.Queue):
         chats=ExecVars.ALD_USR)
     )
     
+    bot.add_event_handler(
+        about_me,
+        events.NewMessage(pattern=command_process(get_command("ABOUT")),
+        chats=ExecVars.ALD_USR)
+    )
+
     bot.add_event_handler(
         partial(handle_test_command,queue=queue),
         events.NewMessage(pattern="/test",
@@ -391,6 +398,58 @@ async def upload_document_f(message,queue):
             )
             #torlog.info(recvd_response)
     await imsegd.delete()
+
+async def about_me(message):
+    db = TorToolkitDB()
+    _, val1 = db.get_variable("RCLONE_CONFIG")
+    if val1 is None:
+        rclone_cfg = "No Rclone Config is loaded."
+    else:
+        rclone_cfg = "Rclone Config is loaded"
+
+    val1  = get_val("RCLONE_ENABLE")
+    if val1 is not None:
+        if val1:
+            rclone = "Rclone enabled by admin."
+        else:
+            rclone = "Rclone disabled by admin."
+    else:
+        rclone = "N/A"
+
+    val1  = get_val("LEECH_ENABLED")
+    if val1 is not None:
+        if val1:
+            leen = "Leech command enabled by admin."
+        else:
+            leen = "Leech command disabled by admin."
+    else:
+        leen = "N/A"
+
+    val1  = get_val("RUNTIME_RCLONE")
+    if val1 is not None:
+        if val1:
+            rclone_m = "Rclone mod is applied."
+        else:
+            rclone_m = "Rclone mod is not applied."
+    else:
+        rclone_m = "N/A"
+
+    msg = (
+        "<b>Name</b>: <code>TorToolkit</code>\n"
+        f"<b>Version</b>: <code>{__version__}</code>\n"
+        "<b>Created By</b>: @yaknight\n\n"
+        "<u>Currents Configs:-</u>\n"
+        "<b>Torrent Download Engine:-</b> <code>qBittorrent</code> \n"
+        "<b>Direct Link Download Engine:-</b> <code>aria2</code> \n"
+        "<b>Upload Engine:-</b> <code>RCLONE</code> \n"
+        "<b>Youtube Download Engine:-</b> <code>youtube-dl</code>\n"
+        f"<b>Rclone config:- </b> <code>{rclone_cfg}</code>\n"
+        f"<b>Leech:- </b> <code>{leen}</code>\n"
+        f"<b>Rclone Mod :- </b> <code>{rclone_m}</code> \n"
+    )
+
+    await message.reply(msg,parse_mode="html")
+
 
 def command_process(command):
     return re.compile(command,re.IGNORECASE)
