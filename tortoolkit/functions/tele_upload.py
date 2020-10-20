@@ -124,7 +124,6 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             if not from_in:
                 if updb.get_cancel_status(message.chat_id,message.id):
                     await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
-                    await todel.delete()
                 else:
                     await message.edit(buttons=None)
                 updb.deregister_upload(message.chat_id,message.id)
