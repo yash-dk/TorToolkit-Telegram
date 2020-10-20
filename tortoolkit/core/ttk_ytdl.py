@@ -280,6 +280,12 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         entlen = len(entities)
         keybr = list()
         
+        # limit the max vids
+        if entlen > 20:
+            await msg.edit(f"Playlist too large max 20 vids allowed as of now. This has {entlen}")
+            return
+
+
         # format> ytdlplaylist | quality | suid | sender_id
         suid = str(time.time()).replace(".","")
 

@@ -196,11 +196,12 @@ async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
                     # this is to address the situations where the name would cahnge abdruptly
                     client.torrents_pause(tor_info.hash)
 
-                    tor_info1 = client.torrents_info(torrent_hashes=torrent.hash)
-                    if len(tor_info1) > 0:
-                        torlog.info("Refreshed the tor_info")
-                        tor_info = tor_info1[0]
-                        torlog.info(f"name is {tor_info.name}")
+                    # Keeping this JIC the problem is with the qbittorrent 4.3.0 going back to 4.2.5
+                    # tor_info1 = client.torrents_info(torrent_hashes=torrent.hash)
+                    # if len(tor_info1) > 0:
+                    #     torlog.info("Refreshed the tor_info")
+                    #     tor_info = tor_info1[0]
+                    #     torlog.info(f"name is {tor_info.name}")
 
                     await message.edit("Download completed ```{}```. To path ```{}```".format(tor_info.name,tor_info.save_path),buttons=None)
                     return os.path.join(tor_info.save_path,tor_info.name)
