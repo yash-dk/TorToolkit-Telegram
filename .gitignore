@@ -14,6 +14,7 @@ test*.*
 splfil/
 
 # runtime files
+Downloads/
 userdata/
 torlog.txt
 *.conf

@@ -60,7 +60,14 @@ async def add_torrent_magnet(magnet,message):
     client = await get_client()
     try:
         ctor = len(client.torrents_info())
-        op = client.torrents_add(magnet)
+        
+        # hot fix for the below issue
+        savepath = os.path.join(os.getcwd(), "Downloads", str(time.time()).replace(".",""))
+        op = client.torrents_add(magnet, save_path=savepath)
+        
+        
+        # TODO uncomment the below line when fixed https://github.com/qbittorrent/qBittorrent/issues/13572
+        # op = client.torrents_add(magnet)
         ext_hash = Hash_Fetch.get_hash_magnet(magnet)
         #this method dosent return anything so have to work around
         if op.lower() == "ok.":
@@ -100,7 +107,13 @@ async def add_torrent_file(path,message):
     client = await get_client()
     try:
         ctor = len(client.torrents_info())
-        op = client.torrents_add(torrent_files=[path])
+        # hot fix for the below issue
+        savepath = os.path.join(os.getcwd(), "Downloads", str(time.time()).replace(".",""))
+
+        op = client.torrents_add(torrent_files=[path], save_path=savepath)
+        
+        # TODO uncomment the below line when fixed https://github.com/qbittorrent/qBittorrent/issues/13572
+        # op = client.torrents_add(torrent_files=[path])
         #this method dosent return anything so have to work around
         ext_hash = Hash_Fetch.get_hash_file(path)
         if op.lower() == "ok.":
@@ -200,15 +213,17 @@ async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
                     # this is to address the situations where the name would cahnge abdruptly
                     client.torrents_pause(tor_info.hash)
 
-                    # Keeping this JIC the problem is with the qbittorrent 4.3.0 going back to 4.2.5
-                    # tor_info1 = client.torrents_info(torrent_hashes=torrent.hash)
-                    # if len(tor_info1) > 0:
-                    #     torlog.info("Refreshed the tor_info")
-                    #     tor_info = tor_info1[0]
-                    #     torlog.info(f"name is {tor_info.name}")
+                    # TODO uncomment the below line when fixed https://github.com/qbittorrent/qBittorrent/issues/13572
+                    # savepath = os.path.join(tor_info.save_path,tor_info.name)
+                    # hot fix
+                    try:
+                        savepath = os.path.join(tor_info.save_path, os.listdir(tor_info.save_path)[0])
+                    except:
+                        await message.edit("Download path location failed", buttons=None)
+                        return None
 
                     await message.edit("Download completed ```{}```. To path ```{}```".format(tor_info.name,tor_info.save_path),buttons=None)
-                    return os.path.join(tor_info.save_path,tor_info.name)
+                    return savepath
                 else:
                     #return await update_progress(client,message,torrent)
                     pass
