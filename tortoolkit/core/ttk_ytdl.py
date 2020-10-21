@@ -206,7 +206,6 @@ async def handle_ytdl_callbacks(e: MessageLike):
 
 async def handle_ytdl_file_download(e: MessageLike):
     # ytdldfile | format_id | sender_id | suid | is_audio
-    queue = e.client.queue
 
     data = e.data.decode("UTF-8")
     data = data.split("|")
@@ -241,7 +240,7 @@ async def handle_ytdl_file_download(e: MessageLike):
             
             if not err:
                 
-                await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),queue=queue,thumb_path=thumb_path)
+                await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),thumb_path=thumb_path)
                 
                 
                 shutil.rmtree(op_dir)
@@ -319,7 +318,6 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
 
 async def handle_ytdl_playlist_down(e: MessageLike) -> None:
     # ytdlplaylist | quality | suid | sender_id
-    queue = e.client.queue
     
     data = e.data.decode("UTF-8").split("|")
     
@@ -347,7 +345,7 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
             if err:
                 await e.reply(f"Failed to download the audios <code>{err}</code>",parse_mode="html")
             else:
-                await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), queue=queue)
+                await upload_handel(opdir, await e.get_message(), e.sender_id, dict())
         else:
             if data[1] == "best":
                 vidcmd = f"youtube-dl --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
@@ -357,7 +355,7 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
             if err:
                 await e.reply(f"Failed to download the videos <code>{err}</code>",parse_mode="html")
             else:
-                await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), queue=queue) 
+                await upload_handel(opdir, await e.get_message(), e.sender_id, dict()) 
         shutil.rmtree(opdir)
         os.remove(path)
     else:
