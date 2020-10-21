@@ -441,7 +441,7 @@ async def about_me(message):
         f"<b>Version</b>: <code>{__version__}</code>\n"
         "<b>Created By</b>: @yaknight\n\n"
         "<u>Currents Configs:-</u>\n"
-        "<b>Torrent Download Engine:-</b> <code>qBittorrent</code> \n"
+        "<b>Torrent Download Engine:-</b> <code>qBittorrent [4.3.0 fix active]</code> \n"
         "<b>Direct Link Download Engine:-</b> <code>aria2</code> \n"
         "<b>Upload Engine:-</b> <code>RCLONE</code> \n"
         "<b>Youtube Download Engine:-</b> <code>youtube-dl</code>\n"

@@ -217,7 +217,7 @@ async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
                     # savepath = os.path.join(tor_info.save_path,tor_info.name)
                     # hot fix
                     try:
-                        savepath = os.path.join(tor_info.save_path, os.listdir(tor_info.save_path)[0])
+                        savepath = os.path.join(tor_info.save_path, os.listdir(tor_info.save_path)[-1])
                     except:
                         await message.edit("Download path location failed", buttons=None)
                         return None
