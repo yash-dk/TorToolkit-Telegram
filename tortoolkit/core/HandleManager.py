@@ -144,7 +144,6 @@ def add_handlers(bot: TelegramClient):
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
-    queue = e.client.queue
 
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
@@ -386,7 +385,6 @@ async def handle_pincode_cb(e):
         del db
 
 async def upload_document_f(message):
-    queue = message.client.queue
     imsegd = await message.reply(
         "processing ..."
     )
