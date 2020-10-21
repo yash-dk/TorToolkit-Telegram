@@ -48,8 +48,9 @@ def get_entities(msg):
     else:
         return None
 
-async def check_link(msg,rclone=False,queue=None):
+async def check_link(msg,rclone=False):
     urls = None
+    print("here2")
     omess = msg
     msg = await msg.get_reply_message()
 
@@ -73,7 +74,7 @@ async def check_link(msg,rclone=False,queue=None):
             
             if not isinstance(rval,bool):
                 if not rclone:
-                    rdict = await upload_handel(rval,rmess,omess.from_id,dict(),queue=queue)
+                    rdict = await upload_handel(rval,rmess,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                 else:
@@ -97,7 +98,7 @@ async def check_link(msg,rclone=False,queue=None):
             
             if not isinstance(path,bool):
                 if not rclone:
-                    rdict = await upload_handel(path,rmess,omess.from_id,dict(),queue=queue)
+                    rdict = await upload_handel(path,rmess,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:
@@ -114,7 +115,7 @@ async def check_link(msg,rclone=False,queue=None):
             path = await ariatools.aria_dl(url,"",rmsg)
             if not isinstance(path,bool):
                 if not rclone:
-                    rdict = await upload_handel(path,rmsg,omess.from_id,dict(),queue=queue)
+                    rdict = await upload_handel(path,rmsg,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:
@@ -129,7 +130,7 @@ async def check_link(msg,rclone=False,queue=None):
             path = await ariatools.aria_dl(omess.text,"",rmsg)
             if not isinstance(path,bool):
                 if not rclone:
-                    rdict = await upload_handel(path,rmsg,omess.from_id,dict(),queue=queue)
+                    rdict = await upload_handel(path,rmsg,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:

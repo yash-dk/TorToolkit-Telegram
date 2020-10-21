@@ -147,7 +147,9 @@ async def handle_leech_command(e):
     queue = e.client.queue
 
     if not e.is_reply:
-        await e.reply("Reply to a link or magnet")
+        print("here")
+        await e.respond("Reply to a link or magnet")
+        print("done")
     else:
         rclone = False
         # convo init
@@ -167,12 +169,12 @@ async def handle_leech_command(e):
             await conf_mes.delete()
         if rclone:
             if get_val("RCLONE_ENABLED"):
-                await check_link(e,rclone,queue)
+                await check_link(e,rclone)
             else:
                 await e.reply("<b>DRIVE IS DISABLED BY THE ADMIN</b>",parse_mode="html")
         else:
             if get_val("LEECH_ENABLED"):
-                await check_link(e,rclone,queue)
+                await check_link(e,rclone)
             else:
                 await e.reply("<b>TG LEECH IS DISABLED BY THE ADMIN</b>",parse_mode="html")
 
@@ -269,7 +271,7 @@ async def handle_test_command(e):
     msg = await e.reply("test")
     msg = await e.client.get_messages(e.chat_id,ids=msg.id)
     print(await msg.get_reply_message(),"-------------------")
-    await upload_a_file("/mnt/d/GitMajors/yolo.mkv",msg,False,db,queue=queue)
+    await upload_a_file("/mnt/d/GitMajors/yolo.mkv",msg,False,db)
     del db
 
 
@@ -398,8 +400,7 @@ async def upload_document_f(message):
                 local_file_name,
                 imsegd,
                 False,
-                TtkUpload(),
-                queue
+                TtkUpload()
             )
             #torlog.info(recvd_response)
     await imsegd.delete()
