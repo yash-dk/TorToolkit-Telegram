@@ -204,8 +204,10 @@ async def handle_ytdl_callbacks(e: MessageLike):
             await e.answer("Try again something went wrong.",alert=True)
             await e.delete()
 
-async def handle_ytdl_file_download(e: MessageLike, queue: asyncio.Queue):
+async def handle_ytdl_file_download(e: MessageLike):
     # ytdldfile | format_id | sender_id | suid | is_audio
+    queue = e.client.queue
+
     data = e.data.decode("UTF-8")
     data = data.split("|")
     
@@ -315,8 +317,10 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         await msg.edit("Failed to parse the playlist. Check log if you think its error.")
         torlog.exception("Playlist Parse failed") 
 
-async def handle_ytdl_playlist_down(e: MessageLike, queue: asyncio.Queue) -> None:
+async def handle_ytdl_playlist_down(e: MessageLike) -> None:
     # ytdlplaylist | quality | suid | sender_id
+    queue = e.client.queue
+    
     data = e.data.decode("UTF-8").split("|")
     
     if data[3] != str(e.sender_id):

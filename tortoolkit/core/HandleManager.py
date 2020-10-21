@@ -20,10 +20,11 @@ from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file
 
 torlog = logging.getLogger(__name__)
 
-def add_handlers(bot: TelegramClient, queue: aio.Queue):
+def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
+    
     bot.add_event_handler(
-        partial(handle_leech_command,queue=queue),
+        handle_leech_command,
         events.NewMessage(pattern=command_process(get_command("LEECH")),
         chats=ExecVars.ALD_USR)
     )
@@ -65,7 +66,7 @@ def add_handlers(bot: TelegramClient, queue: aio.Queue):
     )
     
     bot.add_event_handler(
-        partial(upload_document_f,queue=queue),
+        upload_document_f,
         events.NewMessage(pattern=command_process(get_command("UPLOAD")),
         chats=ExecVars.ALD_USR)
     )
@@ -87,9 +88,9 @@ def add_handlers(bot: TelegramClient, queue: aio.Queue):
         events.NewMessage(pattern=command_process(get_command("ABOUT")),
         chats=ExecVars.ALD_USR)
     )
-
+    
     bot.add_event_handler(
-        partial(handle_test_command,queue=queue),
+        handle_test_command,
         events.NewMessage(pattern="/test",
         chats=ExecVars.ALD_USR)
     )
@@ -129,20 +130,22 @@ def add_handlers(bot: TelegramClient, queue: aio.Queue):
         handle_ytdl_callbacks,
         events.CallbackQuery(pattern="ytdlmmenu")
     )
-
+    
     bot.add_event_handler(
-        partial(handle_ytdl_file_download,queue=queue),
+        handle_ytdl_file_download,
         events.CallbackQuery(pattern="ytdldfile")
     )
-
+    
     bot.add_event_handler(
-        partial(handle_ytdl_playlist_down,queue=queue),
+        handle_ytdl_playlist_down,
         events.CallbackQuery(pattern="ytdlplaylist")
     )
 
 #*********** Handlers Below ***********
 
-async def handle_leech_command(e,queue):
+async def handle_leech_command(e):
+    queue = e.client.queue
+
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
@@ -260,7 +263,8 @@ async def handle_status_command(e):
         await get_status(e)
         
 
-async def handle_test_command(e,queue=None):
+async def handle_test_command(e):
+    queue = e.client.queue
     db = TtkUpload()
     msg = await e.reply("test")
     msg = await e.client.get_messages(e.chat_id,ids=msg.id)
@@ -381,7 +385,8 @@ async def handle_pincode_cb(e):
 
         del db
 
-async def upload_document_f(message,queue):
+async def upload_document_f(message):
+    queue = message.client.queue
     imsegd = await message.reply(
         "processing ..."
     )
