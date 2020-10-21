@@ -149,6 +149,10 @@ async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
             await message.edit("Torrent canceled ```{}``` ".format(torrent.name),buttons=None)
             return True
         
+        if tor_info.size > (get_val("MAX_TORRENT_SIZE") * 1024 * 1024 * 1024):
+            await message.edit("Torrent oversized max size is {}. Try adding again and choose less files to download.".format(get_val("MAX_TORRENT_SIZE")), buttons=None)
+            client.torrents_delete(torrent_hashes=tor_info.hash,delete_files=True)
+            return True
         try:
             msg = "<b>Downloading:</b> <code>{}</code>\n".format(
                 tor_info.name
@@ -343,7 +347,7 @@ async def register_torrent(entity,message,magnet=False,file=False):
 
             urll = f"{base}/tortk/files/{torrent.hash}"
 
-            message = await message.edit(buttons=[
+            message = await message.edit("Download will be automatically started after 180s of no action.",buttons=[
                 [
                     KeyboardButtonUrl("Choose File from link",urll),
                     KeyboardButtonCallback("Get Pincode",data=pincodetxt.encode("UTF-8"))

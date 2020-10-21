@@ -75,6 +75,17 @@ async def handle_setting_callback(e):
         
         await general_input_manager(e,mmes,"TG_UP_LIMIT","int",val,db,None)
 
+    elif cmd[1] == "maxtorsize":
+        # what will a general manager require
+        # anser message, type handler, value 
+        await e.answer("Type the new value for MAX TORRENT SIZE. Note that integer is expected.",alert=True)
+
+        mmes = await e.get_message()
+        await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
+        val = await get_value(e)
+        
+        await general_input_manager(e,mmes,"MAX_TORRENT_SIZE","int",val,db,None)
+
     elif cmd[1] == "rclonemenu":
         # this is menu
         mmes = await e.get_message()
@@ -192,6 +203,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
         await get_string_variable("COMPLETED_STR",menu,"compstr",session_id)
         await get_string_variable("REMAINING_STR",menu,"remstr",session_id)
         await get_int_variable("TG_UP_LIMIT",menu,"tguplimit",session_id)
+        await get_int_variable("MAX_TORRENT_SIZE",menu,"maxtorsize",session_id)
         await get_int_variable("EDIT_SLEEP_SECS",menu,"editsleepsec",session_id)
         #await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
         await get_sub_menu("☁️ Open Rclone Menu ☁️","rclonemenu",session_id,menu)
