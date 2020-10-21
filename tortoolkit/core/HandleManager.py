@@ -409,7 +409,7 @@ async def about_me(message):
     else:
         rclone_cfg = "Rclone Config is loaded"
 
-    val1  = get_val("RCLONE_ENABLE")
+    val1  = get_val("RCLONE_ENABLED")
     if val1 is not None:
         if val1:
             rclone = "Rclone enabled by admin."
@@ -447,6 +447,7 @@ async def about_me(message):
         "<b>Youtube Download Engine:-</b> <code>youtube-dl</code>\n"
         f"<b>Rclone config:- </b> <code>{rclone_cfg}</code>\n"
         f"<b>Leech:- </b> <code>{leen}</code>\n"
+        f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         f"<b>Rclone Mod :- </b> <code>{rclone_m}</code> \n"
     )
 

@@ -12,6 +12,10 @@ logging.basicConfig(
 
 from tortoolkit.core.server import start_server
 from .core.database_handle import TtkUpload,TorToolkitDB
+from .core.varholder import VarHolder
+
 logging.info("Database created")
 upload_db = TtkUpload()
 var_db = TorToolkitDB()
+
+SessionVars = VarHolder(var_db)

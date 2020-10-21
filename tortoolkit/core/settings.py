@@ -1,5 +1,6 @@
 from telethon.tl.types import KeyboardButtonCallback,KeyboardButton
 from telethon import events
+from tortoolkit import SessionVars
 import asyncio as aio
 from .getVars import get_val
 from .database_handle import TorToolkitDB
@@ -39,6 +40,7 @@ async def handle_setting_callback(e):
             val = False
         
         db.set_variable("FORCE_DOCUMENTS",val)
+        SessionVars.update_var("FORCE_DOCUMENTS",val)
         await handle_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of force documents.</b></u>",session_id=session_id)
     
     elif cmd[1] == "compstr":
@@ -91,6 +93,7 @@ async def handle_setting_callback(e):
     elif cmd[1] == "change_drive":
         await e.answer(f"Changed default drive to {cmd[2]}.",alert=True)
         db.set_variable("DEF_RCLONE_DRIVE",cmd[2])
+        SessionVars.update_var("DEF_RCLONE_DRIVE",cmd[2])
 
         await handle_settings(await e.get_message(),True,f"<b><u>Changed the default drive to {cmd[2]}</b></u>","rclonemenu",session_id=session_id)
     elif cmd[1] == "usrlock":
@@ -109,6 +112,7 @@ async def handle_setting_callback(e):
             val = False
         
         db.set_variable("LOCKED_USERS",val)
+        SessionVars.update_var("LOCKED_USERS",val)
         await handle_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of user locked.</b></u>",session_id=session_id)
         
     elif cmd[1] == "ctrlacts":
@@ -123,6 +127,7 @@ async def handle_setting_callback(e):
         else:
             val = False
         db.set_variable("RCLONE_ENABLED",val)
+        SessionVars.update_var("RCLONE_ENABLED",val)
         mmes = await e.get_message()
         await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Rclone Enabled.</b></u>","ctrlacts",session_id=session_id)
     
@@ -134,6 +139,7 @@ async def handle_setting_callback(e):
             val = False
         
         db.set_variable("LEECH_ENABLED",val)
+        SessionVars.update_var("LEECH_ENABLED",val)
         mmes = await e.get_message()
         await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Leech Enabled.</b></u>","ctrlacts",session_id=session_id)
     
@@ -154,6 +160,7 @@ async def handle_setting_callback(e):
             val = False
         
         db.set_variable("FAST_UPLOAD",val)
+        SessionVars.update_var("FAST_UPLOAD",val)
         mmes = await e.get_message()
         await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Fast Upload Enabled.</b></u>","ctrlacts",session_id=session_id)
 
@@ -172,6 +179,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
         session_id = time.time()
         db = TorToolkitDB()
         db.set_variable("SETTING_AUTH_CODE",str(session_id))
+        SessionVars.update_var("SETTING_AUTH_CODE",str(session_id))
         del db
     
     menu = [
@@ -278,6 +286,7 @@ async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
                             conf.read(value)
                             for i in conf.sections():
                                 db.set_variable("DEF_RCLONE_DRIVE",str(i))
+                                SessionVars.update_var("DEF_RCLONE_DRIVE",str(i))
                                 break
                                 
                             with open(value,"rb") as fi:
@@ -285,12 +294,14 @@ async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
                                 db.set_variable("RCLONE_CONFIG",0,True,data)
                             os.remove(value)
                             db.set_variable("LEECH_ENABLED",True)
+                            SessionVars.update_var("LEECH_ENABLED",True)
                         except Exception:
                             torlog.error(traceback.format_exc())
                             await handle_settings(mmes,True,f"<b><u>The conf file is invalid check logs.</b></u>",sub_menu)
                             return
                     else:
                         db.set_variable(var_name,value)
+                        SessionVars.update_var(var_name,value)
                     
                     await handle_settings(mmes,True,f"<b><u>Received {var_name} value '{value}' with confirm.</b></u>",sub_menu)
                 except ValueError:
