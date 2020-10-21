@@ -147,9 +147,7 @@ async def handle_leech_command(e):
     queue = e.client.queue
 
     if not e.is_reply:
-        print("here")
-        await e.respond("Reply to a link or magnet")
-        print("done")
+        await e.reply("Reply to a link or magnet")
     else:
         rclone = False
         # convo init
