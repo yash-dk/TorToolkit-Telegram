@@ -276,7 +276,7 @@ async def delete_all(message):
     client = await get_client()
     tors = client.torrents_info()
     msg = "☠️ Deleted <b>{}</b> torrents.☠️".format(len(tors))
-    client.torrents_delete(delete_files=False,torrent_hashes="all")
+    client.torrents_delete(delete_files=True,torrent_hashes="all")
 
     await message.reply(msg,parse_mode="html")
     await message.delete()

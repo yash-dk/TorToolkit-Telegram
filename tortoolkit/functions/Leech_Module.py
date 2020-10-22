@@ -1,4 +1,4 @@
-import re,os
+import re,os,shutil
 from telethon.tl import types
 import logging
 import asyncio as aio
@@ -69,6 +69,7 @@ async def check_link(msg,rclone=False):
             rmess = await omess.reply("Downloading the torrent file.")
 
             #not worring about the download location now
+            # TODO do something to de register the torrents
             path = await msg.download_media()
             rval =  await QBittorrentWrap.register_torrent(path,rmess,file=True)
             
@@ -84,6 +85,10 @@ async def check_link(msg,rclone=False):
 
             try:
                 os.remove(path)
+                if os.path.isdir(rval):
+                    shutil.rmtree(rval)
+                else:
+                    os.remove(rval)
             except:pass
             return rval
         else:
@@ -106,6 +111,13 @@ async def check_link(msg,rclone=False):
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
 
+            try:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+            except:pass
+
         elif msg.entities is not None:
             url = get_entities(msg)
             torlog.info("Downloadinf Urls")
@@ -122,6 +134,13 @@ async def check_link(msg,rclone=False):
                     res = await rclone_driver(path,rmsg)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
+            
+            try:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+            except:pass
         else:
             torlog.info("Downloadinf Url")
             #consider it as a direct link LOL
@@ -137,6 +156,13 @@ async def check_link(msg,rclone=False):
                     res = await rclone_driver(path,rmess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
+            
+            try:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+            except:pass
     
     return None
 
