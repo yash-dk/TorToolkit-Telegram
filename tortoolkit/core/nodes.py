@@ -1,5 +1,6 @@
 from anytree import NodeMixin, RenderTree, PreOrderIter
 import qbittorrentapi as qba
+from ..functions.Human_Format import human_readable_bytes
 #from ..functions.Human_Format import human_readable_bytes
 
 class TorNode(NodeMixin):
@@ -99,11 +100,11 @@ def create_list(par,msg):
         else:
             msg[0] += "<li>"
             if i.priority == 0:
-                msg[0] += f"<input type=\"checkbox\" name=\"filenode_{i.file_id}\"> <label for=\"filenode_{i.file_id}\">{i.name}</label>"
+                msg[0] += f"<input type=\"checkbox\" name=\"filenode_{i.file_id}\"> <label for=\"filenode_{i.file_id}\">{i.name} - {human_readable_bytes(i.size)}</label>"
                 msg[0] += f"<input type=\"hidden\" value=\"off\" name=\"filenode_{i.file_id}\">"
                 
             else:
-                msg[0] += f"<input type=\"checkbox\" checked name=\"filenode_{i.file_id}\"> <label for=\"filenode_{i.file_id}\">{i.name}</label>"
+                msg[0] += f"<input type=\"checkbox\" checked name=\"filenode_{i.file_id}\"> <label for=\"filenode_{i.file_id}\">{i.name} - {human_readable_bytes(i.size)}</label>"
                 msg[0] += f"<input type=\"hidden\" value=\"off\" name=\"filenode_{i.file_id}\">"
             
 
