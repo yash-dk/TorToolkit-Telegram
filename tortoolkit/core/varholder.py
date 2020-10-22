@@ -26,7 +26,17 @@ class VarHolder:
         #try:
         envval = os.environ.get(variable)
         if variable == "ALD_USR":
-            val.extend(envval.split(" "))
+            if envval is not None:
+                templi = envval.split(" ")
+                if len(templi) > 0:
+                    for i in range(0,len(templi)):
+                        templi[i] = int(templi[i])
+
+                if val is not None:
+                    val.extend(templi)
+                else:
+                    val = templi
+            
         else:
             val =  envval if envval is not None else val
 
