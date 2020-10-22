@@ -282,7 +282,7 @@ async def handle_upcancel_cb(e):
     db = TtkUpload()
 
     data = e.data.decode("UTF-8")
-    print("Data is ",data)
+    torlog.info("Data is {}".format(data))
     data = data.split(" ")
 
     if str(e.sender_id) == data[3]:
@@ -298,11 +298,11 @@ async def callback_handler_canc(e):
     #mes = await mes.get_reply_message()
     
 
+    torlog.debug(f"Here the sender _id is {e.sender_id}")
+    torlog.debug("here is the allower users list {} {}".format(get_val("ALD_USR"),type(get_val("ALD_USR"))))
 
-    torlog.info(f"Here the sender _id is {e.sender_id}")
-    torlog.info("here is the allower users list {} {}".format(get_val("ALD_USR"),type(get_val("ALD_USR"))))
-
-    data = str(e.data).split(" ")
+    data = e.data.decode("utf-8").split(" ")
+    torlog.debug("data is {}".format(data))
     is_aria = False
     if data[1] == "aria2":
         is_aria = True
