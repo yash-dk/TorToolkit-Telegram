@@ -25,7 +25,10 @@ class VarHolder:
         #Get the variable form the env [overlap]
         #try:
         envval = os.environ.get(variable)
-        val =  envval if envval is not None else val
+        if variable == "ALD_USR":
+            val.extend(envval.split(" "))
+        else:
+            val =  envval if envval is not None else val
 
         #Get the variable form the DB [overlap]
         dbval, _ = db.get_variable(variable)
