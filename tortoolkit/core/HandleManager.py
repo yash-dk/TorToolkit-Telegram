@@ -26,73 +26,73 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         handle_leech_command,
         events.NewMessage(pattern=command_process(get_command("LEECH")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
     
     bot.add_event_handler(
         handle_purge_command,
         events.NewMessage(pattern=command_process(get_command("PURGE")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
     
     bot.add_event_handler(
         handle_pauseall_command,
         events.NewMessage(pattern=command_process(get_command("PAUSEALL")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
     
     bot.add_event_handler(
         handle_resumeall_command,
         events.NewMessage(pattern=command_process(get_command("RESUMEALL")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
 
     bot.add_event_handler(
         handle_status_command,
         events.NewMessage(pattern=command_process(get_command("STATUS")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
 
     bot.add_event_handler(
         handle_settings_command,
         events.NewMessage(pattern=command_process(get_command("SETTINGS")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
 
     bot.add_event_handler(
         handle_exec_message_f,
         events.NewMessage(pattern=command_process(get_command("EXEC")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
     
     bot.add_event_handler(
         upload_document_f,
         events.NewMessage(pattern=command_process(get_command("UPLOAD")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
 
     bot.add_event_handler(
         handle_ytdl_command,
         events.NewMessage(pattern=command_process(get_command("YTDL")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
 
     bot.add_event_handler(
         handle_ytdl_playlist,
         events.NewMessage(pattern=command_process(get_command("PYTDL")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
     
     bot.add_event_handler(
         about_me,
         events.NewMessage(pattern=command_process(get_command("ABOUT")),
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
     
     bot.add_event_handler(
         handle_test_command,
         events.NewMessage(pattern="/test",
-        chats=ExecVars.ALD_USR)
+        chats=get_val("ALD_USR"))
     )
 
 
