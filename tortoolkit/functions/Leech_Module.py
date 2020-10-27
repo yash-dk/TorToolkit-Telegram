@@ -121,11 +121,12 @@ async def check_link(msg,rclone=False):
         elif msg.entities is not None:
             url = get_entities(msg)
             torlog.info("Downloadinf Urls")
-            rmsg = await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
+            rmsg = await omess.reply("Processing the link.")
             #todo implement direct links ;)
-            
-            path = await ariatools.aria_dl(url,"",rmsg)
-            if not isinstance(path,bool):
+            # weird stuff had to refect message
+            rmsg = await omess.client.get_messages(ids=rmsg.id, entity=rmsg.chat_id)
+            stat, path = await ariatools.aria_dl(url,"",rmsg)
+            if not isinstance(path,bool) and stat:
                 if not rclone:
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict())
                     await print_files(omess,rdict)
@@ -144,10 +145,10 @@ async def check_link(msg,rclone=False):
         else:
             torlog.info("Downloadinf Url")
             #consider it as a direct link LOL
-            rmsg = await omess.reply("DIRECT LINKS NOT YET IMPLEMENTED")
+            rmsg = await omess.reply("processing")
 
-            path = await ariatools.aria_dl(omess.text,"",rmsg)
-            if not isinstance(path,bool):
+            stat, path = await ariatools.aria_dl(omess.text,"",rmsg)
+            if not isinstance(path,bool) and stat:
                 if not rclone:
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict())
                     await print_files(omess,rdict)

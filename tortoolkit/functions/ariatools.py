@@ -25,7 +25,7 @@ async def aria_start():
     aria2_daemon_start_cmd.append("--split=10")
     aria2_daemon_start_cmd.append(f"--bt-stop-timeout=100")
     #
-    torlog.info(aria2_daemon_start_cmd)
+    torlog.debug(aria2_daemon_start_cmd)
     #
     process = await asyncio.create_subprocess_exec(
         *aria2_daemon_start_cmd,
@@ -33,8 +33,8 @@ async def aria_start():
         stderr=asyncio.subprocess.PIPE
     )
     stdout, stderr = await process.communicate()
-    torlog.info(stdout)
-    torlog.info(stderr)
+    torlog.debug(stdout)
+    torlog.debug(stderr)
     aria2 = aria2p.API(
         aria2p.Client(
             host="http://localhost",
@@ -137,9 +137,9 @@ async def aria_dl(
         file = aria_instance.get_download(err_message)
         to_upload_file = file.name
     
-        return to_upload_file
+        return True, to_upload_file
     else:
-        return False
+        return False, False
 
 async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0):
     try:
