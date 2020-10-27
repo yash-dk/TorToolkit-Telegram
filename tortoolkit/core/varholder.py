@@ -28,12 +28,15 @@ class VarHolder:
         if variable == "ALD_USR":
             if envval is not None:
                 templi = envval.split(" ")
+                templi2 = []
                 if len(templi) > 0:
                     for i in range(0,len(templi)):
-                        templi[i] = int(templi[i])
-
+                        try:
+                            templi2.append(int(templi[i]))
+                        except ValueError:
+                            torlog.error(f"Invalid allow user {templi[i]} must be a integer.")
                 if val is not None:
-                    val.extend(templi)
+                    val.extend(templi2)
                 else:
                     val = templi
             
