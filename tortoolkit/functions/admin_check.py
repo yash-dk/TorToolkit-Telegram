@@ -19,7 +19,11 @@ async def is_admin(client,user_id,chat_id):
             if isinstance(res.participant,(ChannelParticipantAdmin,ChannelParticipantCreator,ChannelParticipantsAdmins)):
                 return True
             else:
-                return False
+                
+                if user_id in get_val("ALD_USR"):
+                    return True
+                else:
+                    return False
         except:
             torlog.error("Error in admin check {}".format(traceback.format_exc()))
             return False
