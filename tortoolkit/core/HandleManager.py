@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from telethon import TelegramClient,events 
+from telethon import __version__ as telever
 from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
@@ -439,6 +440,7 @@ async def about_me(message):
     msg = (
         "<b>Name</b>: <code>TorToolkit</code>\n"
         f"<b>Version</b>: <code>{__version__}</code>\n"
+        f"<b>Telethon Version</b>: {telever}"
         "<b>Created By</b>: @yaknight\n\n"
         "<u>Currents Configs:-</u>\n"
         "<b>Torrent Download Engine:-</b> <code>qBittorrent [4.3.0 fix active]</code> \n"
