@@ -27,4 +27,4 @@ torrentool==1.1.0
 urllib3==1.25.10
 yarl==1.5.1
 aria2p==0.9.1
-youtube-dl==2020.7.28
+youtube-dl==2020.11.12
