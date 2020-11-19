@@ -89,6 +89,12 @@ def add_handlers(bot: TelegramClient):
         events.NewMessage(pattern=command_process(get_command("ABOUT")),
         chats=get_val("ALD_USR"))
     )
+
+    bot.add_event_handler(
+        get_logs_f,
+        events.NewMessage(pattern=command_process(get_command("GETLOGS")),
+        chats=get_val("ALD_USR"))
+    )
     
     bot.add_event_handler(
         handle_test_command,
@@ -403,6 +409,10 @@ async def upload_document_f(message):
             #torlog.info(recvd_response)
     await imsegd.delete()
 
+async def get_logs_f(message):
+    message.text += " torlog.txt"
+    await upload_document_f(message)
+
 async def about_me(message):
     db = TorToolkitDB()
     _, val1 = db.get_variable("RCLONE_CONFIG")
@@ -441,7 +451,7 @@ async def about_me(message):
     msg = (
         "<b>Name</b>: <code>TorToolkit</code>\n"
         f"<b>Version</b>: <code>{__version__}</code>\n"
-        f"<b>Telethon Version</b>: {telever}"
+        f"<b>Telethon Version</b>: {telever}\n"
         "<b>Created By</b>: @yaknight\n\n"
         "<u>Currents Configs:-</u>\n"
         "<b>Torrent Download Engine:-</b> <code>qBittorrent [4.3.0 fix active]</code> \n"

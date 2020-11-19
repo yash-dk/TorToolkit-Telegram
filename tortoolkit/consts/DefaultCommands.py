@@ -10,4 +10,5 @@ class Commands:
     YTDL = "ytdl"
     PYTDL = "pytdl"
     ABOUT = "about"
+    GETLOGS = "getlogs"
     
