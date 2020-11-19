@@ -139,6 +139,9 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
     return True
         
 async def handle_ytdl_command(e: MessageLike):
+    if not e.is_reply:
+        await e.reply("Reply to a youtube video link.")
+        return
     msg = await e.get_reply_message()
     msg1 = await e.reply("Processing the given link.....")
     if msg.text.find("http") != -1:
@@ -254,7 +257,8 @@ async def handle_ytdl_file_download(e: MessageLike):
 
 async def handle_ytdl_playlist(e: MessageLike) -> None:
     if not e.is_reply:
-        await e.reply("Reply to a link.")
+        await e.reply("Reply to a youtube playlist link.")
+        return
     url = await e.get_reply_message()
     url = url.text.strip()
     cmd = f"youtube-dl -i --flat-playlist --dump-single-json {url}"
