@@ -383,6 +383,8 @@ async def handle_pincode_cb(e):
             await e.answer(f"Your Pincode if \"{passw}\"",alert=True)
 
         del db
+    else:
+        await e.answer("Its not you torrent.",alert=True)
 
 async def upload_document_f(message):
     imsegd = await message.reply(
