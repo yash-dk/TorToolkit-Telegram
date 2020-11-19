@@ -253,6 +253,8 @@ async def handle_ytdl_file_download(e: MessageLike):
         await e.delete()
 
 async def handle_ytdl_playlist(e: MessageLike) -> None:
+    if not e.is_reply:
+        await e.reply("Reply to a link.")
     url = await e.get_reply_message()
     url = url.text.strip()
     cmd = f"youtube-dl -i --flat-playlist --dump-single-json {url}"

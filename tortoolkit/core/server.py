@@ -170,29 +170,27 @@ async def re_verfiy(paused,resumed,client,torr):
         paused = paused.split("|")
     if resumed:
         resumed = resumed.split("|")
-    
     k = 0
     while True:
         
         res = client.torrents_files(torrent_hash=torr)
-        j = 0
         verify = True
+        
         for i in res:
-            if str(j) in paused:
+            if str(i.id) in paused:
                 if i.priority == 0:
                     continue
                 else:
                     verify = False
                     break
 
-            if str(j) in resumed:
+            if str(i.id) in resumed:
                 if i.priority != 0:
                     continue
                 else:
                     verify = False
                     break
 
-            j += 1
 
         if not verify:
             torlog.info("Reverification Failed :- correcting stuff")
@@ -260,7 +258,7 @@ async def set_priority(request):
 
     await asyncio.sleep(2)
     if not await re_verfiy(pause,resume,client,torr):
-        torlog.error("The torrent choose erroed reverification failed")
+        torlog.error("The torrent choose errored reverification failed")
     client.auth_log_out()
     return await list_torrent_contents(request)
 
