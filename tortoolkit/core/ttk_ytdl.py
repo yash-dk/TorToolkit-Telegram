@@ -243,8 +243,8 @@ async def handle_ytdl_file_download(e: MessageLike):
             
             if not err:
                 
-                await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),thumb_path=thumb_path)
-                
+                rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),thumb_path=thumb_path)
+                await print_files(e,rdict)
                 
                 shutil.rmtree(op_dir)
                 os.remove(thumb_path)
@@ -351,7 +351,8 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
             if err:
                 await e.reply(f"Failed to download the audios <code>{err}</code>",parse_mode="html")
             else:
-                await upload_handel(opdir, await e.get_message(), e.sender_id, dict())
+                rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict())
+                await print_files(e,rdict)
         else:
             if data[1] == "best":
                 vidcmd = f"youtube-dl --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
@@ -361,13 +362,61 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
             if err:
                 await e.reply(f"Failed to download the videos <code>{err}</code>",parse_mode="html")
             else:
-                await upload_handel(opdir, await e.get_message(), e.sender_id, dict()) 
+                rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict()) 
+                await print_files(e,rdict)
         shutil.rmtree(opdir)
         os.remove(path)
     else:
         await e.delete()
         await e.answer("Something went wrong try again.",alert=True)
         torlog.error("the file for that suid was not found.")
+
+async def print_files(e,files):
+    msg = ""
+    if len(files) == 0:
+        return
+    
+    chat_id = e.chat_id
+
+    for i in files.keys():
+        link = f'https://t.me/c/{str(chat_id)[4:]}/{files[i]}'
+        msg += f'🚩 <a href="{link}">{i}</a>\n'
+    
+    await e.reply(msg,parse_mode="html")
+
+    if len(files) < 2:
+        return
+
+    ids = list()
+    for i in files.keys():
+        ids.append(files[i])
+    
+    msgs = await e.client.get_messages(e.chat_id,ids=ids)
+    for i in msgs:
+        index = None
+        for j in range(0,len(msgs)):
+            index = j
+            if ids[j] == i.id:
+                break
+        nextt,prev = "",""
+        chat_id = str(e.chat_id)[4:]
+        if index == 0:
+            nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+            nextt = f'<a href="{nextt}">Next</a>\n'
+        elif index == len(msgs)-1:
+            prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+            prev = f'<a href="{prev}">Prev</a>\n'
+        else:
+            nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+            nextt = f'<a href="{nextt}">Next</a>\n'
+            
+            prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+            prev = f'<a href="{prev}">Prev</a>\n'
+
+        try:
+            await i.edit("{} {} {}".format(prev,i.text,nextt),parse_mode="html")
+        except:pass
+        await asyncio.sleep(1)
 
 #todo
 # Add the YT playlist feature here
