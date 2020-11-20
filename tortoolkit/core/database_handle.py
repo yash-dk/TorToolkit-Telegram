@@ -25,9 +25,10 @@ class TorToolkitDB(DataBaseHandle):
         )"""
 
         cur = self._conn.cursor()
-
-        cur.execute(settings_schema)
-
+        try:
+            cur.execute(settings_schema)
+        except psycopg2.errors.UniqueViolation: # pylint: disable=no-member
+            pass
         self._conn.commit()
         cur.close()
 
@@ -114,9 +115,10 @@ class TtkUpload(DataBaseHandle):
         )"""
 
         cur = self._conn.cursor()
-
-        cur.execute(uploads_schema)
-
+        try:
+            cur.execute(uploads_schema)
+        except psycopg2.errors.UniqueViolation: # pylint: disable=no-member
+            pass
         self._conn.commit()
         cur.close()
 
@@ -205,7 +207,11 @@ class TtkTorrents(DataBaseHandle):
             enab BOOLEAN DEFAULT true
         )
         """
-        cur.execute(table)
+        try:
+            cur.execute(table)
+        except psycopg2.errors.UniqueViolation: # pylint: disable=no-member
+            pass
+        
         self.ccur(cur)
 
     def add_torrent(self,hash_id,passw):

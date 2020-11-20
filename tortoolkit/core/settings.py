@@ -174,7 +174,8 @@ async def handle_setting_callback(e):
         SessionVars.update_var("FAST_UPLOAD",val)
         mmes = await e.get_message()
         await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Fast Upload Enabled.</b></u>","ctrlacts",session_id=session_id)
-
+    elif cmd[1] == "metainfo":
+        await e.reply("Add @metainforobot to your group to get the metadata easily.")
     elif cmd[1] == "selfdest":
         await e.answer("Closed")
         await e.delete()
@@ -200,6 +201,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
     if submenu is None:
         await get_bool_variable("LOCKED_USERS","Lock the Group",menu,"usrlock",session_id)
         await get_bool_variable("FORCE_DOCUMENTS","FORCE_DOCUMENTS",menu,"fdocs",session_id)
+        await get_bool_variable("METAINFO_BOT","[MetainfoRoBot]Get metadata of files in this group.",menu,"metainfo",session_id)
         await get_string_variable("COMPLETED_STR",menu,"compstr",session_id)
         await get_string_variable("REMAINING_STR",menu,"remstr",session_id)
         await get_int_variable("TG_UP_LIMIT",menu,"tguplimit",session_id)
