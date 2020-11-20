@@ -162,7 +162,7 @@ async def handle_leech_command(e):
             tsp = time.time()
             #async with e.client.conversation(e.chat_id) as conv:
             buts = [[KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")],[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
-            conf_mes = await e.respond("<b>Choose where to upload your files:- </b>",parse_mode="html",buttons=buts,reply_to=e.id)
+            conf_mes = await e.respond("<b>Choose where to upload your files:- </b>\nThe files will be uploaded to default destination after 60 sec of no action by user.",parse_mode="html",buttons=buts,reply_to=e.id)
                 
             choice = await get_leech_choice(e,tsp)
             if choice == "drive":
