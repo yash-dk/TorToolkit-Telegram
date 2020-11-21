@@ -382,7 +382,11 @@ async def print_files(e,files):
         link = f'https://t.me/c/{str(chat_id)[4:]}/{files[i]}'
         msg += f'🚩 <a href="{link}">{i}</a>\n'
     
-    await e.reply(msg,parse_mode="html")
+    repmsg = await msg.get_reply_message()
+    if repmsg is None:
+        await e.reply(msg,parse_mode="html")
+    else:
+        await e.reply(repmsg,parse_mode="html")
 
     if len(files) < 2:
         return
