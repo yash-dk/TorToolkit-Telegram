@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Contributed by YashDK 
+# (c) YashDK [yash-dk@github]
 
 import psycopg2
 

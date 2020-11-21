@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from urllib.parse import urlparse,parse_qs
 import logging
 from torrentool.api import Torrent

@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 import os,logging,time,traceback
 from ..core.getVars import get_val
 from ..core import thumb_manage # i guess i will dodge this one ;) as i am importing the vids helper anyways
@@ -13,7 +16,7 @@ from .Ftele import upload_file
 
 torlog = logging.getLogger(__name__)
 
-#thanks @SpEcHlDe for this concept of recursion
+#thanks @SpEcHiDe for this concept of recursion
 async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None):
     # creting here so connections are kept low
     if updb is None:

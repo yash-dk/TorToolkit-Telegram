@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 import asyncio, aria2p, logging, os
 from ..core.getVars import get_val
 from telethon.tl.types import KeyboardButtonCallback

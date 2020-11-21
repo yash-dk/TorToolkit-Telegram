@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from datetime import datetime,timedelta
 
 def human_readable_bytes(value, digits= 2, delim= "", postfix=""):
