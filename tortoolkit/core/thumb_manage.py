@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from ..functions import vids_helpers
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata

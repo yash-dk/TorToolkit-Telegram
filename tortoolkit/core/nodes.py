@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from anytree import NodeMixin, RenderTree, PreOrderIter
 import qbittorrentapi as qba
 from ..functions.Human_Format import human_readable_bytes

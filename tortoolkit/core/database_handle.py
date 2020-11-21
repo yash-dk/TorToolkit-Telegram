@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 import psycopg2,os,datetime
 
 from ..functions.pg_plugin import DataBaseHandle

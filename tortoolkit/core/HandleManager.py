@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
 
 from telethon import TelegramClient,events 
 from telethon import __version__ as telever
