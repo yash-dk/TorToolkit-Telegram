@@ -371,7 +371,7 @@ async def register_torrent(entity,message,magnet=False,file=False):
                     KeyboardButtonCallback("Get Pincode",data=pincodetxt.encode("UTF-8"))
                 ],
                 [
-                    KeyboardButtonCallback("Done Selecting Files.",data=f"doneselection {omess.sender_id}".encode("UTF-8"))
+                    KeyboardButtonCallback("Done Selecting Files.",data=f"doneselection {omess.sender_id} {omess.id}".encode("UTF-8"))
                 ]
             ])
 
@@ -408,7 +408,7 @@ async def register_torrent(entity,message,magnet=False,file=False):
                     KeyboardButtonCallback("Get Pincode",data=pincodetxt.encode("UTF-8"))
                 ],
                 [
-                    KeyboardButtonCallback("Done Selecting Files.",data=f"doneselection {omess.sender_id}".encode("UTF-8"))
+                    KeyboardButtonCallback("Done Selecting Files.",data=f"doneselection {omess.sender_id} {omess.id}".encode("UTF-8"))
                 ]
             ])
 
@@ -424,7 +424,7 @@ async def register_torrent(entity,message,magnet=False,file=False):
 async def get_confirm(e):
     # abstract for getting the confirm in a context
 
-    lis = [False,None]
+    lis = [False,None,e.id]
     cbak = partial(get_confirm_callback,lis=lis)
     
     e.client.add_event_handler(
@@ -449,10 +449,14 @@ async def get_confirm(e):
 async def get_confirm_callback(e,lis):
     # handle the confirm callback
     data = e.data.decode("UTF-8")
-    o_sender = data.split(" ")[1]
-    
+    data = data.split(" ")
+    o_sender = data[1]
+    msgid = data[2]
+
     if o_sender != str(e.sender_id):
         await e.answer("Dont Touch it.......")
+        return
+    if str(lis[2]) != msgid:
         return
     await e.answer("Starting the download with the selected files.")
     lis[0] = True
