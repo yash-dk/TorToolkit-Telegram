@@ -385,7 +385,8 @@ async def print_files(e,files):
         link = f'https://t.me/c/{str(chat_id)[4:]}/{files[i]}'
         msg += f'🚩 <a href="{link}">{i}</a>\n'
      
-    rmsg = await e.client.get_messages(e.chat_id,ids=e.id)
+    rmsg = await e.client.get_messages(e.chat_id,ids=e.message_id)
+    rmsg = await rmsg.get_reply_message()
     if rmsg is None:
         await e.reply(msg,parse_mode="html")
     else:
