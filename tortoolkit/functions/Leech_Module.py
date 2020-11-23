@@ -184,7 +184,7 @@ async def get_status(msg,all=False):
     await msg.reply(smsg,parse_mode="html")
 
 async def print_files(e,files):
-    msg = "#uploads\n"
+    msg = f"<a hrek='tg://user?id={e.sender_id}'>Done<a>\n#uploads\n"
     if len(files) == 0:
         return
     
