@@ -375,7 +375,8 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
         torlog.error("the file for that suid was not found.")
 
 async def print_files(e,files):
-    msg = ""
+    
+    msg = "#uploads\n"
     if len(files) == 0:
         return
     
@@ -387,9 +388,12 @@ async def print_files(e,files):
      
     rmsg = await e.client.get_messages(e.chat_id,ids=e.message_id)
     rmsg = await rmsg.get_reply_message()
+    msg += "\n<a hrek='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
     if rmsg is None:
+        msg += "\n<a hrek='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
         await e.reply(msg,parse_mode="html")
     else:
+        msg += "\n<a hrek='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
         await rmsg.reply(msg,parse_mode="html")
 
     if len(files) < 2:

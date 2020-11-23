@@ -184,7 +184,7 @@ async def get_status(msg,all=False):
     await msg.reply(smsg,parse_mode="html")
 
 async def print_files(e,files):
-    msg = ""
+    msg = "#uploads\n"
     if len(files) == 0:
         return
     
