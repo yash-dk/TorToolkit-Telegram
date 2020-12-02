@@ -238,7 +238,7 @@ async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
                         return None
 
                     await message.edit("Download completed ```{}```. To path ```{}```".format(tor_info.name,tor_info.save_path),buttons=None)
-                    return savepath
+                    return [savepath, tor_info.hash]
                 else:
                     #return await update_progress(client,message,torrent)
                     pass
@@ -296,6 +296,10 @@ async def delete_all(message):
     await message.reply(msg,parse_mode="html")
     await message.delete()
     
+async def delete_this(ext_hash):
+    client.torrents_delete(delete_files=True,torrent_hashes=ext_hash)
+    return True
+
 async def get_status(message,all=False):
     client = await get_client()
     tors = client.torrents_info()

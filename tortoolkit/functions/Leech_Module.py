@@ -76,17 +76,18 @@ async def check_link(msg,rclone=False):
             path = await msg.download_media()
             rval =  await QBittorrentWrap.register_torrent(path,rmess,file=True)
             
-            if not isinstance(rval,bool):
+            if not isinstance(rval,bool) and rval is not None:
                 if not rclone:
-                    rdict = await upload_handel(rval,rmess,omess.from_id,dict())
+                    rdict = await upload_handel(rval[0],rmess,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                 else:
-                    res = await rclone_driver(rval,rmess)
+                    res = await rclone_driver(rval[0],rmess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
 
             try:
+                await QBittorrentWrap.delete_this(rval[1])
                 os.remove(path)
                 if os.path.isdir(rval):
                     shutil.rmtree(rval)
@@ -104,17 +105,18 @@ async def check_link(msg,rclone=False):
             mgt = get_magnets(msg.text.strip())
             path = await QBittorrentWrap.register_torrent(mgt,rmess,True)
             
-            if not isinstance(path,bool):
+            if not isinstance(path,bool) and path is not None:
                 if not rclone:
-                    rdict = await upload_handel(path,rmess,omess.from_id,dict())
+                    rdict = await upload_handel(path[0],rmess,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:
-                    res = await rclone_driver(path,rmess)
+                    res = await rclone_driver(path[0],rmess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
 
             try:
+                await QBittorrentWrap.delete_this(path[1])
                 if os.path.isdir(path):
                     shutil.rmtree(path)
                 else:
