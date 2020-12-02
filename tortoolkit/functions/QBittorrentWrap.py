@@ -64,15 +64,20 @@ async def add_torrent_magnet(magnet,message):
     try:
         ctor = len(client.torrents_info())
         
+        ext_hash = Hash_Fetch.get_hash_magnet(magnet)
+        ext_res = client.torrents_info(torrent_hashes=ext_hash)
+        if len(ext_res) > 0:
+            await message.edit("This torrent is alreaded in the leech list.")
+            return False
         # hot fix for the below issue
         savepath = os.path.join(os.getcwd(), "Downloads", str(time.time()).replace(".",""))
         op = client.torrents_add(magnet, save_path=savepath)
         
         
-        # TODO uncomment the below line when fixed https://github.com/qbittorrent/qBittorrent/issues/13572
+        # TODO uncomment the below line and remove the above fix when fixed https://github.com/qbittorrent/qBittorrent/issues/13572
         # op = client.torrents_add(magnet)
-        ext_hash = Hash_Fetch.get_hash_magnet(magnet)
-        #this method dosent return anything so have to work around
+
+        # torrents_add method dosent return anything so have to work around
         if op.lower() == "ok.":
             st = datetime.now()
             
@@ -110,15 +115,22 @@ async def add_torrent_file(path,message):
     client = await get_client()
     try:
         ctor = len(client.torrents_info())
+
+        ext_hash = Hash_Fetch.get_hash_file(path)
+        ext_res = client.torrents_info(torrent_hashes=ext_hash)
+        if len(ext_res) > 0:
+            await message.edit("This torrent is alreaded in the leech list.")
+            return False
+        
         # hot fix for the below issue
         savepath = os.path.join(os.getcwd(), "Downloads", str(time.time()).replace(".",""))
 
         op = client.torrents_add(torrent_files=[path], save_path=savepath)
         
-        # TODO uncomment the below line when fixed https://github.com/qbittorrent/qBittorrent/issues/13572
+        # TODO uncomment the below line and remove the above fix when fixed https://github.com/qbittorrent/qBittorrent/issues/13572
         # op = client.torrents_add(torrent_files=[path])
         #this method dosent return anything so have to work around
-        ext_hash = Hash_Fetch.get_hash_file(path)
+        
         if op.lower() == "ok.":
             st = datetime.now()
             #ayehi wait karna hai
