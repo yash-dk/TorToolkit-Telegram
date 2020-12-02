@@ -81,13 +81,15 @@ async def check_link(msg,rclone=False):
                     rdict = await upload_handel(rval[0],rmess,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
+                    await QBittorrentWrap.delete_this(rval[1])
                 else:
                     res = await rclone_driver(rval[0],rmess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
+                    await QBittorrentWrap.delete_this(rval[1])
 
             try:
-                await QBittorrentWrap.delete_this(rval[1])
+                
                 os.remove(path)
                 if os.path.isdir(rval):
                     shutil.rmtree(rval)
@@ -110,13 +112,14 @@ async def check_link(msg,rclone=False):
                     rdict = await upload_handel(path[0],rmess,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
+                    await QBittorrentWrap.delete_this(path[1])
                 else:
                     res = await rclone_driver(path[0],rmess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
-
+                    await QBittorrentWrap.delete_this(path[1])
             try:
-                await QBittorrentWrap.delete_this(path[1])
+                
                 if os.path.isdir(path):
                     shutil.rmtree(path)
                 else:
