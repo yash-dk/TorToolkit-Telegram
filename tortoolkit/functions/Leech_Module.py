@@ -81,12 +81,12 @@ async def check_link(msg,rclone=False):
                     rdict = await upload_handel(rval[0],rmess,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
-                    await QBittorrentWrap.delete_this(rval[1])
+                    #await QBittorrentWrap.delete_this(rval[1])
                 else:
                     res = await rclone_driver(rval[0],rmess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
-                    await QBittorrentWrap.delete_this(rval[1])
+                    #await QBittorrentWrap.delete_this(rval[1])
 
             try:
                 
