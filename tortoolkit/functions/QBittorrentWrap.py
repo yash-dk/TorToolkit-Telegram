@@ -406,7 +406,7 @@ async def register_torrent(entity,message,magnet=False,file=False):
             await message.edit("The provided torrent was already completly downloaded.")
             return True
         else:
-            pincode = randint(100000,999999)
+            pincode = randint(1000,9999)
             db = TtkTorrents()
             db.add_torrent(torrent.hash,pincode)
             
