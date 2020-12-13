@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-import os,logging,time,traceback
+import os,logging,time,traceback,shutil
 from ..core.getVars import get_val
 from ..core import thumb_manage # i guess i will dodge this one ;) as i am importing the vids helper anyways
 from . import vids_helpers,zip7_utils
@@ -121,7 +121,11 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                     from_in=True,
                     thumb_path=thumb_path
                 )
-
+            
+            try:
+                shutil.rmtree(split_dir)    
+            except:pass
+            
             if not from_in:
                 if updb.get_cancel_status(message.chat_id,message.id):
                     await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
