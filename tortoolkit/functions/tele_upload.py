@@ -123,7 +123,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 )
             
             try:
-                shutil.rmtree(split_dir)    
+                shutil.rmtree(split_dir)
+                os.remove(path)
             except:pass
             
             if not from_in:
