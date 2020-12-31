@@ -271,9 +271,9 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
     
     msg = await e.reply("Processing your Youtube Playlist download request")
 
-    # cancel the playlist if time exceed 3 mins
+    # cancel the playlist if time exceed 5 mins
     try:
-        out, err = await asyncio.wait_for(cli_call(cmd),180)
+        out, err = await asyncio.wait_for(cli_call(cmd),300)
     except asyncio.TimeoutError:
         await msg.edit("Processing time exceeded... The playlist seem to long to be worked with 😢\n If the playlist is short and you think its error report back.")
         return
