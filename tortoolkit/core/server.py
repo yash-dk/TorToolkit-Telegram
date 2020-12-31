@@ -146,7 +146,7 @@ async def list_torrent_contents(request):
       raise web.HTTPNotFound()
 
     
-    
+    # Central object is not used its Acknowledged 
     db = TtkTorrents()
     passw = db.get_password(torr)
     if isinstance(passw,bool):

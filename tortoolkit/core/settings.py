@@ -20,9 +20,11 @@ TIMEOUT_SEC = 60
 # todo make the code more modular
 no = "❌"
 yes = "✅"
+# Central object is not used its Acknowledged 
+tordb = TorToolkitDB()
 header =  '<b>**TorToolKit** by <a href="https://github.com/yash-dk">YashDK</a></b>\n<u>ADMIN SETTINGS MENU - Beta v1</u>'
 async def handle_setting_callback(e):
-    db = TorToolkitDB()
+    db = tordb
     session_id,_ = db.get_variable("SETTING_AUTH_CODE")
 
     
@@ -192,10 +194,10 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
     # and now submenus too
     if session_id is None:
         session_id = time.time()
-        db = TorToolkitDB()
+        db = tordb
         db.set_variable("SETTING_AUTH_CODE",str(session_id))
         SessionVars.update_var("SETTING_AUTH_CODE",str(session_id))
-        del db
+        
     
     menu = [
         #[KeyboardButtonCallback(yes+" Allow TG Files Leech123456789-","settings data".encode("UTF-8"))], # for ref
@@ -227,9 +229,9 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
         if rcval != "None":
             # create a all drives menu
             if rcval == "Custom file is loaded.":
-                db = TorToolkitDB()
+                db = tordb
                 _, fdata = db.get_variable("RCLONE_CONFIG")
-                del db
+                
                 path = os.path.join(os.getcwd(),"rclone.conf")
 
                 # find alternative to this
@@ -451,11 +453,11 @@ async def get_string_variable(var_name,menu,callback_name,session_id):
 
     val = get_val(var_name)
     if var_name == "RCLONE_CONFIG":
-        db = TorToolkitDB()
+        db = tordb
         _, val1 = db.get_variable(var_name)
         if val1 is not None:
             val = "Custom file is loaded."
-        del db
+        
     msg = var_name + " " + str(val)
     menu.append(
         [KeyboardButtonCallback(msg,f"settings {callback_name} {session_id}".encode("UTF-8"))]

@@ -7,7 +7,6 @@ import os
 import time
 from .Human_Format import human_readable_bytes,human_readable_timedelta
 from ..core.getVars import get_val
-from ..core.database_handle import TtkUpload
 #logging.basicConfig(level=logging.DEBUG)
 
 async def progress(current,total,message,file_name,start,time_out,cancel_msg=None,updb=None):

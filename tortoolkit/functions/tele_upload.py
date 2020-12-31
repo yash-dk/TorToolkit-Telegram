@@ -20,6 +20,7 @@ torlog = logging.getLogger(__name__)
 async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None):
     # creting here so connections are kept low
     if updb is None:
+        # Central object is not used its Acknowledged 
         updb = TtkUpload()
 
     #logging.info("Uploading Now:- {}".format(path))

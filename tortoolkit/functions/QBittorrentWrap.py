@@ -13,8 +13,7 @@ from telethon.errors.rpcerrorlist import MessageNotModifiedError,FloodWaitError
 from telethon import events
 from functools import partial
 from random import randint
-from ..core.database_handle import TtkTorrents
-
+from .. import tor_db
 #logging.basicConfig(level=logging.DEBUG)
 torlog = logging.getLogger(__name__)
 logging.getLogger('qbittorrentapi').setLevel(logging.ERROR)
@@ -372,7 +371,7 @@ async def register_torrent(entity,message,magnet=False,file=False):
         else:
             
             pincode = randint(1000,9999)
-            db = TtkTorrents()
+            db = tor_db
             db.add_torrent(torrent.hash,pincode)
             
             pincodetxt = f"getpin {torrent.hash} {omess.sender_id}"
@@ -397,7 +396,7 @@ async def register_torrent(entity,message,magnet=False,file=False):
             message = await message.edit(buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
 
             db.disable_torrent(torrent.hash)
-            del db
+            
 
 
             return await update_progress(client,message,torrent)
@@ -408,7 +407,7 @@ async def register_torrent(entity,message,magnet=False,file=False):
             return True
         else:
             pincode = randint(1000,9999)
-            db = TtkTorrents()
+            db = tor_db
             db.add_torrent(torrent.hash,pincode)
             
             pincodetxt = f"getpin {torrent.hash} {omess.sender_id}"
@@ -434,7 +433,7 @@ async def register_torrent(entity,message,magnet=False,file=False):
             message = await message.edit(buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
 
             db.disable_torrent(torrent.hash)
-            del db
+            
 
             return await update_progress(client,message,torrent)
 
