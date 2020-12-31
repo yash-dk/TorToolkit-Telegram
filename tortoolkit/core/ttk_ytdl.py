@@ -246,7 +246,10 @@ async def handle_ytdl_file_download(e: MessageLike):
             
             if not err:
                 
-                rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),thumb_path=thumb_path)
+                # TODO Fix the original thumbnail
+                # rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),thumb_path=thumb_path)
+                
+                rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict())
                 await print_files(e,rdict)
                 
                 shutil.rmtree(op_dir)
