@@ -1,5 +1,6 @@
 aiohttp==3.6.2
 anytree==2.8.0
+aria2p==0.9.1
 async-timeout==3.0.1
 attrdict==2.0.1
 attrs==19.3.0
@@ -22,10 +23,9 @@ qbittorrent-api==2020.7.7
 requests==2.24.0
 rsa==4.6
 six==1.15.0
-Telethon==1.16.2
+Telethon==1.17.0
 TgCrypto==1.2.1
 torrentool==1.1.0
 urllib3==1.25.10
 yarl==1.5.1
-aria2p==0.9.1
 youtube-dl==2020.11.12
