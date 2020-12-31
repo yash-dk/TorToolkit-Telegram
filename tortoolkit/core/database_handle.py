@@ -29,9 +29,11 @@ class TorToolkitDB(DataBaseHandle):
 
         cur = self._conn.cursor()
         try:
+            # Sometimes multiple instance try to creat which may cause this error
             cur.execute(settings_schema)
         except psycopg2.errors.UniqueViolation: # pylint: disable=no-member
             pass
+        
         self._conn.commit()
         cur.close()
 
@@ -100,6 +102,9 @@ class TorToolkitDB(DataBaseHandle):
         super().__del__()
 
 class TtkUpload(DataBaseHandle):
+    # Common across all the objs
+    cache_store = {}
+
     def __init__(self,dburl=None):
         # *** QUERIES ***
         if dburl is None:
@@ -118,12 +123,16 @@ class TtkUpload(DataBaseHandle):
         )"""
 
         cur = self._conn.cursor()
+        
         try:
+            # Sometimes multiple instance try to creat which may cause this error
             cur.execute(uploads_schema)
         except psycopg2.errors.UniqueViolation: # pylint: disable=no-member
             pass
+
         self._conn.commit()
         cur.close()
+        
 
     def register_upload(self,chat_id,mes_id,is_batch=False):
         chat_id = str(chat_id)
@@ -142,6 +151,7 @@ class TtkUpload(DataBaseHandle):
         sql = "INSERT INTO ttk_uploads(chat_id,message_id,is_batch) VALUES(%s,%s,%s)"
         
         cur.execute(sql,(chat_id,mes_id,is_batch))
+        self.cache_store["{}-{}".format(chat_id, mes_id)] = False
         self.ccur(cur)
 
     def cancel_download(self,chat_id,mes_id):
@@ -152,7 +162,13 @@ class TtkUpload(DataBaseHandle):
         sql = "SELECT * FROM ttk_uploads WHERE chat_id=%s and message_id=%s"
         
         cur.execute(sql,(chat_id,mes_id))
-
+        try:
+            print("Here to update ","{}-{}".format(chat_id, mes_id))
+            self.cache_store["{}-{}".format(chat_id, mes_id)] = True
+            print(self.cache_store)
+        except KeyError:
+            print("Failed")
+            pass
         if cur.rowcount == 0:
             self.ccur(cur)
             return False
@@ -167,6 +183,14 @@ class TtkUpload(DataBaseHandle):
         mes_id = str(mes_id)
 
         cur = self.scur()
+        try:
+            # Caching in memory
+            vall = self.cache_store["{}-{}".format(chat_id, mes_id)]
+            print("From cache the status", vall, "{}-{}".format(chat_id, mes_id))
+            print(self.cache_store)
+            return vall
+        except KeyError:
+            pass
         sql = "SELECT * FROM ttk_uploads WHERE chat_id=%s and message_id=%s"
         
         cur.execute(sql,(chat_id,mes_id))
@@ -185,6 +209,10 @@ class TtkUpload(DataBaseHandle):
         chat_id = str(chat_id)
         mes_id = str(mes_id)
         
+        try:
+            del self.cache_store["{}-{}".format(chat_id, mes_id)]
+        except KeyError:
+            pass
         sql = "DELETE FROM ttk_uploads WHERE chat_id=%s and message_id=%s"
         cur = self.scur()
         cur.execute(sql,(chat_id,mes_id))
@@ -210,7 +238,9 @@ class TtkTorrents(DataBaseHandle):
             enab BOOLEAN DEFAULT true
         )
         """
+
         try:
+            # Sometimes multiple instance try to creat which may cause this error
             cur.execute(table)
         except psycopg2.errors.UniqueViolation: # pylint: disable=no-member
             pass

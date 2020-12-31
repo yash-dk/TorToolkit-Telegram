@@ -15,6 +15,7 @@ from .settings import handle_settings,handle_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
+from .. import upload_db, var_db, tor_db
 import asyncio as aio
 import re,logging,time,os,psutil
 from tortoolkit import __version__
@@ -278,11 +279,11 @@ async def handle_status_command(e):
 
 async def handle_test_command(e):
     queue = e.client.queue
-    db = TtkUpload()
+    db = upload_db
     msg = await e.reply("test")
     #msg = await e.client.get_messages(e.chat_id,ids=msg.id)
     await rclone_driver("/mnt/d/gitmajors/ofile.mkv",msg)
-    del db
+    
 
 
 async def handle_settings_cb(e):
@@ -292,7 +293,7 @@ async def handle_settings_cb(e):
         await e.answer("⚠️ WARN ⚠️ Dont Touch Admin Settings.",alert=True)
 
 async def handle_upcancel_cb(e):
-    db = TtkUpload()
+    db = upload_db
 
     data = e.data.decode("UTF-8")
     torlog.info("Data is {}".format(data))
@@ -388,14 +389,14 @@ async def handle_pincode_cb(e):
     data = data.split(" ")
     
     if str(e.sender_id) == data[2]:
-        db = TtkTorrents()
+        db = tor_db
         passw = db.get_password(data[1])
         if isinstance(passw,bool):
             await e.answer("torrent expired download has been started now.")
         else:
             await e.answer(f"Your Pincode if \"{passw}\"",alert=True)
 
-        del db
+        
     else:
         await e.answer("Its not you torrent.",alert=True)
 
@@ -411,7 +412,7 @@ async def upload_document_f(message):
                 local_file_name,
                 imsegd,
                 False,
-                TtkUpload()
+                upload_db
             )
             #torlog.info(recvd_response)
     await imsegd.delete()
@@ -483,7 +484,7 @@ async def handle_server_command(message):
     await message.reply(msg, parse_mode="html")
 
 async def about_me(message):
-    db = TorToolkitDB()
+    db = var_db
     _, val1 = db.get_variable("RCLONE_CONFIG")
     if val1 is None:
         rclone_cfg = "No Rclone Config is loaded."
