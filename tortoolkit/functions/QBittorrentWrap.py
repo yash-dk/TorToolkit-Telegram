@@ -297,6 +297,7 @@ async def delete_all(message):
     await message.delete()
     
 async def delete_this(ext_hash):
+    client = await get_client()
     client.torrents_delete(delete_files=True,torrent_hashes=ext_hash)
     return True
 
