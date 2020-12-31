@@ -273,8 +273,8 @@ async def handle_test_command(e):
     queue = e.client.queue
     db = TtkUpload()
     msg = await e.reply("test")
-    msg = await e.client.get_messages(e.chat_id,ids=msg.id)
-    await rclone_driver("",msg)
+    #msg = await e.client.get_messages(e.chat_id,ids=msg.id)
+    await rclone_driver("/mnt/d/gitmajors/ofile.mkv",msg)
     del db
 
 
