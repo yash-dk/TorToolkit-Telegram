@@ -7,15 +7,16 @@ from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
 from ..core.getVars import get_val
-from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files
+from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files, get_transfer
 from ..functions.tele_upload import upload_a_file,upload_handel
+from ..functions import Human_Format
 from .database_handle import TtkUpload,TtkTorrents, TorToolkitDB
 from .settings import handle_settings,handle_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
 import asyncio as aio
-import re,logging,time,os
+import re,logging,time,os,psutil
 from tortoolkit import __version__
 from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
 
@@ -99,6 +100,12 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         handle_test_command,
         events.NewMessage(pattern="/test",
+        chats=get_val("ALD_USR"))
+    )
+
+    bot.add_event_handler(
+        handle_server_command,
+        events.NewMessage(pattern=command_process(get_command("SERVER")),
         chats=get_val("ALD_USR"))
     )
 
@@ -412,6 +419,68 @@ async def upload_document_f(message):
 async def get_logs_f(message):
     message.text += " torlog.txt"
     await upload_document_f(message)
+
+async def handle_server_command(message):
+    try:
+        # Memory
+        mem = psutil.virtual_memory()
+        memavailable = mem.available
+        memtotal = mem.total
+        mempercent = mem.percent
+        memfree = mem.free
+    except:
+        memavailable = "N/A"
+        memtotal = "N/A"
+        mempercent = "N/A"
+        memfree = "N/A"
+
+    try:
+        # Frequencies
+        cpufreq = psutil.cpu_freq()
+        freqcurrent = cpufreq.current
+        freqmax = cpufreq.max
+    except:
+        freqcurrent = "N/A"
+        freqmax = "N/A"
+
+    try:
+        # Cores
+        cores = psutil.cpu_count(logical=False)
+        lcores = psutil.cpu_count()
+    except:
+        cores = "N/A"
+        lcores = "N/A"
+
+    try:
+        cpupercent = psutil.cpu_percent()
+    except:
+        cpupercent = "N/A"
+    
+    try:
+        transfer = await get_transfer()
+        dlb = Human_Format.human_readable_bytes(transfer["dl_info_data"])
+        upb = Human_Format.human_readable_bytes(transfer["up_info_data"])
+    except:
+        dlb = "N/A"
+        upb = "N/A"
+
+    msg = (
+        "<b>CPU STATS:-</b>\n"
+        f"Cores: {cores} Logical: {lcores}\n"
+        f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
+        f"CPU Utilization: {cpupercent}%\n"
+        "\n"
+        "<b>MEMORY STATS:-</b>\n"
+        f"Available: {memavailable}\n"
+        f"Total: {memtotal}\n"
+        f"Usage: {mempercent}%\n"
+        f"Free: {memfree}\n"
+        "\n"
+        "<b>TRANSFER INFO:</b>\n"
+        f"Download: {dlb}\n"
+        f"Upload: {upb}\n"
+    )
+    await message.reply(msg, parse_mode="html")
 
 async def about_me(message):
     db = TorToolkitDB()

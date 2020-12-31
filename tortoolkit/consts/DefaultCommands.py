@@ -11,4 +11,5 @@ class Commands:
     PYTDL = "pytdl"
     ABOUT = "about"
     GETLOGS = "getlogs"
+    SERVER = "server"
     

@@ -236,7 +236,11 @@ async def print_files(e,files):
         await aio.sleep(1)
 
 
-
+async def get_transfer():
+    client = await QBittorrentWrap.get_client()
+    data = client.transfer_info()
+    print(data)
+    return data
 
 async def cancel_torrent(hashid, is_aria = False):
     if not is_aria:
