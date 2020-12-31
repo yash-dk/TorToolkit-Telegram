@@ -391,12 +391,12 @@ async def print_files(e,files):
      
     rmsg = await e.client.get_messages(e.chat_id,ids=e.message_id)
     rmsg = await rmsg.get_reply_message()
-    msg += "\n<a hrek='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
     if rmsg is None:
-        msg += "\n<a hrek='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
+        #msg += "\n<a href='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
+        msg += "\nOwner Message was deleted."
         await e.reply(msg,parse_mode="html")
     else:
-        msg += "\n<a hrek='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
+        msg += "\n<a href='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
         await rmsg.reply(msg,parse_mode="html")
 
     if len(files) < 2:
