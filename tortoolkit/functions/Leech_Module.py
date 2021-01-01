@@ -78,7 +78,7 @@ async def check_link(msg,rclone=False):
             
             if not isinstance(rval,bool) and rval is not None:
                 if not rclone:
-                    rdict = await upload_handel(rval[0],rmess,omess.from_id,dict())
+                    rdict = await upload_handel(rval[0],rmess,omess.from_id,dict(),user_msg=omess)
                     await print_files(omess,rdict)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                     #await QBittorrentWrap.delete_this(rval[1])
@@ -109,7 +109,7 @@ async def check_link(msg,rclone=False):
             
             if not isinstance(path,bool) and path is not None:
                 if not rclone:
-                    rdict = await upload_handel(path[0],rmess,omess.from_id,dict())
+                    rdict = await upload_handel(path[0],rmess,omess.from_id,dict(),user_msg=omess)
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(path[1])
@@ -136,7 +136,7 @@ async def check_link(msg,rclone=False):
             stat, path = await ariatools.aria_dl(url,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
                 if not rclone:
-                    rdict = await upload_handel(path,rmsg,omess.from_id,dict())
+                    rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess)
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:
@@ -158,7 +158,7 @@ async def check_link(msg,rclone=False):
             stat, path = await ariatools.aria_dl(omess.text,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
                 if not rclone:
-                    rdict = await upload_handel(path,rmsg,omess.from_id,dict())
+                    rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess)
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:

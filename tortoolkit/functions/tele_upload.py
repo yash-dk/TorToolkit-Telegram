@@ -17,7 +17,7 @@ from .Ftele import upload_file
 torlog = logging.getLogger(__name__)
 
 #thanks @SpEcHiDe for this concept of recursion
-async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None):
+async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None, user_msg=None):
     # creting here so connections are kept low
     if updb is None:
         # Central object is not used its Acknowledged 
@@ -40,7 +40,11 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
         
         if not from_in:
             updb.register_upload(message.chat_id,message.id)
-            sup_mes = await message.get_reply_message()
+            if user_msg is None:
+                sup_mes = await message.get_reply_message()
+            else:
+                sup_mes = user_msg
+            
             data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
             buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
             message = await message.edit(buttons=buts)
@@ -59,7 +63,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 force_edit,
                 updb,
                 from_in=True,
-                thumb_path=thumb_path
+                thumb_path=thumb_path,
+                user_msg=user_msg
             )
         
         if not from_in:
@@ -102,7 +107,10 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
 
             if not from_in:
                 updb.register_upload(message.chat_id,message.id)
-                sup_mes = await message.get_reply_message()
+                if user_msg is None:
+                    sup_mes = await message.get_reply_message()
+                else:
+                    sup_mes = user_msg
                 data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
                 buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
@@ -120,7 +128,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                     force_edit,
                     updb=updb,
                     from_in=True,
-                    thumb_path=thumb_path
+                    thumb_path=thumb_path,
+                    user_msg=user_msg
                 )
             
             try:
@@ -138,7 +147,11 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
         else:
             if not from_in:
                 updb.register_upload(message.chat_id,message.id)
-                sup_mes = await message.get_reply_message()
+                if user_msg is None:
+                    sup_mes = await message.get_reply_message()
+                else:
+                    sup_mes = user_msg
+                
                 data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
                 buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
@@ -148,7 +161,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 message,
                 force_edit,
                 updb,
-                thumb_path
+                thumb_path,
+                user_msg=user_msg
             )
 
             if not from_in:
@@ -165,7 +179,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
 
 
 
-async def upload_a_file(path,message,force_edit,database=None,thumb_path=None):
+async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,user_msg=None):
     queue = message.client.queue
     if database is not None:
         if database.get_cancel_status(message.chat_id,message.id):
@@ -195,7 +209,11 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None):
     
 
     if not force_edit:
-        sup_mes = await message.get_reply_message()
+        if user_msg is None:
+            sup_mes = await message.get_reply_message()
+        else:
+            sup_mes = user_msg
+        
         data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
         buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
         msg = await message.reply("Uploading {}".format(file_name),buttons=buts)
