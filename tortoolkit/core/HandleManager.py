@@ -425,10 +425,10 @@ async def handle_server_command(message):
     try:
         # Memory
         mem = psutil.virtual_memory()
-        memavailable = mem.available
-        memtotal = mem.total
+        memavailable = Human_Format.human_readable_bytes(mem.available)
+        memtotal = Human_Format.human_readable_bytes(mem.total)
         mempercent = mem.percent
-        memfree = mem.free
+        memfree = Human_Format.human_readable_bytes(mem.free)
     except:
         memavailable = "N/A"
         memtotal = "N/A"
