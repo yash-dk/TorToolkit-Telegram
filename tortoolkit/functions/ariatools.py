@@ -195,7 +195,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0,
             
             # TODO idk not intrested in using recursion here
             return await check_progress_for_dl(
-                aria2, gid, event, previous_message,user_msg=msg
+                aria2, gid, event, previous_message,user_msg=mes
             )
         else:
             await event.edit(f"Download completed: <code>{file.name}</code> to path <code>{file.name}</code>",parse_mode="html", buttons=None)
