@@ -74,7 +74,7 @@ async def check_link(msg,rclone=False):
             #not worring about the download location now
             # TODO do something to de register the torrents
             path = await msg.download_media()
-            rval =  await QBittorrentWrap.register_torrent(path,rmess,file=True)
+            rval =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
             
             if not isinstance(rval,bool) and rval is not None:
                 if not rclone:
@@ -83,7 +83,7 @@ async def check_link(msg,rclone=False):
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                     #await QBittorrentWrap.delete_this(rval[1])
                 else:
-                    res = await rclone_driver(rval[0],rmess)
+                    res = await rclone_driver(rval[0],rmess,omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     #await QBittorrentWrap.delete_this(rval[1])
@@ -105,7 +105,7 @@ async def check_link(msg,rclone=False):
             rmess = await omess.reply("Scanning....")
             
             mgt = get_magnets(msg.text.strip())
-            path = await QBittorrentWrap.register_torrent(mgt,rmess,True)
+            path = await QBittorrentWrap.register_torrent(mgt,rmess,omess,True)
             
             if not isinstance(path,bool) and path is not None:
                 if not rclone:
@@ -114,7 +114,7 @@ async def check_link(msg,rclone=False):
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(path[1])
                 else:
-                    res = await rclone_driver(path[0],rmess)
+                    res = await rclone_driver(path[0],rmess,omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(path[1])
@@ -133,14 +133,14 @@ async def check_link(msg,rclone=False):
             #todo implement direct links ;)
             # weird stuff had to refect message
             rmsg = await omess.client.get_messages(ids=rmsg.id, entity=rmsg.chat_id)
-            stat, path = await ariatools.aria_dl(url,"",rmsg)
+            stat, path = await ariatools.aria_dl(url,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
                 if not rclone:
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:
-                    res = await rclone_driver(path,rmsg)
+                    res = await rclone_driver(path,rmsg, omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
             
@@ -155,14 +155,14 @@ async def check_link(msg,rclone=False):
             #consider it as a direct link LOL
             rmsg = await omess.reply("processing")
 
-            stat, path = await ariatools.aria_dl(omess.text,"",rmsg)
+            stat, path = await ariatools.aria_dl(omess.text,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
                 if not rclone:
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict())
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:
-                    res = await rclone_driver(path,rmess)
+                    res = await rclone_driver(path,rmess, omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
             

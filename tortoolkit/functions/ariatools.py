@@ -102,7 +102,8 @@ async def check_metadata(aria2, gid):
 async def aria_dl(
     incoming_link,
     c_file_name,
-    sent_message_to_update_tg_p
+    sent_message_to_update_tg_p,
+    user_msg
 ):
     aria_instance = await aria_start()
     if incoming_link.lower().startswith("magnet:"):
@@ -119,7 +120,8 @@ async def aria_dl(
         aria_instance,
         err_message,
         sent_message_to_update_tg_p,
-        None
+        None,
+        user_msg=user_msg
     )
     if incoming_link.startswith("magnet:"):
         #
@@ -131,7 +133,8 @@ async def aria_dl(
                 aria_instance,
                 err_message,
                 sent_message_to_update_tg_p,
-                None
+                None,
+                user_msg=user_msg
             )
         else:
             return False, "can't get metadata \n\n#stopped"
@@ -144,7 +147,7 @@ async def aria_dl(
     else:
         return False, False
 
-async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0):
+async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0, user_msg=None):
     try:
         file = aria2.get_download(gid)
         complete = file.is_complete
@@ -171,7 +174,10 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0)
                 #msg += f"\n<code>/cancel {gid}</code>"
                 
                 # format :- torcancel <provider> <identifier>
-                mes = await event.get_reply_message()
+                if user_msg is None:
+                    mes = await event.get_reply_message()
+                else:
+                    mes = user_msg
                 data = f"torcancel aria2 {gid} {mes.sender_id}"
                 
                 # LOGGER.info(msg)
@@ -189,7 +195,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0)
             
             # TODO idk not intrested in using recursion here
             return await check_progress_for_dl(
-                aria2, gid, event, previous_message
+                aria2, gid, event, previous_message,user_msg=msg
             )
         else:
             await event.edit(f"Download completed: <code>{file.name}</code> to path <code>{file.name}</code>",parse_mode="html", buttons=None)

@@ -170,7 +170,7 @@ async def handle_leech_command(e):
             tsp = time.time()
             #async with e.client.conversation(e.chat_id) as conv:
             buts = [[KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")],[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
-            conf_mes = await e.respond("<b>Choose where to upload your files:- </b>\nThe files will be uploaded to default destination after 60 sec of no action by user.",parse_mode="html",buttons=buts,reply_to=e.id)
+            conf_mes = await e.reply("<b>Choose where to upload your files:- </b>\nThe files will be uploaded to default destination after 60 sec of no action by user.",parse_mode="html",buttons=buts)
                 
             choice = await get_leech_choice(e,tsp)
             if choice == "drive":
@@ -281,8 +281,9 @@ async def handle_test_command(e):
     queue = e.client.queue
     db = upload_db
     msg = await e.reply("test")
-    #msg = await e.client.get_messages(e.chat_id,ids=msg.id)
-    await rclone_driver("/mnt/d/gitmajors/ofile.mkv",msg)
+    await msg.delete()
+
+    await e.client.send_message(e.chat_id,"sss",reply_to=msg.id)
     
 
 

@@ -356,13 +356,16 @@ async def deregister_torrent(hashid):
     client = await get_client()
     client.torrents_delete(torrent_hashes=hashid,delete_files=True)
 
-async def register_torrent(entity,message,magnet=False,file=False):
+async def register_torrent(entity,message,user_msg=None,magnet=False,file=False):
     client = await get_client()
 
     #refresh message
     message = await message.client.get_messages(message.chat_id,ids=message.id)
-    omess = await message.get_reply_message()
-    
+    if user_msg is None:
+        omess = await message.get_reply_message()
+    else:
+        omess = user_msg
+
     if magnet:
         torrent = await add_torrent_magnet(entity,message)
         if torrent.progress == 1:
