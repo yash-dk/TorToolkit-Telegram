@@ -281,9 +281,7 @@ async def handle_test_command(e):
     queue = e.client.queue
     db = upload_db
     msg = await e.reply("test")
-    await msg.delete()
-
-    await e.client.send_message(e.chat_id,"sss",reply_to=msg.id)
+    await rclone_driver("/mnt/d/gitmajors/ofile.mkv",msg,e)
     
 
 

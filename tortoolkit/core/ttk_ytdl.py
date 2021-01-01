@@ -249,7 +249,7 @@ async def handle_ytdl_file_download(e: MessageLike):
                 # TODO Fix the original thumbnail
                 # rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),thumb_path=thumb_path)
                 
-                rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict())
+                rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(), user_msg=e)
                 await print_files(e,rdict)
                 
                 shutil.rmtree(op_dir)
@@ -357,7 +357,7 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
             if err:
                 await e.reply(f"Failed to download the audios <code>{err}</code>",parse_mode="html")
             else:
-                rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict())
+                rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
                 await print_files(e,rdict)
         else:
             if data[1] == "best":
@@ -368,7 +368,7 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
             if err:
                 await e.reply(f"Failed to download the videos <code>{err}</code>",parse_mode="html")
             else:
-                rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict()) 
+                rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
                 await print_files(e,rdict)
         shutil.rmtree(opdir)
         os.remove(path)
@@ -393,10 +393,10 @@ async def print_files(e,files):
     rmsg = await rmsg.get_reply_message()
     if rmsg is None:
         #msg += "\n<a href='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
-        msg += "\n<a href='tg://user?id={}'>Done<a>".format(e.sender_id)
+        msg += "\n<a href='tg://user?id={}'>Done</a>".format(e.sender_id)
         await e.reply(msg,parse_mode="html")
     else:
-        msg += "\n<a href='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
+        msg += "\n<a href='tg://user?id={}'>Done</a>".format(rmsg.sender_id)
         await rmsg.reply(msg,parse_mode="html")
 
     if len(files) < 2:
