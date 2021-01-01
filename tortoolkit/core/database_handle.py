@@ -163,11 +163,8 @@ class TtkUpload(DataBaseHandle):
         
         cur.execute(sql,(chat_id,mes_id))
         try:
-            print("Here to update ","{}-{}".format(chat_id, mes_id))
             self.cache_store["{}-{}".format(chat_id, mes_id)] = True
-            print(self.cache_store)
         except KeyError:
-            print("Failed")
             pass
         if cur.rowcount == 0:
             self.ccur(cur)
@@ -185,10 +182,7 @@ class TtkUpload(DataBaseHandle):
         cur = self.scur()
         try:
             # Caching in memory
-            vall = self.cache_store["{}-{}".format(chat_id, mes_id)]
-            print("From cache the status", vall, "{}-{}".format(chat_id, mes_id))
-            print(self.cache_store)
-            return vall
+            return self.cache_store["{}-{}".format(chat_id, mes_id)]
         except KeyError:
             pass
         sql = "SELECT * FROM ttk_uploads WHERE chat_id=%s and message_id=%s"
