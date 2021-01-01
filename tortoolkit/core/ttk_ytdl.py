@@ -393,7 +393,7 @@ async def print_files(e,files):
     rmsg = await rmsg.get_reply_message()
     if rmsg is None:
         #msg += "\n<a href='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
-        msg += "\nOwner Message was deleted."
+        msg += "\n<a href='tg://user?id={}'>Done<a>".format(e.sender_id)
         await e.reply(msg,parse_mode="html")
     else:
         msg += "\n<a href='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
