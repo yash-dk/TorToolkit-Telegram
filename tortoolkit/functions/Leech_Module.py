@@ -100,11 +100,11 @@ async def check_link(msg,rclone=False):
         else:
             await omess.reply("This is not a torrent file to leech from. Send <code>.torrent</code> file",parse_mode="html")
 
-    elif msg.text is not None:
-        if msg.text.lower().startswith("magnet:"):
+    elif msg.raw_text is not None:
+        if msg.raw_text.lower().startswith("magnet:"):
             rmess = await omess.reply("Scanning....")
             
-            mgt = get_magnets(msg.text.strip())
+            mgt = get_magnets(msg.raw_text.strip())
             path = await QBittorrentWrap.register_torrent(mgt,rmess,omess,True)
             
             if not isinstance(path,bool) and path is not None:
@@ -133,7 +133,10 @@ async def check_link(msg,rclone=False):
             #todo implement direct links ;)
             # weird stuff had to refect message
             rmsg = await omess.client.get_messages(ids=rmsg.id, entity=rmsg.chat_id)
-            stat, path = await ariatools.aria_dl(url,"",rmsg,omess)
+            if url is None:
+                stat, path = await ariatools.aria_dl(msg.raw_text,"",rmsg,omess)
+            else:
+                stat, path = await ariatools.aria_dl(url,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
                 if not rclone:
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess)
@@ -143,6 +146,8 @@ async def check_link(msg,rclone=False):
                     res = await rclone_driver(path,rmsg, omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
+            elif stat is False:
+                await rmsg.edit("Failed to download this file.\n"+str(path))
             
             try:
                 if os.path.isdir(path):
@@ -155,7 +160,7 @@ async def check_link(msg,rclone=False):
             #consider it as a direct link LOL
             rmsg = await omess.reply("processing")
 
-            stat, path = await ariatools.aria_dl(omess.text,"",rmsg,omess)
+            stat, path = await ariatools.aria_dl(omess.raw_text,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
                 if not rclone:
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess)
