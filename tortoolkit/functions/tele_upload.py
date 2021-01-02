@@ -156,14 +156,17 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
             #print(updb)
-            sentmsg = await upload_a_file(
-                path,
-                message,
-                force_edit,
-                updb,
-                thumb_path,
-                user_msg=user_msg
-            )
+            if black_list_exts(path):
+                sentmsg = None
+            else:
+                sentmsg = await upload_a_file(
+                    path,
+                    message,
+                    force_edit,
+                    updb,
+                    thumb_path,
+                    user_msg=user_msg
+                )
 
             if not from_in:
                 if updb.get_cancel_status(message.chat_id,message.id):
@@ -352,3 +355,9 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     return out_msg
 
 
+def black_list_exts(file):
+    for i in ['!qb']:
+        if str(file).lower().endswith(i):
+            return True
+    
+    return False
