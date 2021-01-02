@@ -6,6 +6,8 @@ from datetime import datetime,timedelta
 def human_readable_bytes(value, digits= 2, delim= "", postfix=""):
     """Return a human-readable file size.
     """
+    if value is None:
+        return None
     chosen_unit = "B"
     for unit in ("KiB", "MiB", "GiB", "TiB"):
         if value > 1000:
