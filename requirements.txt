@@ -28,4 +28,4 @@ TgCrypto==1.2.1
 torrentool==1.1.0
 urllib3==1.25.10
 yarl==1.5.1
-youtube-dl==2020.11.12
+youtube-dl
