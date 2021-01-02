@@ -262,7 +262,7 @@ async def handle_ytdl_file_download(e: MessageLike):
                 cmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{op_dir}/%(title)s.%(ext)s' {yt_url}"
 
             else:
-                cmd = f"youtube-dl --continue --embed-subs --no-warnings --prefer-ffmpeg -f {data[1]}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+                cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
             
             out, err = await cli_call(cmd)
             
@@ -277,6 +277,16 @@ async def handle_ytdl_file_download(e: MessageLike):
                 shutil.rmtree(op_dir)
                 os.remove(thumb_path)
                 os.remove(path)
+            else:
+                torlog.error(out)
+                torlog.error(os.listdir(op_dir))
+                torlog.error(err)
+                omess = await e.get_message()
+                omess1 = await omess.get_reply_message()
+                if omess1 is None:
+                    await omess.respond(err)
+                else:
+                    await omess1.reply(err)
 
     else:
         await e.delete()
