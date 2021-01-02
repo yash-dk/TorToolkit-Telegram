@@ -8,6 +8,7 @@ from telethon.tl.types import KeyboardButtonCallback
 from typing import Union,List,Tuple,Dict,Optional
 from ..functions.Human_Format import human_readable_bytes
 from ..functions.tele_upload import upload_handel
+from ..core.getVars import get_val
 from PIL import Image
 
 torlog = logging.getLogger(__name__)
@@ -294,8 +295,9 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         keybr = list()
         
         # limit the max vids
-        if entlen > 20:
-            await msg.edit(f"Playlist too large max 20 vids allowed as of now. This has {entlen}")
+        if entlen > get_val("MAX_YTPLAYLIST_SIZE"):
+
+            await msg.edit(f"Playlist too large max {get_val('MAX_YTPLAYLIST_SIZE')} vids allowed as of now. This has {entlen}")
             return
 
 
