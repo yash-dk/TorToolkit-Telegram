@@ -52,6 +52,9 @@ async def cli_call(cmd: Union[str,List[str]]) -> Tuple[str,str]:
 async def get_yt_link_details(url: str) -> Union[Dict[str,str], None]:
     cmd = "youtube-dl --no-warnings --youtube-skip-dash-manifest --dump-json"
     cmd = shlex.split(cmd)
+    if "hotstar" in url:
+        cmd.append("--geo-bypass-country")
+        cmd.append("IN")
     cmd.append(url)
     
     out, error = await cli_call(cmd)
