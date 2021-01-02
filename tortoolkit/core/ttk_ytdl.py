@@ -107,6 +107,8 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
         unique_formats = dict()
         for i in data.get("formats"):
             c_format = i.get("format_note")
+            if c_format is None:
+                c_format = i.get("height")
             if not c_format in unique_formats:
                 unique_formats[c_format] = [i.get("filesize"),i.get("filesize")]
             else:
@@ -178,19 +180,27 @@ async def handle_ytdl_callbacks(e: MessageLike):
                         cdata = f"ytdldfile|{i}|{e.sender_id}|{data[3]}"
                         buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
                 else:
+                    j = 0
                     for i in ytdata.get("formats"):
-                        
                         c_format = i.get("format_note")
+                        format_id = i.get('format_id')
+                        height = i.get('format')
+                        if c_format is None:
+                            c_format = str(i.get("height"))
+                            format_id = f"xxother{j}"
+                            height = i.get('format')
                         if not c_format == data[1]:
                             continue
-                        height = i.get('height')
+                        
                         
                         if not height:
                             continue
                             
                         text = f"{height} [{i.get('ext')}] [{human_readable_bytes(i.get('filesize'))}]"
-                        cdata = f"ytdldfile|{i.get('format_id')}|{e.sender_id}|{data[3]}"
+                        cdata = f"ytdldfile|{format_id}|{e.sender_id}|{data[3]}"
+                        
                         buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
+                        j+=1
                 
                 buttons.append([KeyboardButtonCallback("Go Back 😒",f"ytdlmmenu|{data[2]}|{data[3]}")])
                 await e.edit(f"Files for quality {data[1]}",buttons=buttons)
@@ -239,6 +249,14 @@ async def handle_ytdl_file_download(e: MessageLike):
             op_dir = os.path.join(os.getcwd(),'userdata',data[3])
             if not os.path.exists(op_dir):
                 os.mkdir(op_dir)
+            if data[1].startswith("xxother"):
+                data[1] = data[1].replace("xxother","")
+                data[1] = int(data[1])
+                j = 0
+                for i in ytdata.get("formats"):
+                    if j == data[1]:
+                        data[1] = i.get("format_id")
+                    j +=1
 
             if data[1].endswith("K"):
                 cmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{op_dir}/%(title)s.%(ext)s' {yt_url}"
