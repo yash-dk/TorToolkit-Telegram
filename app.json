@@ -1,0 +1,33 @@
+{
+    "name": "TorToolKit",
+    "description": "Aimed to be swissknife of Torrents Bot for Telegram..",
+    "keywords": [
+      "Telegram",
+      "Bot",
+      "Torrents"
+    ],
+    "website": "https://github.com/yash-dk/TorToolkit-Telegram",
+    "repository": "https://github.com/yash-dk/TorToolkit-Telegram",
+    "logo": "https://small-sharp-tool.com/logo.svg",
+    "success_url": "/welcome",
+    "env": {
+      "BOT_TOKEN": {
+        "description": "Enter you bot token."
+      }
+    },
+    "formation": {
+      "web": {
+        "quantity": 1,
+        "size": "free"
+      }
+    },
+    "addons": [
+      {
+        "plan": "heroku-postgresql",
+        "options": {
+          "version": "12"
+        },
+        "as":"DB_URI"
+      }
+    ]
+  }
