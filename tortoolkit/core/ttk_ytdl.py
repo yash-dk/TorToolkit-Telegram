@@ -281,11 +281,15 @@ async def handle_ytdl_file_download(e: MessageLike):
                 torlog.error(err)
                 omess = await e.get_message()
                 omess1 = await omess.get_reply_message()
-                omess.edit("An error has occured trying to upload any files that are found here.")
-                if omess1 is None:
-                    await omess.respond("An error has occured trying to upload any files that are found here.")
+                if "HTTP Error 429" in err:
+                    emsg = "HTTP Error 429: Too many requests try after a while."
                 else:
-                    await omess1.reply("An error has occured trying to upload any files that are found here.")
+                    emsg = "An error has occured trying to upload any files that are found here."
+                await omess.edit(emsg)
+                if omess1 is None:
+                    await omess.respond(emsg)
+                else:
+                    await omess1.reply(emsg)
                 
                 rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(), user_msg=e)
                 await print_files(e,rdict)
