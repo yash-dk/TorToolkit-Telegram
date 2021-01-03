@@ -278,15 +278,24 @@ async def handle_ytdl_file_download(e: MessageLike):
                 os.remove(thumb_path)
                 os.remove(path)
             else:
-                torlog.error(out)
-                torlog.error(os.listdir(op_dir))
                 torlog.error(err)
                 omess = await e.get_message()
                 omess1 = await omess.get_reply_message()
+                omess.edit("An error has occured trying to upload any files that are found here.")
                 if omess1 is None:
-                    await omess.respond(err)
+                    await omess.respond("An error has occured trying to upload any files that are found here.")
                 else:
-                    await omess1.reply(err)
+                    await omess1.reply("An error has occured trying to upload any files that are found here.")
+                
+                rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(), user_msg=e)
+                await print_files(e,rdict)
+
+                try:
+                    shutil.rmtree(op_dir)
+                    os.remove(thumb_path)
+                    os.remove(path)
+                except:
+                    pass
 
     else:
         await e.delete()
