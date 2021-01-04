@@ -164,35 +164,46 @@ async def handle_leech_command(e):
         await e.reply("Reply to a link or magnet")
     else:
         rclone = False
-        # convo init
-        # todo errors when multiple leech command fired 
+        
         if await get_config() is not None:
             tsp = time.time()
-            #async with e.client.conversation(e.chat_id) as conv:
-            buts = [[KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")],[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
-            conf_mes = await e.reply("<b>Choose where to upload your files:- </b>\nThe files will be uploaded to default destination after 60 sec of no action by user.",parse_mode="html",buttons=buts)
-                
+           
+            buts = [
+                    [KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")],
+                    [KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")],
+                    [KeyboardButtonCallback("Upload in a ZIP.[Toggle]", data=f"leechzip toggle {tsp}")]
+                ]
+            
+            conf_mes = await e.reply("<b>First click if you want to zip the contents then. </b>\n<b>Choose where to upload your files:- </b>\nThe files will be uploaded to default destination after 60 sec of no action by user.",parse_mode="html",buttons=buts)
+            
+            # zip check in background
+            ziplist = await get_zip_choice(e,tsp)
+            
+            # blocking leech choice 
             choice = await get_leech_choice(e,tsp)
+            
+            # zip check in backgroud end
+            await get_zip_choice(e,tsp,ziplist,start=False)
+            is_zip = ziplist[1]
+            
+            # Set rclone based on choice
             if choice == "drive":
                 rclone = True
             else:
                 rclone = False
             
             await conf_mes.delete()
+
         if rclone:
             if get_val("RCLONE_ENABLED"):
-                await check_link(e,rclone)
+                await check_link(e,rclone, is_zip)
             else:
                 await e.reply("<b>DRIVE IS DISABLED BY THE ADMIN</b>",parse_mode="html")
         else:
             if get_val("LEECH_ENABLED"):
-                await check_link(e,rclone)
+                await check_link(e,rclone, is_zip)
             else:
                 await e.reply("<b>TG LEECH IS DISABLED BY THE ADMIN</b>",parse_mode="html")
-
-            #path = await check_link(e)
-            #if path is not None:
-            #    pass
 
 
 async def get_leech_choice(e,timestamp):
@@ -229,9 +240,28 @@ async def get_leech_choice(e,timestamp):
 
     return val
 
+async def get_zip_choice(e,timestamp, lis=None,start=True):
+    # abstract for getting the confirm in a context
+    # creating this functions to reduce the clutter
+    if lis is None:
+        lis = [None, None, None]
+    
+    if start:
+        cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
+        lis[2] = cbak
+        e.client.add_event_handler(
+            #lambda e: test_callback(e,lis),
+            cbak,
+            events.CallbackQuery(pattern="leechzip")
+        )
+        return lis
+    else:
+        e.client.remove_event_handler(lis[2])
+
+
 async def get_leech_choice_callback(e,o_sender,lis,ts):
     # handle the confirm callback
-
+    print("Heree")
     if o_sender != e.sender_id:
         return
     data = e.data.decode().split(" ")
@@ -239,8 +269,17 @@ async def get_leech_choice_callback(e,o_sender,lis,ts):
         return
     
     lis[0] = True
-    lis[1] = data[1]
-
+    if data[1] == "toggle":
+        # encompasses the None situation too
+        if lis[1] is True:
+            await e.answer("Will Not be zipped", alert=True)
+            lis[1] = False 
+        else:
+            await e.answer("Will be zipped", alert=True)
+            lis[1] = True
+    else:
+        lis[1] = data[1]
+    print(lis[1])
 #add admin checks here - done
 async def handle_purge_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
