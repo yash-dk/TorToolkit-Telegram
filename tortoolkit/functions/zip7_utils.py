@@ -103,3 +103,36 @@ def get_size(start_path = '.'):
                 total_size += os.path.getsize(fp)
 
     return total_size/(1024*1024)
+
+async def extract_archive(path, password=""):
+    if os.path.exists(path):
+        if os.path.isfile(path):
+            if str(path).endswith((".zip", "7z", "tar", "gzip2", "iso", "wim")):
+                # check userdata
+                userpath = os.path.join(os.getcwd(), "userdata")
+                if not os.path.exists(userpath):
+                    os.mkdir(userpath)
+                
+                extpath = os.path.join(userpath, str(time.time()).replace(".",""))
+                os.mkdir(extpath)
+                
+                cmd = f"7z e -y {path} {extpath} -p{password}"
+                
+                _, err = await cli_call(cmd)
+                
+                if err:
+                    if "Wrong password" in err:
+                        return "Wrong Password"
+                    else:
+                        return None
+                else:
+                    return extpath
+        else:
+            # False means that the stuff can be upload but cant be extracted as its a dir
+            return False
+    else:
+        # None means fetal error and cant be ignored
+        return None 
+
+#7z e -y {path} {ext_path}
+#/setpassword jobid password
