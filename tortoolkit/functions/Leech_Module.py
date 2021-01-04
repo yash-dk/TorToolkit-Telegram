@@ -79,7 +79,7 @@ async def check_link(msg,rclone=False,is_zip=False):
             rval =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
             
             if not isinstance(rval,bool) and rval is not None:
-                newpath = await handle_zips(rval[0], is_zip)
+                newpath = await handle_zips(rval[0], is_zip, rmess)
                 if newpath is False:
                     pass
                 else:
@@ -89,12 +89,12 @@ async def check_link(msg,rclone=False,is_zip=False):
                     rdict = await upload_handel(rval[0],rmess,omess.from_id,dict(),user_msg=omess)
                     await print_files(omess,rdict)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
-                    #await QBittorrentWrap.delete_this(rval[1])
+                    await QBittorrentWrap.delete_this(rval[1])
                 else:
                     res = await rclone_driver(rval[0],rmess,omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
-                    #await QBittorrentWrap.delete_this(rval[1])
+                    await QBittorrentWrap.delete_this(rval[1])
 
             try:
                 
@@ -116,7 +116,7 @@ async def check_link(msg,rclone=False,is_zip=False):
             path = await QBittorrentWrap.register_torrent(mgt,rmess,omess,True)
             
             if not isinstance(path,bool) and path is not None:
-                newpath = await handle_zips(path[0], is_zip)
+                newpath = await handle_zips(path[0], is_zip, rmess)
                 if newpath is False:
                     pass
                 else:
@@ -152,7 +152,7 @@ async def check_link(msg,rclone=False,is_zip=False):
             else:
                 stat, path = await ariatools.aria_dl(url,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
-                newpath = await handle_zips(path, is_zip)
+                newpath = await handle_zips(path, is_zip, rmsg)
                 if newpath is False:
                     pass
                 else:
@@ -182,7 +182,7 @@ async def check_link(msg,rclone=False,is_zip=False):
 
             stat, path = await ariatools.aria_dl(omess.raw_text,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
-                newpath = await handle_zips(path, is_zip)
+                newpath = await handle_zips(path, is_zip, rmsg)
                 if newpath is False:
                     pass
                 else:
@@ -219,17 +219,26 @@ async def get_status(msg,all=False):
     smsg = await QBittorrentWrap.get_status(msg,all)
     await msg.reply(smsg,parse_mode="html")
 
-async def handle_zips(path, is_zip):
+async def handle_zips(path, is_zip, rmess):
+    # refetch rmess
+    rmess = await rmess.client.get_messages(rmess.chat_id,ids=rmess.id)
     if is_zip:
         try:
+            await rmess.edit(rmess.text+"\n Starting to Zip the contents. Please wait.")
             zip_path = await add_to_zip(path, get_val("TG_UP_LIMIT"))
+            
+            if zip_path is None:
+                await rmess.edit(rmess.text+"\n Zip failed. Falback to normal")
+                return False
+            
             if os.path.isdir(path):
                 shutil.rmtree(path)
             if os.path.isfile(path):
                 os.remove(path)
-            
+            await rmess.edit(rmess.text+"\n Zipping Done now uploading.")
             return zip_path
         except:
+            await rmess.edit(rmess.text+"\n Zip failed. Falback to normal")
             return False
     else:
         return path
