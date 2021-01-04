@@ -67,6 +67,10 @@ async def add_to_zip(path, size = None):
         if not os.path.exists(bdir):
             os.mkdir(bdir)
         
+        bdir = os.path.join(bdir,fname)
+        if not os.path.exists(bdir):
+            os.mkdir(bdir)
+        
         if size is None:
             size = 1900
         else:
