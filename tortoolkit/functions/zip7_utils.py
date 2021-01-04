@@ -72,7 +72,12 @@ async def add_to_zip(path, size = None):
         else:
             size = int(size)
             size = int(size/(1024*1024)) - 10 #for safe
-        cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' -v{size}m "
+
+        total_size = get_size(path)
+        if total_size > size:
+            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' -v{size}m "
+        else:
+            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}'"
     
         _, err = await cli_call(cmd)
         
@@ -83,3 +88,14 @@ async def add_to_zip(path, size = None):
             return bdir
     else:
         return None
+
+def get_size(start_path = '.'):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(start_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            # skip if it is symbolic link
+            if not os.path.islink(fp):
+                total_size += os.path.getsize(fp)
+
+    return total_size/(1024*1024)
