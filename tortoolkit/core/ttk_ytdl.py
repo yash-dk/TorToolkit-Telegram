@@ -239,6 +239,8 @@ async def handle_ytdl_file_download(e: MessageLike):
     
     await e.edit(buttons=None)
 
+    is_audio = False
+
     path = os.path.join(os.getcwd(),'userdata',data[3]+".json")
     if os.path.exists(path):
         with open(path,encoding="UTF-8") as file:
@@ -257,12 +259,21 @@ async def handle_ytdl_file_download(e: MessageLike):
                     if j == data[1]:
                         data[1] = i.get("format_id")
                     j +=1
-
+            else:
+                for i in ytdata.get("formats"):
+                    if i.get("format_id") == data[1]:
+                        if i.get("acodec") is not None:
+                            is_audio = True
+                            
+                    
             if data[1].endswith("K"):
                 cmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{op_dir}/%(title)s.%(ext)s' {yt_url}"
 
             else:
-                cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+                if is_audio:
+                    cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]} -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+                else:
+                    cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
             
             out, err = await cli_call(cmd)
             
