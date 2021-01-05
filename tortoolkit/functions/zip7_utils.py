@@ -128,6 +128,8 @@ async def extract_archive(path, password=""):
                     if "Wrong password" in err:
                         return "Wrong Password"
                     else:
+                        torlog.error(err)
+                        torlog.error(out)
                         return False
                 else:
                     return extpath
