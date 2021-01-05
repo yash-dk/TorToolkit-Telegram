@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-import re,os,shutil
+import re,os,shutil,time
 from telethon.tl import types
 import logging, os, shutil
 import asyncio as aio
@@ -9,7 +9,7 @@ from . import QBittorrentWrap
 from . import ariatools
 from .tele_upload import upload_handel
 from .rclone_upload import rclone_driver
-from .zip7_utils import add_to_zip
+from .zip7_utils import add_to_zip, extract_archive
 from ..core.getVars import get_val
 
 #logging.basicConfig(level=logging.DEBUG)
@@ -53,11 +53,16 @@ def get_entities(msg):
     else:
         return None
 
-async def check_link(msg,rclone=False,is_zip=False):
+async def check_link(msg,rclone=False,is_zip=False, extract=False):
     urls = None
     print("here2")
     omess = msg
     msg = await msg.get_reply_message()
+
+    if extract:
+        mess = f"You chose to extract the archive <a href='tg://user?id={omess.sender_id}'>ENTER PASSWORD IF ANY.</a>\n Use <code>/setpass {omess.id} <password></code>"
+        omess.client.dl_passwords[omess.id] = [str(omess.sender_id), None]
+        await omess.reply(mess, parse_mode="html")
 
     if msg is None:
         urls = None
@@ -79,11 +84,16 @@ async def check_link(msg,rclone=False,is_zip=False):
             rval =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
             
             if not isinstance(rval,bool) and rval is not None:
-                newpath = await handle_zips(rval[0], is_zip, rmess)
-                if newpath is False:
-                    pass
+                if extract:
+                    newpath = await handle_ext_zip(rval[0], rmess, omess)
+                    if not newpath is False:
+                        rval[0] = newpath
                 else:
-                    rval[0] = newpath
+                    newpath = await handle_zips(rval[0], is_zip, rmess)
+                    if newpath is False:
+                        pass
+                    else:
+                        rval[0] = newpath
                 
                 if not rclone:
                     rdict = await upload_handel(rval[0],rmess,omess.from_id,dict(),user_msg=omess)
@@ -116,11 +126,16 @@ async def check_link(msg,rclone=False,is_zip=False):
             path = await QBittorrentWrap.register_torrent(mgt,rmess,omess,True)
             
             if not isinstance(path,bool) and path is not None:
-                newpath = await handle_zips(path[0], is_zip, rmess)
-                if newpath is False:
-                    pass
+                if extract:
+                    newpath = await handle_ext_zip(path[0], rmess, omess)
+                    if not newpath is False:
+                        path[0] = newpath
                 else:
-                    path[0] = newpath
+                    newpath = await handle_zips(path[0], is_zip, rmess)
+                    if newpath is False:
+                        pass
+                    else:
+                        path[0] = newpath
 
                 if not rclone:
                     rdict = await upload_handel(path[0],rmess,omess.from_id,dict(),user_msg=omess)
@@ -152,11 +167,16 @@ async def check_link(msg,rclone=False,is_zip=False):
             else:
                 stat, path = await ariatools.aria_dl(url,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
-                newpath = await handle_zips(path, is_zip, rmsg)
-                if newpath is False:
-                    pass
+                if extract:
+                    newpath = await handle_ext_zip(path, rmsg, omess)
+                    if not newpath is False:
+                        path = newpath
                 else:
-                    path = newpath
+                    newpath = await handle_zips(path, is_zip, rmsg)
+                    if newpath is False:
+                        pass
+                    else:
+                        path = newpath
                 
                 if not rclone:
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess)
@@ -182,11 +202,16 @@ async def check_link(msg,rclone=False,is_zip=False):
 
             stat, path = await ariatools.aria_dl(omess.raw_text,"",rmsg,omess)
             if not isinstance(path,bool) and stat:
-                newpath = await handle_zips(path, is_zip, rmsg)
-                if newpath is False:
-                    pass
+                if extract:
+                    newpath = await handle_ext_zip(path, rmsg, omess)
+                    if not newpath is False:
+                        path = newpath
                 else:
-                    path = newpath
+                    newpath = await handle_zips(path, is_zip, rmsg)
+                    if newpath is False:
+                        pass
+                    else:
+                        path = newpath
                 
                 if not rclone:
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess)
@@ -242,6 +267,49 @@ async def handle_zips(path, is_zip, rmess):
             return False
     else:
         return path
+
+async def handle_ext_zip(path, rmess, omess):
+    # refetch rmess
+    rmess = await rmess.client.get_messages(rmess.chat_id,ids=rmess.id)
+    password = rmess.client.dl_passwords.get(omess.id)
+    if password is not None:
+        password = password[1]
+    start = time.time()
+    await rmess.edit(f"{rmess.text} Trying to Extract the archive with password <code>{password}</code>.", parse_mode="html")
+    wrong_pwd = False
+
+    while True:
+        if not wrong_pwd:
+            ext_path = await extract_archive(path,password=password)
+        else:
+            if (time.time() - start) > 1200:
+                await rmess.edit(f"{rmess.text} Extract failed as no correct password was provided uploading as it is.")
+                return False
+
+            temppass = rmess.client.dl_passwords.get(omess.id)
+            if temppass is not None:
+                temppass = temppass[1]
+            if temppass == password:
+                await aio.sleep(10)
+            else:
+                password = temppass
+                wrong_pwd = False
+        
+        if "Wrong password" in ext_path:
+            mess = f"<a href='tg://user?id={omess.sender_id}'>RE-ENTER PASSWORD</a>\nThe passowrd <code>{password}</code> you provided is a wrong password.You have 20 Mins to reply else un extracted zip will be uploaded.\n Use <code>/setpass {omess.id} <password></code>"
+            await omess.reply(mess, parse_mode="html")
+            wrong_pwd = True
+        elif ext_path is False:
+            return False
+        elif ext_path is None:
+            # None is to descibe fetal but the upload will fail 
+            # itself further nothing to handle here
+            return False
+        else:
+            return ext_path
+    
+
+
 
 async def print_files(e,files):
     msg = f"<a href='tg://user?id={e.sender_id}'>Done</a>\n#uploads\n"
