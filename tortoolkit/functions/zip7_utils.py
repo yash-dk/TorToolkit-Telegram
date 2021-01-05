@@ -116,6 +116,10 @@ async def extract_archive(path, password=""):
                 extpath = os.path.join(userpath, str(time.time()).replace(".",""))
                 os.mkdir(extpath)
                 
+                extpath = os.path.join(extpath,os.path.basename(path))
+                if not os.path.exists(extpath):
+                    os.mkdir(extpath)
+
                 cmd = f"7z e -y {path} -o{extpath} -p{password}"
                 
                 out, err = await cli_call(cmd)
