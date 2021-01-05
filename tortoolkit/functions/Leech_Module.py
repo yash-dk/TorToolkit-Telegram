@@ -291,12 +291,14 @@ async def handle_ext_zip(path, rmess, omess):
                 temppass = temppass[1]
             if temppass == password:
                 await aio.sleep(10)
+                continue
             else:
                 password = temppass
                 wrong_pwd = False
+                continue
         
-        if "Wrong password" in ext_path:
-            mess = f"<a href='tg://user?id={omess.sender_id}'>RE-ENTER PASSWORD</a>\nThe passowrd <code>{password}</code> you provided is a wrong password.You have 20 Mins to reply else un extracted zip will be uploaded.\n Use <code>/setpass {omess.id} <password></code>"
+        if "Wrong Password" in ext_path:
+            mess = f"<a href='tg://user?id={omess.sender_id}'>RE-ENTER PASSWORD</a>\nThe passowrd <code>{password}</code> you provided is a wrong password.You have {((time.time()-start)/60)-20} Mins to reply else un extracted zip will be uploaded.\n Use <code>/setpass {omess.id} <password></code>"
             await omess.reply(mess, parse_mode="html")
             wrong_pwd = True
         elif ext_path is False:

@@ -109,6 +109,12 @@ def add_handlers(bot: TelegramClient):
         events.NewMessage(pattern=command_process(get_command("SERVER")),
         chats=get_val("ALD_USR"))
     )
+    
+    bot.add_event_handler(
+        set_password_zip,
+        events.NewMessage(pattern=command_process("/setpass"),
+        chats=get_val("ALD_USR"))
+    )
 
 
 
@@ -283,13 +289,15 @@ async def get_leech_choice_callback(e,o_sender,lis,ts):
     lis[0] = True
     if data[1] == "toggle":
         # encompasses the None situation too
+        print("data ",lis)
         if lis[1] is True:
             await e.answer("Will Not be zipped", alert=True)
             lis[1] = False 
         else:
             await e.answer("Will be zipped", alert=True)
             lis[1] = True
-    if data[1] == "toggleex":
+    elif data[1] == "toggleex":
+        print("exdata ",lis)
         # encompasses the None situation too
         if lis[1] is True:
             await e.answer("It will not be extracted.", alert=True)
@@ -482,12 +490,15 @@ async def get_logs_f(message):
 
 async def set_password_zip(message):
     #/setpass message_id password
-    data = message.text.split(" ")
-    passdata = message.client.dl_passwords.get(data[1])
+    data = message.raw_text.split(" ")
+    passdata = message.client.dl_passwords.get(int(data[1]))
     if passdata is None:
         await message.reply(f"No entry found for this job id {data[1]}")
     else:
-        if message.sender_id == passdata[0]:
+        print(message.sender_id)
+        print(passdata[0])
+        if str(message.sender_id) == passdata[0]:
+            message.client.dl_passwords[int(data[1])][1] = data[2]
             await message.reply(f"Password updated successfully.")
         else:
             await message.reply(f"Cannot update the password this is not your download.")
