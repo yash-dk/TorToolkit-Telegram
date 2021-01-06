@@ -484,10 +484,10 @@ async def upload_document_f(message):
             #torlog.info(recvd_response)
     await imsegd.delete()
 
-async def get_logs_f(message):
+async def get_logs_f(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
-        message.text += " torlog.txt"
-        await upload_document_f(message)
+        e.text += " torlog.txt"
+        await upload_document_f(e)
     else:
         await e.delete()
 
