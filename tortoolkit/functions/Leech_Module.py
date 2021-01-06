@@ -342,21 +342,35 @@ async def print_files(e,files):
                 break
         nextt,prev = "",""
         chat_id = str(e.chat_id)[4:]
+        buttons = []
         if index == 0:
             nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+            buttons.append(
+                types.KeyboardButtonUrl("Next", nextt)
+            )
             nextt = f'<a href="{nextt}">Next</a>\n'
         elif index == len(msgs)-1:
             prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+            buttons.append(
+                types.KeyboardButtonUrl("Prev", prev)
+            )
             prev = f'<a href="{prev}">Prev</a>\n'
         else:
             nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+            buttons.append(
+                types.KeyboardButtonUrl("Next", nextt)
+            )
             nextt = f'<a href="{nextt}">Next</a>\n'
             
             prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+            buttons.append(
+                types.KeyboardButtonUrl("Prev", prev)
+            )
             prev = f'<a href="{prev}">Prev</a>\n'
 
         try:
-            await i.edit("{} {} {}".format(prev,i.text,nextt),parse_mode="html")
+            #await i.edit("{} {} {}".format(prev,i.text,nextt),parse_mode="html")
+            await i.edit(buttons=buttons)
         except:pass
         await aio.sleep(1)
 
