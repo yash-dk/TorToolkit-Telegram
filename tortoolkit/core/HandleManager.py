@@ -485,8 +485,11 @@ async def upload_document_f(message):
     await imsegd.delete()
 
 async def get_logs_f(message):
-    message.text += " torlog.txt"
-    await upload_document_f(message)
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        message.text += " torlog.txt"
+        await upload_document_f(message)
+    else:
+        await e.delete()
 
 async def set_password_zip(message):
     #/setpass message_id password
