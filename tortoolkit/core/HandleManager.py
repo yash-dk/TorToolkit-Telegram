@@ -594,7 +594,7 @@ async def about_me(message):
     else:
         leen = "N/A"
 
-    val1  = get_val("RUNTIME_RCLONE")
+    val1  = get_val("RSTUFF")
     if val1 is not None:
         if val1:
             rclone_m = "Rclone mod is applied."
