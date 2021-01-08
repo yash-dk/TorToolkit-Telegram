@@ -618,6 +618,8 @@ async def about_me(message):
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         f"<b>Rclone Mod :- </b> <code>{rclone_m}</code> \n"
         f"<b>User Caps(Limits) :- </b> <code>In-progress</code> \n"
+        "\n"
+        f"<b>Latest {__version__} Changelog :- </b> Made the repo ready for open source. Rewritten the history of some files. So No support for heroku.Sry.... \n"
     )
 
     await message.reply(msg,parse_mode="html")
