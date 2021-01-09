@@ -281,3 +281,28 @@ class TtkTorrents(DataBaseHandle):
         cur = self.scur()
         cur.execute(sql)
         self.ccur(cur)
+
+class UserDB(DataBaseHandle):
+    def __init__(self,dburl=None):
+        if dburl is None:
+            dburl = os.environ.get("DB_URI",None)
+            if dburl is None:
+                dburl = ExecVars.DB_URI
+
+        super().__init__(dburl)
+        cur = self.scur()
+        table = """CREATE TABLE IF NOT EXISTS ttk_users(
+            id SERIAL PRIMARY KEY NOT NULL,
+            user_id VARCHAR(50) NOT NULL,
+            json_data VARCHAR(1000) NOT NULL, --Keeping it as json so that it flexible to add stuff.
+            rclone_file BYTEA DEFAULT NULL
+        )
+        """
+
+        try:
+            # Sometimes multiple instance try to creat which may cause this error
+            cur.execute(table)
+        except psycopg2.errors.UniqueViolation: # pylint: disable=no-member
+            pass
+        
+        self.ccur(cur)
