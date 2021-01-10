@@ -5,6 +5,7 @@ import psycopg2,os,datetime
 
 from ..functions.pg_plugin import DataBaseHandle
 from ..consts.ExecVarsSample import ExecVars
+import json
 #this will handel the transaction with completed torrents
 
 # this now will handle the setting for the bot
@@ -283,6 +284,7 @@ class TtkTorrents(DataBaseHandle):
         self.ccur(cur)
 
 class UserDB(DataBaseHandle):
+    shared_users = {}
     def __init__(self,dburl=None):
         if dburl is None:
             dburl = os.environ.get("DB_URI",None)
@@ -295,7 +297,8 @@ class UserDB(DataBaseHandle):
             id SERIAL PRIMARY KEY NOT NULL,
             user_id VARCHAR(50) NOT NULL,
             json_data VARCHAR(1000) NOT NULL, --Keeping it as json so that it flexible to add stuff.
-            rclone_file BYTEA DEFAULT NULL
+            rclone_file BYTEA DEFAULT NULL,
+            thumbnail BYTEA DEFAULT NULL,
         )
         """
 
@@ -306,3 +309,6 @@ class UserDB(DataBaseHandle):
             pass
         
         self.ccur(cur)
+
+    def get_var(self, var, user_id):
+        sql = "SELECT * FROM ttk_users WHERE user_id=%s"
