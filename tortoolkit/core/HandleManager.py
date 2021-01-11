@@ -15,7 +15,7 @@ from .settings import handle_settings,handle_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
-from .. import upload_db, var_db, tor_db
+from .. import upload_db, var_db, tor_db, user_db
 import asyncio as aio
 import re,logging,time,os,psutil
 from tortoolkit import __version__
@@ -116,7 +116,11 @@ def add_handlers(bot: TelegramClient):
         chats=get_val("ALD_USR"))
     )
 
-
+    bot.add_event_handler(
+        handle_user_settings,
+        events.NewMessage(pattern=command_process(get_command("USERSETTINGS")),
+        chats=get_val("ALD_USR"))
+    )
 
     
 
@@ -624,6 +628,8 @@ async def about_me(message):
 
     await message.reply(msg,parse_mode="html")
 
+async def handle_user_settings(message):
+    pass
 
 def command_process(command):
     return re.compile(command,re.IGNORECASE)

@@ -12,4 +12,4 @@ class Commands:
     ABOUT = "about"
     GETLOGS = "getlogs"
     SERVER = "server"
-    
+    USERSETTINGS = "usetting"

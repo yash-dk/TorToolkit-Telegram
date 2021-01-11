@@ -2,7 +2,7 @@
 # (c) YashDK [yash-dk@github]
 
 import psycopg2,os,datetime
-
+import psycopg2.extras
 from ..functions.pg_plugin import DataBaseHandle
 from ..consts.ExecVarsSample import ExecVars
 import json
@@ -298,7 +298,7 @@ class UserDB(DataBaseHandle):
             user_id VARCHAR(50) NOT NULL,
             json_data VARCHAR(1000) NOT NULL, --Keeping it as json so that it flexible to add stuff.
             rclone_file BYTEA DEFAULT NULL,
-            thumbnail BYTEA DEFAULT NULL,
+            thumbnail BYTEA DEFAULT NULL
         )
         """
 
@@ -311,4 +311,57 @@ class UserDB(DataBaseHandle):
         self.ccur(cur)
 
     def get_var(self, var, user_id):
+        user_id = str(user_id)
         sql = "SELECT * FROM ttk_users WHERE user_id=%s"
+        # search the cache
+        user = self.shared_users.get(user_id)
+        if user is not None:
+            return user.get(var)
+        else:
+            cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            
+            cur.execute(sql, (user_id,))
+            if cur.rowcount > 0:
+                user = cur.fetchone()
+                jdata = user.get("json_data")
+                jdata = json.loads(jdata)
+                self.shared_users[user_id] = jdata
+                return jdata.get(var)
+            else:
+                return None
+                
+
+            self.ccur(cur)
+
+    def set_var(self, var, value, user_id):
+        user_id = str(user_id)
+        sql = "SELECT * FROM ttk_users WHERE user_id=%s"
+        # search the cache
+        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        user = self.shared_users.get(user_id)
+        if user is not None:
+            self.shared_users[user_id][var] = value
+             
+        else:
+            
+            cur.execute(sql, (user_id,))
+            if cur.rowcount > 0:
+                user = cur.fetchone()
+                jdata = user.get("json_data")
+                jdata = json.loads(jdata)
+                jdata[var] = value
+                self.shared_users[user_id] = jdata
+            else:
+                self.shared_users[user_id] = {var:value}
+
+        cur.execute(sql, (user_id,))
+        if cur.rowcount > 0:
+            insql = "UPDATE ttk_users SET json_data = %s where user_id=%s"
+            cur.execute(insql, ( json.dumps(self.shared_users.get(user_id)), user_id))
+
+        else:
+            insql = "INSERT INTO ttk_users(user_id, json_data) VALUES(%s, %s)"
+            cur.execute(insql, (user_id, json.dumps(self.shared_users.get(user_id))))
+        
+        self.ccur(cur)
