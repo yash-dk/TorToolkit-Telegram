@@ -12,6 +12,7 @@ from ..functions.tele_upload import upload_a_file,upload_handel
 from ..functions import Human_Format
 from .database_handle import TtkUpload,TtkTorrents, TorToolkitDB
 from .settings import handle_settings,handle_setting_callback
+from .user_settings import handle_user_settings, handle_user_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
@@ -117,7 +118,7 @@ def add_handlers(bot: TelegramClient):
     )
 
     bot.add_event_handler(
-        handle_user_settings,
+        handle_user_settings_,
         events.NewMessage(pattern=command_process(get_command("USERSETTINGS")),
         chats=get_val("ALD_USR"))
     )
@@ -164,6 +165,11 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         handle_ytdl_playlist_down,
         events.CallbackQuery(pattern="ytdlplaylist")
+    )
+
+    bot.add_event_handler(
+        handle_user_setting_callback,
+        events.CallbackQuery(pattern="usetting")
     )
 
 #*********** Handlers Below ***********
@@ -628,8 +634,15 @@ async def about_me(message):
 
     await message.reply(msg,parse_mode="html")
 
-async def handle_user_settings(message):
-    pass
+async def handle_user_settings_(message):
+    with open("test.jpg","rb") as ffile:
+        data = ffile.read()
+        user_db.set_thumbnail(data, message.sender_id)
+    
+    thumb = user_db.get_thumbnail(message.sender_id)
+    print(thumb)
+    print(user_db.get_rclone(message.sender_id))
+    #await handle_user_settings(message)
 
 def command_process(command):
     return re.compile(command,re.IGNORECASE)

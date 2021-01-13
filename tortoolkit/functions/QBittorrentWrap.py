@@ -92,6 +92,9 @@ async def add_torrent_magnet(magnet,message):
                     return False
                 ctor_new = client.torrents_info()
                 if len(ctor_new) > ctor:
+                    # https://t.me/c/1439207386/2977 below line is for this
+                    torlog.info(ctor_new)
+                    torlog.info(magnet)
                     return ctor_new[0]
 
         else:
@@ -367,6 +370,7 @@ async def register_torrent(entity,message,user_msg=None,magnet=False,file=False)
         omess = user_msg
 
     if magnet:
+        torlog.info(magnet)
         torrent = await add_torrent_magnet(entity,message)
         if torrent.progress == 1:
             await message.edit("The provided torrent was already completly downloaded.")

@@ -365,3 +365,100 @@ class UserDB(DataBaseHandle):
             cur.execute(insql, (user_id, json.dumps(self.shared_users.get(user_id))))
         
         self.ccur(cur)
+
+    def get_rclone(self, user_id):
+        user_id = str(user_id)
+        sql = "SELECT * FROM ttk_users WHERE user_id=%s"
+        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        cur.execute(sql, (user_id,))
+        
+        if cur.rowcount > 0:
+            row = cur.fetchone()
+            self.ccur(cur)
+
+            if row["rclone_file"] is None:
+                return False
+            else:
+                path = os.path.join(os.getcwd(), 'userdata')
+                if not os.path.exists(path):
+                    os.mkdir(path)
+                
+                path = os.path.join(path, user_id)
+                if not os.path.exists(path):
+                    os.mkdir(path)
+                
+                path = os.path.join(path, "rclone.conf")
+                with open(path, "wb") as rfile:
+                    rfile.write(row["rclone_file"])
+                
+                return path
+        else:
+            return False
+
+
+    def get_thumbnail(self, user_id):
+        user_id = str(user_id)
+        sql = "SELECT * FROM ttk_users WHERE user_id=%s"
+        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        cur.execute(sql, (user_id,))
+        
+        
+        if cur.rowcount > 0:
+            row = cur.fetchone()
+            self.ccur(cur)
+            if row["thumbnail"] is None:
+                return False
+            else:
+                path = os.path.join(os.getcwd(), 'userdata')
+                if not os.path.exists(path):
+                    os.mkdir(path)
+                
+                path = os.path.join(path, user_id)
+                if not os.path.exists(path):
+                    os.mkdir(path)
+                
+                path = os.path.join(path, "thumbnail.jpg")
+                with open(path, "wb") as rfile:
+                    rfile.write(row["thumbnail"])
+                
+                return path
+        else:
+            return False
+
+    def set_rclone(self, rclonefile, user_id):
+        user_id = str(user_id)
+
+        sql = "SELECT * FROM ttk_users WHERE user_id=%s"
+        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        cur.execute(sql, (user_id,))
+        if cur.rowcount > 0:
+            insql = "UPDATE ttk_users SET rclone_file=%s WHERE user_id=%s"
+            cur.execute(insql, (rclonefile, user_id))
+
+        else:
+            insql = "INSERT INTO ttk_users(user_id, json_data, rclone_file) VALUES(%s, '{}', %s)"
+            cur.execute(insql, (user_id, rclonefile))
+
+        self.ccur(cur)
+        return True
+
+    def set_thumbnail(self, thumbnail, user_id):
+        user_id = str(user_id)
+
+        sql = "SELECT * FROM ttk_users WHERE user_id=%s"
+        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        cur.execute(sql, (user_id,))
+        if cur.rowcount > 0:
+            insql = "UPDATE ttk_users SET thumbnail=%s WHERE user_id=%s"
+            cur.execute(insql, (thumbnail, user_id))
+
+        else:
+            insql = "INSERT INTO ttk_users(user_id, json_data, thumbnail) VALUES(%s, '{}', %s)"
+            cur.execute(insql, (user_id, thumbnail))
+
+        self.ccur(cur)
+        return True
