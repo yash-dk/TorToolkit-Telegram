@@ -237,7 +237,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     tout = get_val("EDIT_SLEEP_SECS")
     opath = path
     
-    thumb_path = user_db.get_thumbnail(user_msg.sender_id)
+    if user_msg is not None:
+        thumb_path = user_db.get_thumbnail(user_msg.sender_id)
     
     try:
         if get_val("FAST_UPLOAD"):
@@ -257,7 +258,12 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
         else:
             
             if ftype == "video":
-                force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
+                if user_msg is not None:
+                    force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
+                else:
+                    force_docs = None
+
+                
                 if force_docs is None:
                     force_docs = get_val("FORCE_DOCUMENTS") 
                 if force_docs == True:
@@ -320,7 +326,11 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                     attributes=attrs
                 )
             else:
-                force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
+                if user_msg is not None:
+                    force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
+                else:
+                    force_docs = None
+                
                 if force_docs is None:
                     force_docs = get_val("FORCE_DOCUMENTS") 
                 if force_docs:
