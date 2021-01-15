@@ -10,6 +10,7 @@ from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 from telethon.errors import VideoContentTypeInvalidError
 from ..core.database_handle import TtkUpload
+from .. import user_db
 from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio
 from telethon.utils import get_attributes
 from .Ftele import upload_file
@@ -191,6 +192,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     if not os.path.exists(path):
         return None
         
+    
     #todo improve this uploading ✔️
     file_name = os.path.basename(path)
     metadata = extractMetadata(createParser(path))
@@ -235,6 +237,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     tout = get_val("EDIT_SLEEP_SECS")
     opath = path
     
+    thumb_path = user_db.get_thumbnail(user_msg.sender_id)
+    
     try:
         if get_val("FAST_UPLOAD"):
             torlog.info("Fast upload is enabled")
@@ -253,8 +257,10 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
         else:
             
             if ftype == "video":
-                
-                if get_val("FORCE_DOCUMENTS") == True:
+                force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
+                if force_docs is None:
+                    force_docs = get_val("FORCE_DOCUMENTS") 
+                if force_docs == True:
                     attrs, _ = get_attributes(opath,force_document=True)
                     # add the thumbs for the docs too
                     out_msg = await msg.client.send_file(
@@ -314,7 +320,10 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                     attributes=attrs
                 )
             else:
-                if get_val("FORCE_DOCUMENTS"):
+                force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
+                if force_docs is None:
+                    force_docs = get_val("FORCE_DOCUMENTS") 
+                if force_docs:
                     attrs, _ = get_attributes(opath,force_document=True)
                     out_msg = await msg.client.send_file(
                         msg.to_id,
