@@ -238,7 +238,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     opath = path
     
     if user_msg is not None:
-        thumb_path = user_db.get_thumbnail(user_msg.sender_id)
+        if user_db.get_var("DISABLE_THUMBNAIL", user_msg.sender_id) is True:
+            thumb_path = user_db.get_thumbnail(user_msg.sender_id)
     
     try:
         if get_val("FAST_UPLOAD"):
