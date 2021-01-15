@@ -10,6 +10,7 @@ from .database_handle import TorToolkitDB
 from .. import user_db
 from functools import partial
 import time,os,configparser,logging,traceback
+from PIL import Image
 
 torlog = logging.getLogger(__name__)
 #logging.getLogger("telethon").setLevel(logging.DEBUG)
@@ -45,13 +46,24 @@ async def handle_user_setting_callback(e):
         # this is menu
         mmes = await e.get_message()
         await handle_user_settings(mmes,True,"\nWelcome to Rclone Config Menu. TD= Team Drive, ND= Normal Drive",submenu="rclonemenu",sender_id=sender_id)
+    elif cmd[1] == "thumbmenu":
+        # this is menu
+        mmes = await e.get_message()
+        await handle_user_settings(mmes,True,"\nWelcome to Thumbnail Menu.",submenu="thumbmenu",sender_id=sender_id)
     elif cmd[1] == "rcloneconfig":
-        await e.answer("Sned the rclone config file which you have generated.",alert=True)
+        await e.answer("Send the rclone config file which you have generated.",alert=True)
         mmes = await e.get_message()
         await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
         val = await get_value(e,True)
         
         await general_input_manager(e,mmes,"RCLONE_CONFIG","str",val,sender_id,"rclonemenu")  
+    elif cmd[1] == "setthumb":
+        await e.answer("Send the thumbnail.", alert=True)
+        mmes = await e.get_message()
+        await mmes.edit(f"{mmes.raw_text}\n /ignore to go back.", buttons=None)
+        val = await get_value(e,True)
+        await general_input_manager(e,mmes,"THUMBNAIL","str",val,sender_id,"thumbmenu")  
+
     elif cmd[1] == "selfdest":
         await e.answer("Closed")
         await e.delete()
@@ -73,6 +85,16 @@ async def handle_user_setting_callback(e):
         
         user_db.set_var("FORCE_DOCUMENTS",val, str(e.sender_id))
         await handle_user_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of force documents.</b></u>",sender_id=sender_id)
+    elif cmd[1] == "disablethumb":
+        await e.answer("")
+        if cmd[2] == "true":
+            val = True
+        else:
+            val = False
+        
+        user_db.set_var("DISABLE_THUMBNAIL",val, str(e.sender_id))
+        await handle_user_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of disable thumbnail.</b></u>",sender_id=sender_id, submenu="thumbmenu")
+
 
 
 async def handle_user_settings(e,edit=False,msg="",submenu=None,sender_id=None):
@@ -90,17 +112,17 @@ async def handle_user_settings(e,edit=False,msg="",submenu=None,sender_id=None):
         await get_bool_variable("FORCE_DOCUMENTS","FORCE_DOCUMENTS",menu,"fdocs",sender_id)#
         #await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
         await get_sub_menu("☁️ Open Rclone Menu ☁️","rclonemenu",sender_id,menu)#
+        await get_sub_menu("🖼 Open Thumbnail Menu 🖼","thumbmenu",sender_id,menu)#
         # thumbnail
-        await get_sub_menu("🕹️ Control Actions 🕹️","ctrlacts",sender_id,menu)
         menu.append(
             [KeyboardButtonCallback("Close Menu",f"usettings selfdest {sender_id}".encode("UTF-8"))]
         )
 
 
         if edit:
-            rmess = await e.edit(header+"\nEnjoiii.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
+            rmess = await e.edit(header+"\nEnjoiii.\n"+msg,parse_mode="html",buttons=menu,link_preview=False, file="toolkit.jpg")
         else:
-            rmess = await e.reply(header+"\nEnjoiii.\n",parse_mode="html",buttons=menu,link_preview=False)
+            rmess = await e.reply(header+"\nEnjoiii.\n",parse_mode="html",buttons=menu,link_preview=False, file="toolkit.jpg")
     elif submenu == "rclonemenu":
         rcval = await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",sender_id)
         if rcval != "None":
@@ -135,19 +157,28 @@ async def handle_user_settings(e,edit=False,msg="",submenu=None,sender_id=None):
         if edit:
             rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
 
-    elif submenu == "ctrlacts":
-        await get_bool_variable("RCLONE_ENABLED","Enable Rclone.",menu,"rcloneenable",session_id)
-        await get_bool_variable("LEECH_ENABLED","Enable Leech.",menu,"leechenable",session_id)
-        await get_bool_variable("FAST_UPLOAD","Enable Fast Upload.(Turn off if errored)",menu,"fastupload",session_id)
-        await get_bool_variable("FORCE_DOCS_USER","Not Implemented.User will choose force docs.",menu,"forcedocsuser",session_id)
 
-
-        await get_sub_menu("Go Back ⬅️","mainmenu",session_id,menu)
-        menu.append(
-            [KeyboardButtonCallback("Close Menu",f"usettings selfdest {session_id}".encode("UTF-8"))]
-        )
-        if edit:
-            rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
+    elif submenu == "thumbmenu":
+        thumb = user_db.get_thumbnail(sender_id)
+        if thumb is not False:
+            menu.append(
+                [KeyboardButtonCallback("Change Thumbnail", f"usettings setthumb {sender_id}".encode("UTF-8"))]
+            )
+            await get_bool_variable("DISABLE_THUMBNAIL","Disable Thumbnail",menu,"disablethumb",sender_id)
+            await get_sub_menu("Go Back ⬅️","mainmenu",sender_id,menu)
+            menu.append(
+                [KeyboardButtonCallback("Close Menu",f"usettings selfdest {sender_id}".encode("UTF-8"))]
+            )
+            await e.edit(header+"\nManage your thumbnail(s) on the fly.", file=thumb, buttons=menu, parse_mode="html")
+        else:
+            menu.append(
+                [KeyboardButtonCallback("Set Thumbnail.", f"usettings setthumb {sender_id}".encode("UTF-8"))]
+            )
+            await get_sub_menu("Go Back ⬅️","mainmenu",sender_id,menu)
+            menu.append(
+                [KeyboardButtonCallback("Close Menu",f"usettings selfdest {sender_id}".encode("UTF-8"))]
+            )
+            await e.edit(header+"\nManage your thumbnail(s) on the fly.", parse_mode="html", buttons=menu)
 
 # an attempt to manager all the input
 async def general_input_manager(e,mmes,var_name,datatype,value,sender_id,sub_menu):
@@ -187,6 +218,21 @@ async def general_input_manager(e,mmes,var_name,datatype,value,sender_id,sub_men
                         except Exception:
                             torlog.error(traceback.format_exc())
                             await handle_user_settings(mmes,True,f"<b><u>The conf file is invalid check logs.</b></u>",sub_menu)
+                            return
+                    elif var_name == "THUMBNAIL":
+                        try:
+                            im = Image.open(value)
+                            im.convert("RGB").save(value,"JPEG")
+                            im = Image.open(value)
+                            im.thumbnail((320,320), Image.ANTIALIAS)
+                            im.save(value,"JPEG")
+                            with open(value,"rb") as fi:
+                                data = fi.read()
+                                user_db.set_thumbnail(data, e.sender_id)
+                            os.remove(value)
+                        except Exception:
+                            torlog.error(traceback.format_exc())
+                            await handle_user_settings(mmes,True,f"<b><u>Error in the thumbnail you sent.</b></u>",sub_menu)
                             return
                     else:
                         user_db.set_var(var_name, value, e.sender_id)

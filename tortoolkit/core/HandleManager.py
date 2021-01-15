@@ -356,10 +356,7 @@ async def handle_status_command(e):
         
 
 async def handle_test_command(e):
-    queue = e.client.queue
-    db = upload_db
-    msg = await e.reply("test")
-    await rclone_driver("/mnt/d/gitmajors/ofile.mkv",msg,e)
+    pass
     
 
 
