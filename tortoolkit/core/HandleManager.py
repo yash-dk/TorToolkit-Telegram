@@ -635,14 +635,7 @@ async def about_me(message):
     await message.reply(msg,parse_mode="html")
 
 async def handle_user_settings_(message):
-    with open("test.jpg","rb") as ffile:
-        data = ffile.read()
-        user_db.set_thumbnail(data, message.sender_id)
-    
-    thumb = user_db.get_thumbnail(message.sender_id)
-    print(thumb)
-    print(user_db.get_rclone(message.sender_id))
-    #await handle_user_settings(message)
+    await handle_user_settings(message)
 
 def command_process(command):
     return re.compile(command,re.IGNORECASE)
