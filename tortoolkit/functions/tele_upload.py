@@ -238,7 +238,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     opath = path
     
     if user_msg is not None:
-        if user_db.get_var("DISABLE_THUMBNAIL", user_msg.sender_id) is True:
+        if user_db.get_var("DISABLE_THUMBNAIL", user_msg.sender_id) is False:
             thumb_path = user_db.get_thumbnail(user_msg.sender_id)
     
     try:
@@ -277,7 +277,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                         reply_to=message.id,
                         force_document=True,
                         progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
-                        attributes=attrs
+                        attributes=attrs,
+                        thumb=thumb_path
                     )
                 else:
                     try:
@@ -343,7 +344,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                         reply_to=message.id,
                         force_document=True,
                         progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
-                        attributes=attrs
+                        attributes=attrs,
+                        thumb=thumb_path
                     )
                 else:
                     attrs, _ = get_attributes(opath)

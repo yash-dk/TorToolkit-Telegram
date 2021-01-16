@@ -62,10 +62,10 @@ async def get_yt_link_details(url: str) -> Union[Dict[str,str], None]:
         torlog.error(f"Error occured:- {error} for url {url}")
     
     try:
-        return json.loads(out)
+        return json.loads(out), None
     except:
         torlog.exception("Error occured while parsing the json.\n")
-        return None 
+        return None, error
 
 async def get_max_thumb(data: dict, suid: str) -> str:
     thumbnail = data.get("thumbnail")
@@ -92,7 +92,7 @@ async def get_max_thumb(data: dict, suid: str) -> str:
 
 async def create_quality_menu(url: str,message: MessageLike, message1: MessageLike,jsons: Optional[str] = None, suid: Optional[str] = None):
     if jsons is None:
-        data = await get_yt_link_details(url)
+        data, err = await get_yt_link_details(url)
         suid = str(time.time()).replace(".","")
     else:
         data = jsons
@@ -102,7 +102,7 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
 
     if data is None:
         await message.edit("Errored failed parsing.")
-        return None
+        return None, err
     else:
         unique_formats = dict()
         for i in data.get("formats"):
@@ -158,9 +158,9 @@ async def handle_ytdl_command(e: MessageLike):
     msg = await e.get_reply_message()
     msg1 = await e.reply("Processing the given link.....")
     if msg.text.find("http") != -1:
-        res = await create_quality_menu(msg.text.strip(),msg1,msg)
+        res, err = await create_quality_menu(msg.text.strip(),msg1,msg)
         if res is None:
-            await msg1.edit("Invalid link provided.")
+            await msg1.edit(f"<code>Invalid link provided.\n{err}</code>",parse_mode="html")
     else:
         await e.reply("Invalid link provided.")
 
