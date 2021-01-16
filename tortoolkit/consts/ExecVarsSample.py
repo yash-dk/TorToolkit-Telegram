@@ -5,9 +5,11 @@ except:
         # TODO optimize for vps use fully - currently only heroku is focused
         # Set true if its VPS [currently not fully working]
         IS_VPS = False
-
-        # ALLOWED USERS [ids of user or supergroup]
-        ALD_USR = [639454417,1482996204]
+        API_HASH = ""
+        API_ID = 0
+        BOT_TOKEN = ""
+        # ALLOWED USERS [ids of user or supergroup] seperate by commas
+        ALD_USR = []
         
         # Time to wait before edit message
         EDIT_SLEEP_SECS = 40
