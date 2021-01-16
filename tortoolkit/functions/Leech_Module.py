@@ -97,7 +97,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 
                 if not rclone:
                     rdict = await upload_handel(rval[0],rmess,omess.from_id,dict(),user_msg=omess)
-                    await print_files(omess,rdict)
+                    await print_files(omess,rdict,rval[1])
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(rval[1])
                 else:
@@ -139,7 +139,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
 
                 if not rclone:
                     rdict = await upload_handel(path[0],rmess,omess.from_id,dict(),user_msg=omess)
-                    await print_files(omess,rdict)
+                    await print_files(omess,rdict,path[1])
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(path[1])
                 else:
@@ -313,7 +313,7 @@ async def handle_ext_zip(path, rmess, omess):
 
 
 
-async def print_files(e,files):
+async def print_files(e,files,thash=None):
     msg = f"<a href='tg://user?id={e.sender_id}'>Done</a>\n#uploads\n"
     if len(files) == 0:
         return
@@ -325,6 +325,13 @@ async def print_files(e,files):
         msg += f'🚩 <a href="{link}">{i}</a>\n'
     
     await e.reply(msg,parse_mode="html")
+
+    try:
+        if thash is not None:
+            from .store_info_hash import store_driver
+            await store_driver(e, files, thash) 
+    except:
+        pass
 
     if len(files) < 2:
         return
@@ -373,6 +380,7 @@ async def print_files(e,files):
             await i.edit(buttons=buttons)
         except:pass
         await aio.sleep(1)
+    
 
 
 async def get_transfer():
