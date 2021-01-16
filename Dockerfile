@@ -31,7 +31,6 @@ COPY . .
 RUN chmod 777 alive.sh
 RUN chmod 777 start.sh
 
-# run as non root user inorder to bind to the heroku web port 
 RUN useradd -ms /bin/bash  myuser
 USER myuser
 
