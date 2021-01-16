@@ -180,42 +180,45 @@ async def handle_leech_command(e):
         await e.reply("Reply to a link or magnet")
     else:
         rclone = False
-        
+        tsp = time.time()
+        buts = [[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
         if await get_config() is not None:
-            # tsp is used to split the callbacks so that each download has its own callback
-            # cuz at any time there are 10-20 callbacks linked for leeching XD
-            tsp = time.time()
+            buts.append(
+                [KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")]
+            )
+        # tsp is used to split the callbacks so that each download has its own callback
+        # cuz at any time there are 10-20 callbacks linked for leeching XD
            
-            buts = [
-                    [KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")],
-                    [KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")],
-                    [KeyboardButtonCallback("Upload in a ZIP.[Toggle]", data=f"leechzip toggle {tsp}")],
-                    [KeyboardButtonCallback("Extract from ZIP.[Toggle]", data=f"leechzipex toggleex {tsp}")]
-                ]
-            
-            conf_mes = await e.reply("<b>First click if you want to zip the contents or extract as an archive (only one will work at a time) then. </b>\n<b>Choose where to upload your files:- </b>\nThe files will be uploaded to default destination after 60 sec of no action by user.",parse_mode="html",buttons=buts)
-            
-            # zip check in background
-            ziplist = await get_zip_choice(e,tsp)
-            zipext = await get_zip_choice(e,tsp,ext=True)
-            
-            # blocking leech choice 
-            choice = await get_leech_choice(e,tsp)
-            
-            # zip check in backgroud end
-            await get_zip_choice(e,tsp,ziplist,start=False)
-            await get_zip_choice(e,tsp,zipext,start=False,ext=True)
-            is_zip = ziplist[1]
-            is_ext = zipext[1]
-            
-            
-            # Set rclone based on choice
-            if choice == "drive":
-                rclone = True
-            else:
-                rclone = False
-            
-            await conf_mes.delete()
+        buts.append(
+                [KeyboardButtonCallback("Upload in a ZIP.[Toggle]", data=f"leechzip toggle {tsp}")]
+        )
+        buts.append(
+                [KeyboardButtonCallback("Extract from ZIP.[Toggle]", data=f"leechzipex toggleex {tsp}")]
+        )
+        
+        conf_mes = await e.reply("<b>First click if you want to zip the contents or extract as an archive (only one will work at a time) then. </b>\n<b>Choose where to uploadyour files:- </b>\nThe files will be uploaded to default destination after 60 sec of no action by user.",parse_mode="html",buttons=buts)
+        
+        # zip check in background
+        ziplist = await get_zip_choice(e,tsp)
+        zipext = await get_zip_choice(e,tsp,ext=True)
+        
+        # blocking leech choice 
+        choice = await get_leech_choice(e,tsp)
+        
+        # zip check in backgroud end
+        await get_zip_choice(e,tsp,ziplist,start=False)
+        await get_zip_choice(e,tsp,zipext,start=False,ext=True)
+        is_zip = ziplist[1]
+        is_ext = zipext[1]
+        
+        
+        # Set rclone based on choice
+        if choice == "drive":
+            rclone = True
+        else:
+            rclone = False
+        
+        await conf_mes.delete()
 
         if rclone:
             if get_val("RCLONE_ENABLED"):
