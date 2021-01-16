@@ -117,4 +117,9 @@ Rest Variables are not to changes
     purge - Delete all torrents ⚠️ Admin Only
     getlogs - Get the robot logs ⚠️ Admin Only
 
+# Credits
+[Yash-DK](https://github.com/yash-dk)
+[Lonami](https://github.com/LonamiWebs/Telethon/) for awesome Telethon
+[All the Libraries owner](https://github.com/yash-dk/TorToolkit-Telegram/blob/master/requirements.txt)
+
 # REST README WILL BE COMPLETED SHORTLY
