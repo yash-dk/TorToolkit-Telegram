@@ -36,9 +36,9 @@ async def handle_user_setting_callback(e):
     val = ""
     
     if cmd[-1] != sender_id:
-        print("Session id",sender_id," - - ",cmd[-1])
-        await e.answer("This Setting menu is expired.",alert=True)
-        await e.delete()
+        print("Sender id",sender_id," - - ",cmd[-1])
+        await e.answer("Dont touch sender dosent match.",alert=True)
+        #await e.delete()
         return
     if cmd[1] == "mycmd":
         pass
