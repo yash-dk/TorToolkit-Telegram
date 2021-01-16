@@ -8,6 +8,7 @@ except:
         API_HASH = ""
         API_ID = 0
         BOT_TOKEN = ""
+        BASE_URL_OF_BOT = ""
         # ALLOWED USERS [ids of user or supergroup] seperate by commas
         ALD_USR = []
         
