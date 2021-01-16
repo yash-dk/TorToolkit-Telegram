@@ -149,7 +149,7 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
 
 
 
-    return True
+    return True,None
         
 async def handle_ytdl_command(e: MessageLike):
     if not e.is_reply:
