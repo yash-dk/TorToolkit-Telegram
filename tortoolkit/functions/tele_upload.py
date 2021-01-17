@@ -11,7 +11,7 @@ from hachoir.metadata import extractMetadata
 from telethon.errors import VideoContentTypeInvalidError
 from ..core.database_handle import TtkUpload
 from .. import user_db
-from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio
+from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio,InputMediaUploadedDocument
 from telethon.utils import get_attributes
 from .Ftele import upload_file
 
@@ -293,7 +293,26 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                         thumb = None
                         torlog.exception("Error in thumb")
                     try:
-                        attrs, _ = get_attributes(opath,supports_streaming=True)
+                        if thumb:
+                            width = 0
+                            height = 0
+                            t_m = extractMetadata(createParser(thumb))
+                            if t_m and t_m.has("width"):
+                                width = t_m.get("width")
+                            if t_m and t_m.has("height"):
+                                height = t_m.get("height")
+                            duration = 0
+                            if ometa and ometa.has("duration"):
+                                duration = ometa.get("duration").seconds
+                            attrs = [
+                                DocumentAttributeVideo(
+                                    duration=duration,
+                                    w=width,
+                                    h=height,
+                                    round_message=False,
+                                    supports_streaming=True
+                                )
+                            ]
                         out_msg = await msg.client.send_file(
                             msg.to_id,
                             file=path,
