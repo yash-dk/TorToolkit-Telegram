@@ -50,7 +50,7 @@ except:
         # Name of the RCLONE drive from the config
         DEF_RCLONE_DRIVE = ""
 
-        # Max size of the torrent allowed
+        # Max number of the video from YT PLAYLIST allowed 
         MAX_YTPLAYLIST_SIZE = 20
         
         # Max size of the torrent allowed
