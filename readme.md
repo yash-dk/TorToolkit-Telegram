@@ -11,6 +11,8 @@ The bot gets started with minimum variables and others can be set as and when ne
 ### For Heroku users New repo will come soon (This repo will not work on heroku)
 
 ## Installing
+ExecVarsSample.py location:- tortoolkit / consts / ExecVarsSample.py
+
 ### Docker (Simplest)
 You should install docker first :- [How to Install Docker](https://docs.docker.com/engine/install/)
 
