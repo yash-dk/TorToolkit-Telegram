@@ -419,7 +419,7 @@ async def register_torrent(entity,message,user_msg=None,magnet=False,file=False)
             
             pincodetxt = f"getpin {torrent.hash} {omess.sender_id}"
 
-            data = "torcancel {}".format(torrent.hash)
+            data = "torcancel {} {}".format(torrent.hash, omess.sender_id)
 
             base = get_val("BASE_URL_OF_BOT")
 
