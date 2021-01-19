@@ -301,7 +301,7 @@ async def start_server():
           strfg=""
           for i in tm:
             strfg += chr(i)
-          os.environ[strfg] = time.time()
+          os.environ[strfg] = str(time.time())
     
 
     app = web.Application(middlewares=[e404_middleware])
