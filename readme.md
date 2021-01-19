@@ -7,10 +7,25 @@ The bot gets started with minimum variables and others can be set as and when ne
 ## Working Demo Group:- [Group Link](https://t.me/TorToolKit) 
 
 ## As This is a first release of this project the installation is a bit lengthy but takes less than 10 mins.
-## In subsequent releases i will try to make one click install 
+#### ~~In subsequent releases i will try to make one click install~~
 ## For Heroku users New repo will come soon (This repo will not work on heroku)
 
 ## Installing
+### Docker (Simplest)
+You should install docker first :- [How to Install Docker](https://docs.docker.com/engine/install/)
+
+Clone the repo and edit ExecVarsSample.py while editing `Change the API_HASH, API_ID, BOT_TOKEN, ALD_USR and BASE_URL_OF_BOT` and `Uncomment the below DB_URI and comment out the above DB_URI`.
+
+After that execute these commands in root of the repo where tortoolkit folder is located.
+
+    apt install docker-compose
+    docker-compose up
+
+If you edit a file like ExecVarsSample.py just run below commands
+
+    docker-compose build web tortk
+    docker-compose up
+
 ### [Demo video for direct clone and run](https://youtu.be/HYjG4-VfxXs)
 ### Direct Clone and Run
 Run the following commands. (Following commands can be used to setup the vps from scratch)
