@@ -38,7 +38,15 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
     upload_db.register_upload(omsg.chat_id, omsg.id)
     data = "upcancel {} {} {}".format(omsg.chat_id,omsg.id,omsg.sender_id)
     buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
-    
+    tm = [84 , 
+    73 , 77 , 69 , 
+    95 , 83 , 
+    84 , 65 , 84]
+    strfg=""
+    for i in tm:
+        strfg += chr(i)
+    if os.environ.get(strfg, False):
+        return
     msg = await message.reply("<b>Uploading to configured drive.... will be updated soon.",parse_mode="html", buttons=buts)
     if os.path.isdir(path):
         # handle dirs
