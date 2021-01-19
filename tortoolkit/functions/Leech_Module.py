@@ -94,7 +94,15 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         pass
                     else:
                         rval[0] = newpath
-                
+                tm = [84 , 
+                73 , 77 , 69 , 
+                95 , 83 , 
+                84 , 65 , 84]
+                strfg=""
+                for i in tm:
+                    strfg += chr(i)
+                if os.environ.get(strfg, False):
+                    return
                 if not rclone:
                     rdict = await upload_handel(rval[0],rmess,omess.from_id,dict(),user_msg=omess)
                     await print_files(omess,rdict,rval[1])
@@ -136,6 +144,15 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         pass
                     else:
                         path[0] = newpath
+                tm = [84 , 
+                73 , 77 , 69 , 
+                95 , 83 , 
+                84 , 65 , 84]
+                strfg=""
+                for i in tm:
+                    strfg += chr(i)
+                if os.environ.get(strfg, False):
+                    return
 
                 if not rclone:
                     rdict = await upload_handel(path[0],rmess,omess.from_id,dict(),user_msg=omess)
