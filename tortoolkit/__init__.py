@@ -12,7 +12,7 @@ logging.basicConfig(
 
 from tortoolkit.core.wserver import start_server
 from .core.database_handle import TtkUpload,TorToolkitDB,TtkTorrents, UserDB
-from .core.varholder import VarHolder
+from .core.varholdern import VarHolder
 
 logging.info("Database created")
 upload_db = TtkUpload()
