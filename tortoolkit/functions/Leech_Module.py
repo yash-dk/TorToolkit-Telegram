@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-import re,os,shutil,time
+import re,os,shutil,time, aiohttp
 from telethon.tl import types
 import logging, os, shutil
 import asyncio as aio
@@ -172,23 +172,34 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     os.remove(path)
             except:pass
         elif msg.raw_text.lower().endswith(".torrent"):
-            rmess = await omess.reply("Scanning....")
-            
-            mgt = get_magnets(msg.raw_text.strip())
+            rmess = await omess.reply("Downloading the torrent file.")
 
-            path = await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
+            #not worring about the download location now
+            # TODO do something to de register the torrents
+            path = ""
+            async with aiohttp.ClientSession() as sess:
+                async with sess.get(msg.raw_text) as resp:
+                    if resp.status == 200:
+                        path = str(time.time()).replace(".","")+".torrent"
+                        with open(path, "wb") as fi:
+                            fi.write(await resp.read())
+                    else:
+                        await rmess.edit("Error got HTTP response code:- "+str(resp.status))
+                        return    
+
+            rval =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
             
-            if not isinstance(path,bool) and path is not None:
+            if not isinstance(rval,bool) and rval is not None:
                 if extract:
-                    newpath = await handle_ext_zip(path[0], rmess, omess)
+                    newpath = await handle_ext_zip(rval[0], rmess, omess)
                     if not newpath is False:
-                        path[0] = newpath
+                        rval[0] = newpath
                 else:
-                    newpath = await handle_zips(path[0], is_zip, rmess)
+                    newpath = await handle_zips(rval[0], is_zip, rmess)
                     if newpath is False:
                         pass
                     else:
-                        path[0] = newpath
+                        rval[0] = newpath
                 tm = [84 , 
                 73 , 77 , 69 , 
                 95 , 83 , 
@@ -198,27 +209,30 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     strfg += chr(i)
                 if os.environ.get(strfg, False):
                     return
-
                 if not rclone:
-                    rdict = await upload_handel(path[0],rmess,omess.from_id,dict(),user_msg=omess)
-                    await print_files(omess,rdict,path[1])
-                    torlog.info("Here are the files to be uploaded {}".format(rdict))
-                    await QBittorrentWrap.delete_this(path[1])
+                    rdict = await upload_handel(rval[0],rmess,omess.from_id,dict(),user_msg=omess)
+                    await print_files(omess,rdict,rval[1])
+                    torlog.info("Here are the fiels uploaded {}".format(rdict))
+                    await QBittorrentWrap.delete_this(rval[1])
                 else:
-                    res = await rclone_driver(path[0],rmess,omess)
+                    res = await rclone_driver(rval[0],rmess,omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
-                    await QBittorrentWrap.delete_this(path[1])
+                    await QBittorrentWrap.delete_this(rval[1])
+
             try:
                 
-                if os.path.isdir(path):
-                    shutil.rmtree(path)
+                os.remove(path)
+                if os.path.isdir(rval):
+                    shutil.rmtree(rval)
                 else:
-                    os.remove(path)
+                    os.remove(rval)
             except:pass
+            return rval
+
         elif msg.entities is not None:
             url = get_entities(msg)
-            torlog.info("Downloadinf Urls")
+            torlog.info("Downloading Urls")
             rmsg = await omess.reply("Processing the link.")
             #todo implement direct links ;)
             # weird stuff had to refect message
@@ -257,7 +271,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     os.remove(path)
             except:pass
         else:
-            torlog.info("Downloadinf Url")
+            torlog.info("Downloading Url")
             #consider it as a direct link LOL
             rmsg = await omess.reply("processing")
 
