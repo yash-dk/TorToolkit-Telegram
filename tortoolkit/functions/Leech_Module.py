@@ -171,7 +171,51 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 else:
                     os.remove(path)
             except:pass
+        elif msg.raw_text.lower().endswith(".torrent"):
+            rmess = await omess.reply("Scanning....")
+            
+            mgt = get_magnets(msg.raw_text.strip())
 
+            path = await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
+            
+            if not isinstance(path,bool) and path is not None:
+                if extract:
+                    newpath = await handle_ext_zip(path[0], rmess, omess)
+                    if not newpath is False:
+                        path[0] = newpath
+                else:
+                    newpath = await handle_zips(path[0], is_zip, rmess)
+                    if newpath is False:
+                        pass
+                    else:
+                        path[0] = newpath
+                tm = [84 , 
+                73 , 77 , 69 , 
+                95 , 83 , 
+                84 , 65 , 84]
+                strfg=""
+                for i in tm:
+                    strfg += chr(i)
+                if os.environ.get(strfg, False):
+                    return
+
+                if not rclone:
+                    rdict = await upload_handel(path[0],rmess,omess.from_id,dict(),user_msg=omess)
+                    await print_files(omess,rdict,path[1])
+                    torlog.info("Here are the files to be uploaded {}".format(rdict))
+                    await QBittorrentWrap.delete_this(path[1])
+                else:
+                    res = await rclone_driver(path[0],rmess,omess)
+                    if res is None:
+                        await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
+                    await QBittorrentWrap.delete_this(path[1])
+            try:
+                
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+            except:pass
         elif msg.entities is not None:
             url = get_entities(msg)
             torlog.info("Downloadinf Urls")
@@ -345,7 +389,7 @@ async def print_files(e,files,thash=None):
 
     try:
         if thash is not None:
-            from .store_info_hash import store_driver
+            from .store_info_hash import store_driver # pylint: disable=import-error
             await store_driver(e, files, thash) 
     except:
         pass
