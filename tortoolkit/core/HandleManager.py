@@ -16,7 +16,7 @@ from .user_settings import handle_user_settings, handle_user_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
-from .. import upload_db, var_db, tor_db, user_db
+from .. import upload_db, var_db, tor_db, user_db, uptime
 import asyncio as aio
 import re,logging,time,os,psutil
 from tortoolkit import __version__
@@ -628,12 +628,16 @@ async def about_me(message):
     else:
         rclone_m = "N/A"
 
+    diff = time.time() - uptime
+    diff = Human_Format.human_readable_timedelta(diff)
+
     msg = (
         "<b>Name</b>: <code>TorToolkit</code>\n"
         f"<b>Version</b>: <code>{__version__}</code>\n"
         f"<b>Telethon Version</b>: {telever}\n"
         "<b>Created By</b>: @yaknight\n\n"
-        "<u>Currents Configs:-</u>\n"
+        "<u>Currents Configs:-</u>\n\n"
+        f"<b>Bot Uptime:-</b> {diff}\n"
         "<b>Torrent Download Engine:-</b> <code>qBittorrent [4.3.0 fix active]</code> \n"
         "<b>Direct Link Download Engine:-</b> <code>aria2</code> \n"
         "<b>Upload Engine:-</b> <code>RCLONE</code> \n"
