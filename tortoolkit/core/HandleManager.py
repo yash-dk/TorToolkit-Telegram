@@ -648,13 +648,9 @@ async def about_me(message):
         f"<b>Rclone Mod :- </b> <code>{rclone_m}</code> \n"
         f"<b>User Caps(Limits) :- </b> <code>In-progress</code> \n"
         "\n"
-        f"<b>Latest {__version__} Changelog :- </b> Improved the YTDL error reporting.\n"
-        "Fixed a size bug in YTDL.\n"
-        "New /usettings menu for user settings.\n"
-        "Custom thumbnail Support.\n"
-        "User choice force documents.\n"
-        "Disable thumbnail also added.\n"
-        "You can now load custom rclone drives but its not yet implement to transfer to your drive. WIP \n"
+        f"<b>Latest {__version__} Changelog :- </b>\n"
+        "Now support leeching from links to torrent file.\n"
+        "Added Bot Uptime.\n"
     )
 
     await message.reply(msg,parse_mode="html")
