@@ -129,8 +129,8 @@ Rest Variables are not to changes
     about - About the bot
     status - Status of all the downloads
     server - Get server status
-    usettings - User Settings
-    settings - Settings of the bot ⚠️ Admin Only
+    settings - User Settings
+    manage - manage bot settings ⚠️ Admin Only
     pauseall - Pause all torrents⚠️ Admin Only
     resumeall - Resume all torrents⚠️ Admin Only
     purge - Delete all torrents ⚠️ Admin Only
