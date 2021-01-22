@@ -200,14 +200,14 @@ async def handle_ytdl_callbacks(e: MessageLike):
                         if not height:
                             continue
                             
-                        text = f"{height} [{i.get('ext')}] [{human_readable_bytes(i.get('filesize'))}]"
+                        text = f"{height} [{i.get('ext')}] [{human_readable_bytes(i.get('filesize'))}] {str(i.get('vcodec'))}"
                         cdata = f"ytdldfile|{format_id}|{e.sender_id}|{data[3]}"
                         
                         buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
                         j+=1
                 
                 buttons.append([KeyboardButtonCallback("Go Back 😒",f"ytdlmmenu|{data[2]}|{data[3]}")])
-                await e.edit(f"Files for quality {data[1]}",buttons=buttons)
+                await e.edit(f"Files for quality {data[1]}, at the end it is the Video Codec. Mostly prefer the last one with you desired extension if you want streamable video. Try rest if you want.",buttons=buttons)
                 
 
 
@@ -266,8 +266,10 @@ async def handle_ytdl_file_download(e: MessageLike):
             else:
                 for i in ytdata.get("formats"):
                     if i.get("format_id") == data[1]:
+                        print(i)
                         if i.get("acodec") is not None:
-                            is_audio = True
+                            if "none" not in i.get("acodec"):
+                                is_audio = True
                             
                     
             if data[1].endswith("K"):
