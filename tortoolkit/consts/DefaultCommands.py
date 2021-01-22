@@ -4,7 +4,7 @@ class Commands:
     PAUSEALL = "pauseall"
     RESUMEALL = "resumeall"
     STATUS = "status"
-    SETTINGS = "settings"
+    SETTINGS = "manage"
     EXEC = "exec"
     UPLOAD = "upload"
     YTDL = "ytdl"
@@ -12,4 +12,4 @@ class Commands:
     ABOUT = "about"
     GETLOGS = "getlogs"
     SERVER = "server"
-    USERSETTINGS = "usetting"
+    USERSETTINGS = "settings" #easyTohandle
