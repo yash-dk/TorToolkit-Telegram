@@ -6,6 +6,7 @@ from telethon.tl.types import KeyboardButtonUrl
 from tortoolkit import SessionVars
 import asyncio as aio
 import aiohttp
+from requests.utils import requote_uri
 from ..core.getVars import get_val
 from .. import upload_db, var_db
 from telethon.tl.types import KeyboardButtonCallback
@@ -38,15 +39,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
     upload_db.register_upload(omsg.chat_id, omsg.id)
     data = "upcancel {} {} {}".format(omsg.chat_id,omsg.id,omsg.sender_id)
     buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
-    tm = [84 , 
-    73 , 77 , 69 , 
-    95 , 83 , 
-    84 , 65 , 84]
-    strfg=""
-    for i in tm:
-        strfg += chr(i)
-    if os.environ.get(strfg, False):
-        return
+    
     msg = await message.reply("<b>Uploading to configured drive.... will be updated soon.",parse_mode="html", buttons=buts)
     if os.path.isdir(path):
         # handle dirs
@@ -76,9 +69,23 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         torlog.info(f"Upload folder id :- {gid}")
         
         folder_link = f"https://drive.google.com/folderview?id={gid}"
+
+        buttons = []
+        buttons.append(
+            [KeyboardButtonUrl("Drive URL",folder_link)]
+        )
+        gd_index = get_val("GD_INDEX_URL")
+        if gd_index:
+            index_link = "{}/{}".format(gd_index.strip("/"), gid[1])
+            index_link = requote_uri(index_link)
+            buttons.append(
+                [KeyboardButtonUrl("Index URL",index_link)]
+            )
+
+
         txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FOLDER :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,os.path.basename(path))
         
-        await omsg.reply(txtmsg,buttons=[[KeyboardButtonUrl("Drive URL",folder_link)]],parse_mode="html")
+        await omsg.reply(txtmsg,buttons=buttons,parse_mode="html")
         await msg.delete()
 
 
@@ -107,12 +114,24 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         gid = await get_glink(dest_drive,dest_base,os.path.basename(path),conf_path,False)
         torlog.info(f"Upload folder id :- {gid}")
 
-        file_link = f"https://drive.google.com/file/d/{gid}/view"
-        
+        buttons = []
+
+        file_link = f"https://drive.google.com/file/d/{gid[0]}/view"
+        buttons.append(
+            [KeyboardButtonUrl("Drive URL",file_link)]
+        )
+        gd_index = get_val("GD_INDEX_URL")
+        if gd_index:
+            index_link = "{}/{}".format(gd_index.strip("/"), gid[1])
+            index_link = requote_uri(index_link)
+            buttons.append(
+                [KeyboardButtonUrl("Index URL",index_link)]
+            )
+
         txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,os.path.basename(path))
 
         
-        await omsg.reply(txtmsg,buttons=[[KeyboardButtonUrl("Drive URL",file_link)]],parse_mode="html")
+        await omsg.reply(txtmsg,buttons=buttons,parse_mode="html")
         await msg.delete()
 
     upload_db.deregister_upload(message.chat_id, message.id)
@@ -189,6 +208,7 @@ async def rclone_process_display(process,edit_time,msg, omessage, cancelmsg):
 
 
 async def get_glink(drive_name,drive_base,ent_name,conf_path,isdir=True):
+    print("Ent - ",ent_name)
     ent_name = re.escape(ent_name)
     filter_path = os.path.join(os.getcwd(),str(time.time()).replace(".","")+".txt")
     with open(filter_path,"w",encoding="UTF-8") as file:
@@ -224,9 +244,10 @@ async def get_glink(drive_name,drive_base,ent_name,conf_path,isdir=True):
     try:
         data = json.loads(stdout)
         id = data[0]["ID"]
-        return id
+        name = data[0]["Name"]
+        return (id, name)
     except Exception:
-        torlog.error("Error Occured while getting id ::- {}".format(traceback.format_exc()))
+        torlog.error("Error Occured while getting id ::- {} {}".format(traceback.format_exc(), stdout))
 
 async def get_config():
     # this car requires to access the blob
