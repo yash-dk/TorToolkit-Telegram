@@ -4,6 +4,11 @@ The bot gets started with minimum variables and others can be set as and when ne
 
 [![Deploy](https://telegra.ph/file/e7d224c45cf1d106a28fa.png)](https://telegra.ph/Heroku-TorToolkit-01-18)
 
+According to me this platform provides resources which are enough for a genuine user and by default prevents Abuse:
+Click to see video guide.
+[![Deploy](https://telegra.ph/file/ab7102936758edb943bc2.png)](https://youtu.be/WWi9JWDzXSw)
+
+
 ### Working Demo Group:- [Group Link](https://t.me/TorToolKit) 
 
 #### As This is a first release of this project the installation is a bit lengthy but takes less than 10 mins.
