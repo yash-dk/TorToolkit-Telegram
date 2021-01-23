@@ -651,6 +651,8 @@ async def about_me(message):
         f"<b>Latest {__version__} Changelog :- </b>\n"
         "Now support leeching from links to torrent file.\n"
         "Added Bot Uptime.\n"
+        "Fixed a bug where sometimes YTLD videos didnt had audios.\n"
+        "Fixed a bug to extract a RAR.\n"
     )
 
     await message.reply(msg,parse_mode="html")
