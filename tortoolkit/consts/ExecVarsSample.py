@@ -13,7 +13,7 @@ except:
         ALD_USR = []
         
         # Google Drive Index Link should include the base dir also See readme for more info
-        GD_INDEX_URL = None
+        GD_INDEX_URL = False
 
         # Time to wait before edit message
         EDIT_SLEEP_SECS = 40
