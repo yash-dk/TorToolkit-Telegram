@@ -619,14 +619,6 @@ async def about_me(message):
     else:
         leen = "N/A"
 
-    val1  = get_val("RSTUFF")
-    if val1 is not None:
-        if val1:
-            rclone_m = "Rclone mod is applied."
-        else:
-            rclone_m = "Rclone mod is not applied."
-    else:
-        rclone_m = "N/A"
 
     diff = time.time() - uptime
     diff = Human_Format.human_readable_timedelta(diff)
@@ -645,8 +637,6 @@ async def about_me(message):
         f"<b>Rclone config:- </b> <code>{rclone_cfg}</code>\n"
         f"<b>Leech:- </b> <code>{leen}</code>\n"
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
-        f"<b>Rclone Mod :- </b> <code>{rclone_m}</code> \n"
-        f"<b>User Caps(Limits) :- </b> <code>In-progress</code> \n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
         "Now support leeching from links to torrent file.\n"
