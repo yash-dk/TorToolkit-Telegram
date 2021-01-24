@@ -664,6 +664,8 @@ async def about_me(message):
         "Added Bot Uptime.\n"
         "Fixed a bug where sometimes YTLD videos didnt had audios.\n"
         "Fixed a bug to extract a RAR.\n"
+        "Google Drive index support.\n"
+        "/server now includes Storage and Bot uptime now.\n"
     )
 
     await message.reply(msg,parse_mode="html")
