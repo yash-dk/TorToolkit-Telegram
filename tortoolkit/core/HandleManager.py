@@ -18,7 +18,7 @@ from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
 from .. import upload_db, var_db, tor_db, user_db, uptime
 import asyncio as aio
-import re,logging,time,os,psutil
+import re,logging,time,os,psutil,shutil
 from tortoolkit import __version__
 from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
 
@@ -568,6 +568,18 @@ async def handle_server_command(message):
         cpupercent = "N/A"
     
     try:
+        # Storage
+        usage = shutil.disk_usage("/")
+        totaldsk = Human_Format.human_readable_bytes(usage.total)
+        useddsk = Human_Format.human_readable_bytes(usage.used)
+        freedsk = Human_Format.human_readable_bytes(usage.free)
+    except:
+        totaldsk = "N/A"
+        useddsk = "N/A"
+        freedsk = "N/A"
+
+
+    try:
         transfer = await get_transfer()
         dlb = Human_Format.human_readable_bytes(transfer["dl_info_data"])
         upb = Human_Format.human_readable_bytes(transfer["up_info_data"])
@@ -575,11 +587,20 @@ async def handle_server_command(message):
         dlb = "N/A"
         upb = "N/A"
 
+    diff = time.time() - uptime
+    diff = Human_Format.human_readable_timedelta(diff)
+
     msg = (
+        f"<b>BOT UPTIME:-</b> {diff}\n\n"
         "<b>CPU STATS:-</b>\n"
         f"Cores: {cores} Logical: {lcores}\n"
         f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
         f"CPU Utilization: {cpupercent}%\n"
+        "\n"
+        "<b>STORAGE STATS:-</b>\n"
+        f"Total: {totaldsk}\n"
+        f"Used: {useddsk}\n"
+        f"Free: {freedsk}\n"
         "\n"
         "<b>MEMORY STATS:-</b>\n"
         f"Available: {memavailable}\n"
