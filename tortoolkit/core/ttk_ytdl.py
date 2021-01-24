@@ -4,7 +4,7 @@
 import asyncio,shlex,logging,time,os,aiohttp,shutil
 import orjson as json
 from telethon.hints import MessageLike
-from telethon.tl.types import KeyboardButtonCallback
+from telethon.tl.types import KeyboardButtonCallback, KeyboardButtonUrl
 from typing import Union,List,Tuple,Dict,Optional
 from ..functions.Human_Format import human_readable_bytes
 from ..functions.tele_upload import upload_handel
@@ -149,7 +149,7 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
 
 
 
-    return True
+    return True,None
         
 async def handle_ytdl_command(e: MessageLike):
     if not e.is_reply:
@@ -200,14 +200,14 @@ async def handle_ytdl_callbacks(e: MessageLike):
                         if not height:
                             continue
                             
-                        text = f"{height} [{i.get('ext')}] [{human_readable_bytes(i.get('filesize'))}]"
+                        text = f"{height} [{i.get('ext')}] [{human_readable_bytes(i.get('filesize'))}] {str(i.get('vcodec'))}"
                         cdata = f"ytdldfile|{format_id}|{e.sender_id}|{data[3]}"
                         
                         buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
                         j+=1
                 
                 buttons.append([KeyboardButtonCallback("Go Back 😒",f"ytdlmmenu|{data[2]}|{data[3]}")])
-                await e.edit(f"Files for quality {data[1]}",buttons=buttons)
+                await e.edit(f"Files for quality {data[1]}, at the end it is the Video Codec. Mostly prefer the last one with you desired extension if you want streamable video. Try rest if you want.",buttons=buttons)
                 
 
 
@@ -266,8 +266,10 @@ async def handle_ytdl_file_download(e: MessageLike):
             else:
                 for i in ytdata.get("formats"):
                     if i.get("format_id") == data[1]:
+                        print(i)
                         if i.get("acodec") is not None:
-                            is_audio = True
+                            if "none" not in i.get("acodec"):
+                                is_audio = True
                             
                     
             if data[1].endswith("K"):
@@ -476,21 +478,35 @@ async def print_files(e,files):
                 break
         nextt,prev = "",""
         chat_id = str(e.chat_id)[4:]
+        buttons = []
         if index == 0:
             nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+            buttons.append(
+                KeyboardButtonUrl("Next", nextt)
+            )
             nextt = f'<a href="{nextt}">Next</a>\n'
         elif index == len(msgs)-1:
             prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+            buttons.append(
+                KeyboardButtonUrl("Prev", prev)
+            )
             prev = f'<a href="{prev}">Prev</a>\n'
         else:
             nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+            buttons.append(
+                KeyboardButtonUrl("Next", nextt)
+            )
             nextt = f'<a href="{nextt}">Next</a>\n'
             
             prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+            buttons.append(
+                KeyboardButtonUrl("Prev", prev)
+            )
             prev = f'<a href="{prev}">Prev</a>\n'
-
+            
         try:
-            await i.edit("{} {} {}".format(prev,i.text,nextt),parse_mode="html")
+            #await i.edit("{} {} {}".format(prev,i.text,nextt),parse_mode="html")
+            await i.edit(buttons=buttons)
         except:pass
         await asyncio.sleep(1)
 

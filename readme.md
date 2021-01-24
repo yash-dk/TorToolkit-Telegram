@@ -2,13 +2,38 @@
 So basically Tortoolkit is aimed to be most versatile torrent leecher and Youtube-DL bot for telegram. This bot is highly customizeable and to customize this bot you dont need to restart the bot everytime. 
 The bot gets started with minimum variables and others can be set as and when needed using the /settings
 
-## Working Demo Group:- [Group Link](https://t.me/TorToolKit) 
+[![Deploy](https://telegra.ph/file/e7d224c45cf1d106a28fa.png)](https://telegra.ph/Heroku-TorToolkit-01-18)
 
-## As This is a first release of this project the installation is a bit lengthy but takes less than 10 mins.
-## In subsequent releases i will try to make one click install 
-## For Heroku users New repo will come soon (This repo will not work on heroku)
+According to me this platform provides resources which are enough for a genuine user and by default prevents Abuse:
+Click to see video guide to see how to deploy. Web is not yet available but soon will be available on zeet.
+
+[![Deploy](https://telegra.ph/file/a81a05cc874e8636ddb86.png)](https://youtu.be/WWi9JWDzXSw)
+
+
+### Working Demo Group:- [Group Link](https://t.me/TorToolKit) 
+
+#### As This is a first release of this project the installation is a bit lengthy but takes less than 10 mins.
+#### ~~In subsequent releases i will try to make one click install~~
+### For Heroku users New repo will come soon (This repo will not work on heroku)
 
 ## Installing
+ExecVarsSample.py location:- tortoolkit / consts / ExecVarsSample.py
+
+### Docker (Simplest)
+You should install docker first :- [How to Install Docker](https://docs.docker.com/engine/install/)
+
+Clone the repo and edit ExecVarsSample.py while editing `Change the API_HASH, API_ID, BOT_TOKEN, ALD_USR and BASE_URL_OF_BOT` and `Uncomment the below DB_URI and comment out the above DB_URI`.
+
+After that execute these commands in root of the repo where tortoolkit folder is located.
+
+    apt install docker-compose
+    docker-compose up
+
+If you edit a file like ExecVarsSample.py just run below commands
+
+    docker-compose build web tortk
+    docker-compose up
+
 ### [Demo video for direct clone and run](https://youtu.be/HYjG4-VfxXs)
 ### Direct Clone and Run
 Run the following commands. (Following commands can be used to setup the vps from scratch)
