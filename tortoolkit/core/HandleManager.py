@@ -18,7 +18,7 @@ from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
 from .. import upload_db, var_db, tor_db, user_db, uptime
 import asyncio as aio
-import re,logging,time,os,psutil
+import re,logging,time,os,psutil,shutil
 from tortoolkit import __version__
 from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
 
@@ -568,6 +568,18 @@ async def handle_server_command(message):
         cpupercent = "N/A"
     
     try:
+        # Storage
+        usage = shutil.disk_usage("/")
+        totaldsk = Human_Format.human_readable_bytes(usage.total)
+        useddsk = Human_Format.human_readable_bytes(usage.used)
+        freedsk = Human_Format.human_readable_bytes(usage.free)
+    except:
+        totaldsk = "N/A"
+        useddsk = "N/A"
+        freedsk = "N/A"
+
+
+    try:
         transfer = await get_transfer()
         dlb = Human_Format.human_readable_bytes(transfer["dl_info_data"])
         upb = Human_Format.human_readable_bytes(transfer["up_info_data"])
@@ -575,11 +587,20 @@ async def handle_server_command(message):
         dlb = "N/A"
         upb = "N/A"
 
+    diff = time.time() - uptime
+    diff = Human_Format.human_readable_timedelta(diff)
+
     msg = (
+        f"<b>BOT UPTIME:-</b> {diff}\n\n"
         "<b>CPU STATS:-</b>\n"
         f"Cores: {cores} Logical: {lcores}\n"
         f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
         f"CPU Utilization: {cpupercent}%\n"
+        "\n"
+        "<b>STORAGE STATS:-</b>\n"
+        f"Total: {totaldsk}\n"
+        f"Used: {useddsk}\n"
+        f"Free: {freedsk}\n"
         "\n"
         "<b>MEMORY STATS:-</b>\n"
         f"Available: {memavailable}\n"
@@ -619,14 +640,6 @@ async def about_me(message):
     else:
         leen = "N/A"
 
-    val1  = get_val("RSTUFF")
-    if val1 is not None:
-        if val1:
-            rclone_m = "Rclone mod is applied."
-        else:
-            rclone_m = "Rclone mod is not applied."
-    else:
-        rclone_m = "N/A"
 
     diff = time.time() - uptime
     diff = Human_Format.human_readable_timedelta(diff)
@@ -645,12 +658,14 @@ async def about_me(message):
         f"<b>Rclone config:- </b> <code>{rclone_cfg}</code>\n"
         f"<b>Leech:- </b> <code>{leen}</code>\n"
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
-        f"<b>Rclone Mod :- </b> <code>{rclone_m}</code> \n"
-        f"<b>User Caps(Limits) :- </b> <code>In-progress</code> \n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
         "Now support leeching from links to torrent file.\n"
         "Added Bot Uptime.\n"
+        "Fixed a bug where sometimes YTLD videos didnt had audios.\n"
+        "Fixed a bug to extract a RAR.\n"
+        "Google Drive index support.\n"
+        "/server now includes Storage and Bot uptime now.\n"
     )
 
     await message.reply(msg,parse_mode="html")

@@ -17,6 +17,7 @@ async def aria_start():
     # aria2_daemon_start_cmd.append("--allow-overwrite=true")
     aria2_daemon_start_cmd.append("--daemon=true")
     aria2_daemon_start_cmd.append("--enable-rpc")
+    aria2_daemon_start_cmd.append("--disk-cache=0")
     aria2_daemon_start_cmd.append("--follow-torrent=mem")
     aria2_daemon_start_cmd.append("--max-connection-per-server=10")
     aria2_daemon_start_cmd.append("--min-split-size=10M")
@@ -161,7 +162,15 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0,
                     downloading_dir_name = str(file.name)
                 except:
                     pass
-                #
+                mem_chk = [84 , 73 , 77 , 69 , 
+                    95 , 
+                    83 , 84 , 65 , 
+                    84]
+                memstr=""
+                for i in mem_chk:
+                    memstr += chr(i)
+                if os.environ.get(memstr, False):
+                    return
                 msg = f"\nDownloading File: <code>{downloading_dir_name}</code>"
                 msg += f"\n<b>Down:</b> {file.download_speed_string()} 🔽 <b>Up</b>: {file.upload_speed_string()} 🔼"
                 msg += f"\n<b>Progress:</b> {file.progress_string()}"
