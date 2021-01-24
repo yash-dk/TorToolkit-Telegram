@@ -68,7 +68,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         gid = await get_glink(dest_drive,dest_base,os.path.basename(path),conf_path)
         torlog.info(f"Upload folder id :- {gid}")
         
-        folder_link = f"https://drive.google.com/folderview?id={gid}"
+        folder_link = f"https://drive.google.com/folderview?id={gid[0]}"
 
         buttons = []
         buttons.append(
@@ -76,10 +76,9 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         )
         gd_index = get_val("GD_INDEX_URL")
         if gd_index:
-            print("gd data",gd_index, "  ", gid)
             index_link = "{}/{}/".format(gd_index.strip("/"), gid[1])
             index_link = requote_uri(index_link)
-            print("link", index_link)
+            torlog.info("index link "+str(index_link))
             buttons.append(
                 [KeyboardButtonUrl("Index URL",index_link)]
             )
@@ -126,6 +125,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         if gd_index:
             index_link = "{}/{}".format(gd_index.strip("/"), gid[1])
             index_link = requote_uri(index_link)
+            torlog.info("index link "+str(index_link))
             buttons.append(
                 [KeyboardButtonUrl("Index URL",index_link)]
             )
