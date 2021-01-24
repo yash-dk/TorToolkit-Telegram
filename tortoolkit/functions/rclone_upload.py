@@ -76,8 +76,10 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         )
         gd_index = get_val("GD_INDEX_URL")
         if gd_index:
+            print("gd data",gd_index, "  ", gid)
             index_link = "{}/{}/".format(gd_index.strip("/"), gid[1])
             index_link = requote_uri(index_link)
+            print("link", index_link)
             buttons.append(
                 [KeyboardButtonUrl("Index URL",index_link)]
             )
