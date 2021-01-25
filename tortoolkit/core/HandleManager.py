@@ -672,6 +672,7 @@ async def about_me(message):
         "Fixed a bug to extract a RAR.\n"
         "Google Drive index support.\n"
         "/server now includes Storage and Bot uptime now.\n"
+        "/instadl Now you can download any Public Instagram Post/Reel/IGTV.\n"
     )
 
     await message.reply(msg,parse_mode="html")
