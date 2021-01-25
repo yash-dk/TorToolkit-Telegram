@@ -13,3 +13,4 @@ class Commands:
     GETLOGS = "getlogs"
     SERVER = "server"
     USERSETTINGS = "usetting"
+    INSTADL = "instadl"
