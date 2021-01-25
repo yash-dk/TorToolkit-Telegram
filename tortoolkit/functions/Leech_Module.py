@@ -60,7 +60,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
     msg = await msg.get_reply_message()
 
     if extract:
-        mess = f"You chose to extract the archive <a href='tg://user?id={omess.sender_id}'>ENTER PASSWORD IF ANY.</a>\n Use <code>/setpass {omess.id} <password></code>"
+        mess = f"You chose to extract the archive <a href='tg://user?id={omess.sender_id}'>ENTER PASSWORD IF ANY.</a>\n Use <code>/setpass {omess.id} password-here</code>"
         omess.client.dl_passwords[omess.id] = [str(omess.sender_id), None]
         await omess.reply(mess, parse_mode="html")
 
@@ -373,7 +373,7 @@ async def handle_ext_zip(path, rmess, omess):
                 continue
         
         if "Wrong Password" in ext_path:
-            mess = f"<a href='tg://user?id={omess.sender_id}'>RE-ENTER PASSWORD</a>\nThe passowrd <code>{password}</code> you provided is a wrong password.You have {((time.time()-start)/60)-20} Mins to reply else un extracted zip will be uploaded.\n Use <code>/setpass {omess.id} <password></code>"
+            mess = f"<a href='tg://user?id={omess.sender_id}'>RE-ENTER PASSWORD</a>\nThe passowrd <code>{password}</code> you provided is a wrong password.You have {((time.time()-start)/60)-20} Mins to reply else un extracted zip will be uploaded.\n Use <code>/setpass {omess.id} password-here</code>"
             await omess.reply(mess, parse_mode="html")
             wrong_pwd = True
         elif ext_path is False:
