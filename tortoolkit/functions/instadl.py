@@ -134,6 +134,9 @@ def get_profile_posts(profile: Profile) -> NodeIterator[Post]:
 async def _insta_post_downloader(message):
     """ download instagram post """
     omess = await message.get_reply_message()
+    if omess is None:
+        await message.reply("Reply to a Instagram Link.")
+        return
     message = await message.reply('`Setting up Configs. Please don\'t flood.`')
     dirname = 'instadl_{target}'
     filename = '{target}\'s_post'
