@@ -1,0 +1,36 @@
+{
+  "name": "public leech",
+  "description": "Telegram's telethon based publicLeech bot",
+  "keywords": [
+    "multi",
+    "purpose",
+    "ytdl",
+    "ffmpeg",
+    "remote",
+    "uploader",
+    "rclone"
+  ],
+  "success_url": "https://telegram.dog/public_leechs",
+  "env": {
+    "TG_BOT_TOKEN": {
+      "description": "Your bot token, as a string.",
+      "value": ""
+    },
+    "APP_ID": {
+      "description": "Get this value from https://my.telegram.org",
+      "value": ""
+    },
+    "API_HASH": {
+      "description": "Get this value from https://my.telegram.org",
+      "value": ""
+    }
+  },
+ "addons": [
+    {
+      "plan": "heroku-postgresql",
+      "options": {
+        "version": "10"
+      }
+    }
+  ]
+}
