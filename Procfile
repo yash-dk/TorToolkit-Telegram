@@ -1,1 +1,1 @@
-worker: python3 -m tobrot
+worker: python3 -m tortoolkit
