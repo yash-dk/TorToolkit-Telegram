@@ -22,7 +22,7 @@ ExecVarsSample.py location:- tortoolkit / consts / ExecVarsSample.py
 ### Docker (Simplest)
 You should install docker first :- [How to Install Docker](https://docs.docker.com/engine/install/)
 
-Clone the repo and edit ExecVarsSample.py while editing `Change the API_HASH, API_ID, BOT_TOKEN, ALD_USR and BASE_URL_OF_BOT` and `Uncomment the below DB_URI and comment out the above DB_URI`.
+Clone the repo and edit ExecVarsSample.py while editing `Change the API_HASH, API_ID, BOT_TOKEN, ALD_USR, BASE_URL_OF_BOT` and `Uncomment the below DB_URI and comment out the above DB_URI`. Also set `IS_VPS` to True and if you want to change the port then change `SERVPORT` to your desired port number.
 
 After that execute these commands in root of the repo where tortoolkit folder is located.
 
