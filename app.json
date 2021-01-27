@@ -34,7 +34,6 @@
     },
     "GD_INDEX_URL": {
       "description": "gdrive Index link",
-      #"value": "False"
       "required": false
     },
     "EDIT_SLEEP_TIME_OUT": {
@@ -44,8 +43,7 @@
     },
     "FORCE_DOCUMENTS": {
       "description": "Should force evething uploaded into Document",
-      #"value": ""
-      "required": false
+      "value": "False"
     },
     "COMPLETED_STR": {
       "description": "Chracter to use as a completed progress",
@@ -78,6 +76,7 @@
       "required": false
     }
   },
+ "stack": "container"
  "addons": [
     {
       "plan": "heroku-postgresql",
@@ -86,5 +85,4 @@
       }
     }
   ]
- "stack": "container"
 }
