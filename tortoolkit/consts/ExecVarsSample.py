@@ -5,12 +5,12 @@ except:
         # TODO optimize for vps use fully - currently only heroku is focused
         # Set true if its VPS [currently not fully working]
         IS_VPS = False
-        API_HASH = ""
-        API_ID = 0
-        BOT_TOKEN = ""
-        BASE_URL_OF_BOT = ""
+        API_HASH = os.environ.get("API_HASH")
+        API_ID = int(os.environ.get("APP_ID", 12345))
+        BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+        BASE_URL_OF_BOT = os.environ.get("BASE_URL_OF_BOT", "")
         # ALLOWED USERS [ids of user or supergroup] seperate by commas
-        ALD_USR = []
+        ALD_USR = set(int(x) for x in os.environ.get("AUTH_CHANNEL", "").split())
         
         # Google Drive Index Link should include the base dir also See readme for more info
         GD_INDEX_URL = False
