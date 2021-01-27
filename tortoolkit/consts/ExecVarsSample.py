@@ -13,7 +13,7 @@ except:
         ALD_USR = set(int(x) for x in os.environ.get("AUTH_CHANNEL", "").split())
         
         # Google Drive Index Link should include the base dir also See readme for more info
-        GD_INDEX_URL = os.environ.get("GD_INDEX_URL", "false")
+        GD_INDEX_URL = os.environ.get("GD_INDEX_URL", "False")
 
         # Time to wait before edit message
         EDIT_SLEEP_SECS = int(os.environ.get("EDIT_SLEEP_TIME_OUT", 15))
@@ -22,7 +22,7 @@ except:
         TG_UP_LIMIT = 1700000000
 
         # Should force evething uploaded into Document
-        FORCE_DOCUMENTS = os.environ.get("FORCE_DOCUMENTS", "false")
+        FORCE_DOCUMENTS = os.environ.get("FORCE_DOCUMENTS", "False")
 
         # Chracter to use as a completed progress 
         COMPLETED_STR = os.environ.get("COMPLETED_STR", "█")
@@ -45,7 +45,7 @@ except:
 
         # Will be enabled once its set
         # For vps change it to True if config loaded
-        RCLONE_ENABLED = False
+        RCLONE_ENABLED = os.environ.get("RCLONE_ENABLED", "False")
 
         # If the user fails to select whether to use rclone or telegram to upload this will be the deafult.
         DEFAULT_TIMEOUT = "leech"
