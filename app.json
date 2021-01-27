@@ -76,7 +76,6 @@
       "required": false
     }
   },
- "stack": "container"
  "addons": [
     {
       "plan": "heroku-postgresql",
