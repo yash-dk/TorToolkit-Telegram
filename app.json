@@ -12,7 +12,7 @@
   ],
   "success_url": "https://telegram.dog/public_leechs",
   "env": {
-    "TG_BOT_TOKEN": {
+    "BOT_TOKEN": {
       "description": "Your bot token, as a string.",
       "value": ""
     },
@@ -23,6 +23,59 @@
     "API_HASH": {
       "description": "Get this value from https://my.telegram.org",
       "value": ""
+    },
+    "BASE_URL_OF_BOT": {
+      "description": "https://appname.herokuapp.com",
+      "value": ""
+    },
+    "AUTH_CHANNEL": {
+      "description": "ALLOWED USERS [ids of user or supergroup] seperate by commas",
+      "value": ""
+    },
+    "GD_INDEX_URL": {
+      "description": "gdrive Index link",
+      #"value": "False"
+      "required": false
+    },
+    "EDIT_SLEEP_TIME_OUT": {
+      "description": "Time to wait before edit message",
+      "value": "15",
+      "required": false
+    },
+    "FORCE_DOCUMENTS": {
+      "description": "Should force evething uploaded into Document",
+      #"value": ""
+      "required": false
+    },
+    "COMPLETED_STR": {
+      "description": "Chracter to use as a completed progress",
+      "required": false
+    },
+    "REMAINING_STR": {
+      "description": "Chracter to use as a incomplete progress",
+      "required": false
+    },
+    "RCLONE_ENABLED": {
+      "description": "Will be enabled once its set",
+      "value": "False"
+    },
+    "RCLONE_CONFIG": {
+      "description": "rclone config",
+      "required": false
+    },
+    "DEF_RCLONE_DRIVE": {
+      "description": "Name of the RCLONE drive from the config",
+      "required": false
+    },
+    "MAX_YTPLAYLIST_SIZE": {
+      "description": " Max size of a playlist that is allowed (Number of videos)",
+      "value": "20",
+      "required": false
+    },
+    "MAX_TORRENT_SIZE": {
+      "description": "Max size of the torrent allowed",
+      "value": "10",
+      "required": false
     }
   },
  "addons": [
@@ -33,4 +86,5 @@
       }
     }
   ]
+ "stack": "container"
 }
