@@ -32,7 +32,7 @@ if __name__ == "__main__":
     add_handlers(ttkbot)
 
     if get_val("IS_VPS"):
-        ttkbot.loop.run_until_complete(start_server_async())
+        ttkbot.loop.run_until_complete(start_server_async(get_val("SERVPORT")))
     try:
         ttkbot.loop.run_until_complete(get_rstuff())
     except:pass
