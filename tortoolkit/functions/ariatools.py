@@ -18,10 +18,10 @@ async def aria_start():
     aria2_daemon_start_cmd.append("--daemon=true")
     aria2_daemon_start_cmd.append("--enable-rpc")
     aria2_daemon_start_cmd.append("--disk-cache=0")
-    aria2_daemon_start_cmd.append("--follow-torrent=mem")
+    aria2_daemon_start_cmd.append("--follow-torrent=false")
     aria2_daemon_start_cmd.append("--max-connection-per-server=10")
     aria2_daemon_start_cmd.append("--min-split-size=10M")
-    aria2_daemon_start_cmd.append("--rpc-listen-all=false")
+    aria2_daemon_start_cmd.append("--rpc-listen-all=true")
     aria2_daemon_start_cmd.append(f"--rpc-listen-port=8100")
     aria2_daemon_start_cmd.append("--rpc-max-request-size=1024M")
     aria2_daemon_start_cmd.append("--seed-ratio=0.0")
@@ -201,6 +201,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0,
             else:
                 msg = file.error_message
                 await event.edit(f"`{msg}`",parse_mode="html", buttons=None)
+                torlog.error(f"The aria download faild due to this reason:- {msg}")
                 return False
             await asyncio.sleep(get_val("EDIT_SLEEP_SECS"))
             
@@ -222,6 +223,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0,
                 "Download Canceled :\n<code>{}</code>".format(fname),
                 parse_mode="html"
             )
+            torlog.error("Errored due to ta client error.")
             return False
         pass
     except MessageNotModifiedError:
