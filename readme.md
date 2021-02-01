@@ -45,6 +45,7 @@ Run the following commands. (Following commands can be used to setup the vps fro
     python3 -m venv venv
     source venv/bin/activate
     cd TorToolkit-Telegram
+    pip install wheel
     pip install -r requirements.txt
 	sudo apt install -y postgresql postgresql-contrib
 	apt -qq install -y curl git wget python3 python3-pip aria2 ffmpeg mediainfo unzip p7zip-full p7zip-rar
