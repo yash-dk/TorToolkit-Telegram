@@ -346,8 +346,8 @@ def progress_bar(percentage):
     """Returns a progress bar for download
     """
     #percentage is on the scale of 0-1
-    comp = "▰"
-    ncomp = "▱"
+    comp = get_val("COMPLETED_STR")
+    ncomp = get_val("REMAINING_STR")
     pr = ""
 
     for i in range(1,11):
