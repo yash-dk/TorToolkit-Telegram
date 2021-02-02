@@ -9,7 +9,7 @@ services:
       - POSTGRES_PASSWORD=your-pass
   tortk:
     build: .
-    command: python3 -m tortoolkit
+    command: bash start.sh
     ports:
       - "80:80"
     depends_on: 
