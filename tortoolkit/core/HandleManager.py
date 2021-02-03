@@ -666,13 +666,10 @@ async def about_me(message):
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
-        "Now support leeching from links to torrent file.\n"
-        "Added Bot Uptime.\n"
-        "Fixed a bug where sometimes YTLD videos didnt had audios.\n"
-        "Fixed a bug to extract a RAR.\n"
-        "Google Drive index support.\n"
-        "/server now includes Storage and Bot uptime now.\n"
-        "/instadl Now you can download any Public Instagram Post/Reel/IGTV.\n"
+        "Fixed a glitch where sometimes the torrent was told to be in leech list.\n"
+        "YTDL supports all forms of links now.\n"
+        "Optimize the VPS Docker Compose\n"
+        "Added probing to direct link leeching to asses the reason of failure\n"
     )
 
     await message.reply(msg,parse_mode="html")
