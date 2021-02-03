@@ -30,6 +30,7 @@ Following are some awesome features offered by this bot:-
 - Sorted YTDL download menu.
 - Zip and upload also available.
 - Get the server status.
+- InstaDL support
 - Browse the settings menu and try stuff. ;)
 
 # Deployment
@@ -127,7 +128,7 @@ Steps:-
     - Values :- `False`/`True`
     - Default Value :- `False`
     - Use :- Only set to True if you get errors regarding web server in VPS deployment. Only use as backup.
-    -  
+
 ### ***Compulsory Vars***
 
 - `API_HASH`
