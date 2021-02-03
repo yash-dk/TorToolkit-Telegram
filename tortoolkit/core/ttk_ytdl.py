@@ -60,9 +60,11 @@ async def get_yt_link_details(url: str) -> Union[Dict[str,str], None]:
     out, error = await cli_call(cmd)
     if error:
         torlog.error(f"Error occured:- {error} for url {url}")
-    
+    # sanitize the json
+    out = out.replace("\n",",")
+    out = "[" + out + "]"
     try:
-        return json.loads(out), None
+        return json.loads(out)[0], None
     except:
         torlog.exception("Error occured while parsing the json.\n")
         return None, error

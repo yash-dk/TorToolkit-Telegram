@@ -66,6 +66,7 @@ async def add_torrent_magnet(magnet,message):
         ext_hash = Hash_Fetch.get_hash_magnet(magnet)
         ext_res = client.torrents_info(torrent_hashes=ext_hash)
         if len(ext_res) > 0:
+            torlog.info(f"This torrent is in list {ext_res} {magnet} {ext_hash}")
             await message.edit("This torrent is alreaded in the leech list.")
             return False
         # hot fix for the below issue
@@ -121,6 +122,7 @@ async def add_torrent_file(path,message):
         ext_hash = Hash_Fetch.get_hash_file(path)
         ext_res = client.torrents_info(torrent_hashes=ext_hash)
         if len(ext_res) > 0:
+            torlog.info(f"This torrent is in list {ext_res} {path} {ext_hash}")
             await message.edit("This torrent is alreaded in the leech list.")
             return False
         
@@ -344,8 +346,8 @@ def progress_bar(percentage):
     """Returns a progress bar for download
     """
     #percentage is on the scale of 0-1
-    comp = "▰"
-    ncomp = "▱"
+    comp = get_val("COMPLETED_STR")
+    ncomp = get_val("REMAINING_STR")
     pr = ""
 
     for i in range(1,11):
@@ -370,9 +372,12 @@ async def register_torrent(entity,message,user_msg=None,magnet=False,file=False)
         omess = user_msg
 
     if magnet:
-        torlog.info(magnet)
+        torlog.info(f"magnet :- {magnet}")
         torrent = await add_torrent_magnet(entity,message)
-        if torrent.progress == 1:
+        if isinstance(torrent,bool):
+            return False
+        torlog.info(torrent)
+        if torrent.progress == 1 and torrent.completion_on > 1:
             await message.edit("The provided torrent was already completly downloaded.")
             return True
         else:
