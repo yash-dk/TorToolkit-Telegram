@@ -120,7 +120,7 @@ async def extract_archive(path, password=""):
                 if not os.path.exists(extpath):
                     os.mkdir(extpath)
 
-                if str(path).endswith("tar","tar.gz","tar.bz2"):
+                if str(path).endswith(("tar","tar.gz","tar.bz2")):
                     cmd = f"tar -xvf '{path}' -C '{extpath}'"
                 else:
                     cmd = f"7z e -y '{path}' '-o{extpath}' '-p{password}'"

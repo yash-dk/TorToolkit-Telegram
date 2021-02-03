@@ -322,7 +322,7 @@ async def get_leech_choice_callback(e,o_sender,lis,ts):
             await e.answer("It will not be extracted.", alert=True)
             lis[1] = False 
         else:
-            await e.answer("If it is a ZIP it will be extracted. Further in you can set password to extract the ZIP.", alert=True)
+            await e.answer("If it is a Archive it will be extracted. Further in you can set password to extract the ZIP.", alert=True)
             lis[1] = True
     else:
         lis[1] = data[1]
