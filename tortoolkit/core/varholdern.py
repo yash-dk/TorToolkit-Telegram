@@ -62,7 +62,8 @@ class VarHolder:
             val = dbval
 
         if val is None:
-            raise Exception("The variable was not found in either the constants, environment or database. Variable is :- {}".format(variable))
+            torlog.error("The variable was not found in either the constants, environment or database. Variable is :- {}".format(variable))
+            #raise Exception("The variable was not found in either the constants, environment or database. Variable is :- {}".format(variable))
         
         if isinstance(val,str):
             val = val.strip()
