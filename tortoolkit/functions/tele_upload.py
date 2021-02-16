@@ -399,6 +399,10 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     if not os.path.exists(path):
         return None
     
+    force_docs = get_val("FORCE_DOCUMENTS")
+    if user_msg is not None:
+        force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)
+
     thonmsg = message
     message = await message.client.pyro.get_messages(message.chat_id, message.id)
     tout = get_val("EDIT_SLEEP_SECS")
@@ -421,7 +425,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                 "starting upload of {}".format(os.path.basename(path)),
                 reply_markup=markup
             )
-        if str(path).upper().endswith(("MKV", "MP4", "WEBM")):
+        if str(path).upper().endswith(("MKV", "MP4", "WEBM")) and not force_docs:
             metadata = extractMetadata(createParser(path))
             duration = 0
             if metadata.has("duration"):
@@ -477,7 +481,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                 )
             if thumb is not None:
                 os.remove(thumb)
-        elif str(path).upper().endswith(("MP3", "M4A", "M4B", "FLAC", "WAV")):
+        elif str(path).upper().endswith(("MP3", "M4A", "M4B", "FLAC", "WAV")) and not force_docs:
             metadata = extractMetadata(createParser(path))
             duration = 0
             title = ""
