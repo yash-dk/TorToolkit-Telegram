@@ -5,6 +5,7 @@ from tortoolkit.core.HandleManager import add_handlers
 from tortoolkit.core.getVars import get_val
 import logging,asyncio
 from tortoolkit.core.wserver import start_server_async
+from pyrogram import Client
 try:
     from tortoolkit.functions.rstuff import get_rstuff
 except ImportError:pass
@@ -19,15 +20,20 @@ if __name__ == "__main__":
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(threadName)s %(name)s %(message)s"
     )
+    logging.getLogger("pyrogram").setLevel(logging.ERROR)
     
     # parallel connections limiter
     queue = asyncio.Queue()
     for i in range(1,4):
         queue.put_nowait(i)
 
+    pyroclient = Client("pyrosession", api_id=get_val("API_ID"), api_hash=get_val("API_HASH"), bot_token=get_val("BOT_TOKEN"))
+    pyroclient.start()
+
     ttkbot = TortkClient("TorToolkitBot",get_val("API_ID"),get_val("API_HASH"))
     ttkbot.queue = queue
     ttkbot.start(bot_token=get_val("BOT_TOKEN"))
+    ttkbot.pyro = pyroclient
     
     add_handlers(ttkbot)
 
