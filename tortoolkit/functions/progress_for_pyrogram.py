@@ -20,8 +20,10 @@ async def progress_for_pyrogram(
     message,
     start,
     time_out,
+    client,
     cancel_msg=None,
-    updb=None
+    updb=None,
+    markup=None
 ):
     now = time.time()
     diff = now - start
@@ -34,8 +36,10 @@ async def progress_for_pyrogram(
         if cancel_msg is not None:
             # dirty alt. was not able to find something to stop upload
             # todo inspect with "StopAsyncIteration"
+            # IG Open stream will be Garbage Collected
             if updb.get_cancel_status(cancel_msg.chat.id,cancel_msg.message_id):
-                raise Exception("cancel the upload")
+                print("Stopping transmission")
+                client.stop_transmission()
     
         # if round(current / total * 100, 0) % 5 == 0:
         percentage = current * 100 / total
@@ -64,14 +68,16 @@ async def progress_for_pyrogram(
                     text="{}\n {}".format(
                         ud_type,
                         tmp
-                    )
+                    ),
+                    reply_markup=markup
                 )
             else:
                 await message.edit_caption(
                     caption="{}\n {}".format(
                         ud_type,
                         tmp
-                    )
+                    ),
+                    reply_markup=markup
                 )
         except:
             pass

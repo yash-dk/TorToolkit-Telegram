@@ -14,7 +14,7 @@ from .. import user_db
 from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio
 from telethon.utils import get_attributes
 from .Ftele import upload_file
-from pyrogram.types import InputMediaDocument, InputMediaVideo, InputMediaPhoto, InputMediaAudio
+from pyrogram.types import InputMediaDocument, InputMediaVideo, InputMediaPhoto, InputMediaAudio, InlineKeyboardButton, InlineKeyboardMarkup
 from .progress_for_pyrogram import progress_for_pyrogram
 torlog = logging.getLogger(__name__)
 
@@ -415,8 +415,11 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     try:
         message_for_progress_display = message
         if not force_edit:
+            data = "upcancel {} {} {}".format(message.chat.id,message.message_id,user_msg.sender_id)
+            markup = InlineKeyboardMarkup([[InlineKeyboardButton("Cancel Upload", callback_data=data.encode("UTF-8"))]])
             message_for_progress_display = await message.reply_text(
-                "starting upload of {}".format(os.path.basename(path))
+                "starting upload of {}".format(os.path.basename(path)),
+                reply_markup=markup
             )
         if str(path).upper().endswith(("MKV", "MP4", "WEBM")):
             metadata = extractMetadata(createParser(path))
@@ -466,8 +469,10 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                         message_for_progress_display,
                         start_time,
                         tout,
+                        thonmsg.client.pyro,
                         message,
-                        database
+                        database,
+                        markup
                     )
                 )
             if thumb is not None:
@@ -517,8 +522,10 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                         message_for_progress_display,
                         start_time,
                         tout,
+                        thonmsg.client.pyro,
                         message,
-                        database
+                        database,
+                        markup
                     )
                 )
             if thumb is not None:
@@ -554,8 +561,10 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                         message_for_progress_display,
                         start_time,
                         tout,
+                        thonmsg.client.pyro,
                         message,
-                        database
+                        database,
+                        markup
                     )
                 )
             if thumb is not None:
@@ -570,5 +579,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
         if message.message_id != message_for_progress_display.message_id:
             await message_for_progress_display.delete()
     #os.remove(path)
+    if sent_message is None:
+        return None
     sent_message = await thonmsg.client.get_messages(sent_message.chat.id, ids=sent_message.message_id)
     return sent_message
