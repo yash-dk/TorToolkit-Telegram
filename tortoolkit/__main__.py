@@ -27,14 +27,19 @@ if __name__ == "__main__":
     for i in range(1,4):
         queue.put_nowait(i)
 
-    pyroclient = Client("pyrosession", api_id=get_val("API_ID"), api_hash=get_val("API_HASH"), bot_token=get_val("BOT_TOKEN"))
-    pyroclient.start()
-
+    # Telethon client creation
     ttkbot = TortkClient("TorToolkitBot",get_val("API_ID"),get_val("API_HASH"))
     ttkbot.queue = queue
     ttkbot.start(bot_token=get_val("BOT_TOKEN"))
+    logging.info("Telethon Client created.")
+
+    # Pyro Client creation and linking
+    pyroclient = Client("pyrosession", api_id=get_val("API_ID"), api_hash=get_val("API_HASH"), bot_token=get_val("BOT_TOKEN"))
+    pyroclient.start()
     ttkbot.pyro = pyroclient
-    
+    logging.info("Pryogram Client created.")
+
+    # Associate the handlers
     add_handlers(ttkbot)
 
     if get_val("IS_VPS"):
@@ -43,4 +48,6 @@ if __name__ == "__main__":
         ttkbot.loop.run_until_complete(get_rstuff())
     except:pass
     
+    logging.info("THE BOT IS READY TO GOOOOOOO")
+
     ttkbot.run_until_disconnected()

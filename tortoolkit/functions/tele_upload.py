@@ -563,7 +563,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     except Exception as e:
         if str(e).find("cancel") != -1:
             torlog.info("cancled an upload lol")
-            await msg.delete()
+            await message_for_progress_display.delete()
         else:
             torlog.info(traceback.format_exc())
     else:
