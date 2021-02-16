@@ -14,7 +14,8 @@ from .. import user_db
 from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio
 from telethon.utils import get_attributes
 from .Ftele import upload_file
-
+from pyrogram.types import InputMediaDocument, InputMediaVideo, InputMediaPhoto, InputMediaAudio, InlineKeyboardButton, InlineKeyboardMarkup
+from .progress_for_pyrogram import progress_for_pyrogram
 torlog = logging.getLogger(__name__)
 
 #thanks @SpEcHiDe for this concept of recursion
@@ -184,6 +185,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
 
 
 async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,user_msg=None):
+    if get_val("EXPRESS_UPLOAD"):
+        return await upload_single_file(path, message, force_edit, database, thumb_path, user_msg)
     queue = message.client.queue
     if database is not None:
         if database.get_cancel_status(message.chat_id,message.id):
@@ -386,3 +389,201 @@ def black_list_exts(file):
             return True
     
     return False
+
+#async def upload_single_file(message, local_file_name, caption_str, from_user, edit_media):
+async def upload_single_file(path, message, force_edit,database=None,thumb_image_path=None,user_msg=None):
+    if database is not None:
+        if database.get_cancel_status(message.chat_id,message.id):
+            # add os remove here
+            return None
+    if not os.path.exists(path):
+        return None
+    
+    force_docs = get_val("FORCE_DOCUMENTS")
+    if user_msg is not None:
+        force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)
+
+    thonmsg = message
+    message = await message.client.pyro.get_messages(message.chat_id, message.id)
+    tout = get_val("EDIT_SLEEP_SECS")
+    sent_message = None
+    start_time = time.time()
+    #
+    if user_msg is not None:
+        dis_thumb = user_db.get_var("DISABLE_THUMBNAIL", user_msg.sender_id)
+        if dis_thumb is False or dis_thumb is None:
+            thumb_image_path = user_db.get_thumbnail(user_msg.sender_id)
+            if not thumb_image_path:
+                thumb_image_path = None
+    #
+    try:
+        message_for_progress_display = message
+        if not force_edit:
+            data = "upcancel {} {} {}".format(message.chat.id,message.message_id,user_msg.sender_id)
+            markup = InlineKeyboardMarkup([[InlineKeyboardButton("Cancel Upload", callback_data=data.encode("UTF-8"))]])
+            message_for_progress_display = await message.reply_text(
+                "starting upload of {}".format(os.path.basename(path)),
+                reply_markup=markup
+            )
+        if str(path).upper().endswith(("MKV", "MP4", "WEBM")) and not force_docs:
+            metadata = extractMetadata(createParser(path))
+            duration = 0
+            if metadata.has("duration"):
+                duration = metadata.get('duration').seconds
+            #
+            width = 0
+            height = 0
+            if thumb_image_path is None:
+                thumb_image_path = await thumb_manage.get_thumbnail(path)
+                # get the correct width, height, and duration for videos greater than 10MB
+
+            thumb = None
+            if thumb_image_path is not None and os.path.isfile(thumb_image_path):
+                thumb = thumb_image_path
+            
+            # send video
+            if force_edit and message.photo:
+                sent_message = await message.edit_media(
+                    media=InputMediaVideo(
+                        media=path,
+                        thumb=thumb,
+                        parse_mode="html",
+                        width=width,
+                        height=height,
+                        duration=duration,
+                        supports_streaming=True
+                    )
+                    # quote=True,
+                )
+            else:
+                sent_message = await message.reply_video(
+                    video=path,
+                    # quote=True,
+                    parse_mode="html",
+                    duration=duration,
+                    width=width,
+                    height=height,
+                    thumb=thumb,
+                    supports_streaming=True,
+                    disable_notification=True,
+                    # reply_to_message_id=message.reply_to_message.message_id,
+                    progress=progress_for_pyrogram,
+                    progress_args=(
+                        "trying to upload",
+                        message_for_progress_display,
+                        start_time,
+                        tout,
+                        thonmsg.client.pyro,
+                        message,
+                        database,
+                        markup
+                    )
+                )
+            if thumb is not None:
+                os.remove(thumb)
+        elif str(path).upper().endswith(("MP3", "M4A", "M4B", "FLAC", "WAV")) and not force_docs:
+            metadata = extractMetadata(createParser(path))
+            duration = 0
+            title = ""
+            artist = ""
+            if metadata.has("duration"):
+                duration = metadata.get('duration').seconds
+            if metadata.has("title"):
+                title = metadata.get("title")
+            if metadata.has("artist"):
+                artist = metadata.get("artist")
+            
+            thumb = None
+            if thumb_image_path is not None and os.path.isfile(thumb_image_path):
+                thumb = thumb_image_path
+            # send audio
+            if force_edit and message.photo:
+                sent_message = await message.edit_media(
+                    media=InputMediaAudio(
+                        media=path,
+                        thumb=thumb,
+                        parse_mode="html",
+                        duration=duration,
+                        performer=artist,
+                        title=title
+                    )
+                    # quote=True,
+                )
+            else:
+                sent_message = await message.reply_audio(
+                    audio=path,
+                    # quote=True,
+                    parse_mode="html",
+                    duration=duration,
+                    performer=artist,
+                    title=title,
+                    thumb=thumb,
+                    disable_notification=True,
+                    # reply_to_message_id=message.reply_to_message.message_id,
+                    progress=progress_for_pyrogram,
+                    progress_args=(
+                        "trying to upload",
+                        message_for_progress_display,
+                        start_time,
+                        tout,
+                        thonmsg.client.pyro,
+                        message,
+                        database,
+                        markup
+                    )
+                )
+            if thumb is not None:
+                os.remove(thumb)
+        else:
+            # if a file, don't upload "thumb"
+            # this "diff" is a major derp -_- 😔😭😭
+            thumb = None
+            if thumb_image_path is not None and os.path.isfile(thumb_image_path):
+                thumb = thumb_image_path
+            #
+            # send document
+            if force_edit and message.photo:
+                sent_message = await message.edit_media(
+                    media=InputMediaDocument(
+                        media=path,
+                        thumb=thumb,
+                        parse_mode="html"
+                    )
+                    # quote=True,
+                )
+            else:
+                sent_message = await message.reply_document(
+                    document=path,
+                    # quote=True,
+                    thumb=thumb,
+                    parse_mode="html",
+                    disable_notification=True,
+                    # reply_to_message_id=message.reply_to_message.message_id,
+                    progress=progress_for_pyrogram,
+                    progress_args=(
+                        "trying to upload",
+                        message_for_progress_display,
+                        start_time,
+                        tout,
+                        thonmsg.client.pyro,
+                        message,
+                        database,
+                        markup
+                    )
+                )
+            if thumb is not None:
+                os.remove(thumb)
+    except Exception as e:
+        if str(e).find("cancel") != -1:
+            torlog.info("cancled an upload lol")
+            await message_for_progress_display.delete()
+        else:
+            torlog.info(traceback.format_exc())
+    else:
+        if message.message_id != message_for_progress_display.message_id:
+            await message_for_progress_display.delete()
+    #os.remove(path)
+    if sent_message is None:
+        return None
+    sent_message = await thonmsg.client.get_messages(sent_message.chat.id, ids=sent_message.message_id)
+    return sent_message

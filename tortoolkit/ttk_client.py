@@ -11,3 +11,4 @@ class TortkClient(TelegramClient):
         #for now only queue is required
         self.queue = None
         self.dl_passwords = {}
+        self.pyro = None
