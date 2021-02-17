@@ -142,13 +142,18 @@ async def aria_dl(
         else:
             return False, "can't get metadata \n\n#stopped"
     await asyncio.sleep(1)
-    if op:
-        file = aria_instance.get_download(err_message)
-        to_upload_file = file.name
     
-        return True, to_upload_file
+    if op is None:
+        return False, "Known error. Nothing wrong here. You didnt follow instructions."
     else:
-        return False, False
+        statusr, stmsg = op
+        if statusr:
+            file = aria_instance.get_download(err_message)
+            to_upload_file = file.name
+        
+            return True, to_upload_file
+        else:
+            return False, stmsg
 
 async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0, user_msg=None):
     try:
@@ -202,7 +207,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0,
                 msg = file.error_message
                 await event.edit(f"`{msg}`",parse_mode="html", buttons=None)
                 torlog.error(f"The aria download faild due to this reason:- {msg}")
-                return False
+                return False, f"The aria download faild due to this reason:- {msg}"
             await asyncio.sleep(get_val("EDIT_SLEEP_SECS"))
             
             # TODO idk not intrested in using recursion here
@@ -211,7 +216,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0,
             )
         else:
             await event.edit(f"Download completed: <code>{file.name}</code> to path <code>{file.name}</code>",parse_mode="html", buttons=None)
-            return True
+            return True, "Download Complete"
     except aria2p.client.ClientException as e:
         if " not found" in str(e) or "'file'" in str(e):
             fname = "N/A"
@@ -219,37 +224,22 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0,
                 fname = file.name
             except:pass
 
-            await event.edit(
-                "Download Canceled :\n<code>{}</code>".format(fname),
-                parse_mode="html"
-            )
-            torlog.error("Errored due to ta client error.")
-            return False
+            return False, f"The Download was canceled. {fname}"
+        else:
+            torlog.warning("Errored due to ta client error.")
         pass
     except MessageNotModifiedError:
         pass
     except RecursionError:
         file.remove(force=True)
-        await event.edit(
-            "Download Auto Canceled :\n\n"
-            "Your Torrent/Link {} is Dead.".format(
-                file.name
-            ),
-            parse_mode="html"
-        )
-        return False
+        return False, "The link is basically dead."
     except Exception as e:
         torlog.info(str(e))
         if " not found" in str(e) or "'file'" in str(e):
-            await event.edit(
-                "Download Canceled :\n<code>{}</code>".format(file.name),
-                parse_mode="html"
-            )
-            return False
+            return False, "The Download was canceled."
         else:
-            torlog.info(str(e))
-            await event.edit("<u>error</u> :\n<code>{}</code> \n\n#error".format(str(e)),parse_mode="html")
-            return False
+            torlog.warning(str(e))
+            return False, f"Error: {str(e)}"
 
 async def remove_dl(gid):
     aria2 = await aria_start()

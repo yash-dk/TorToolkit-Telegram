@@ -231,7 +231,9 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             return rval
 
         elif msg.entities is not None:
-            url = get_entities(msg)
+            # url = get_entities(msg)
+            # currently discontinuing the depending on the entities as its eratic
+            url = None
             torlog.info("Downloading Urls")
             rmsg = await omess.reply("Processing the link.")
             #todo implement direct links ;)

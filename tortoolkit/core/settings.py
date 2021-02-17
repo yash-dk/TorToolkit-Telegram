@@ -190,6 +190,18 @@ async def handle_setting_callback(e):
         SessionVars.update_var("FAST_UPLOAD",val)
         mmes = await e.get_message()
         await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Fast Upload Enabled.</b></u>","ctrlacts",session_id=session_id)
+    elif cmd[1] == "expressupload":
+        await e.answer("")
+
+        if cmd[2] == "true":
+            val = True
+        else:
+            val = False
+        
+        db.set_variable("EXPRESS_UPLOAD",val)
+        SessionVars.update_var("EXPRESS_UPLOAD",val)
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Express Upload Enabled.</b></u>","ctrlacts",session_id=session_id)
     elif cmd[1] == "metainfo":
         await e.reply("Add @metainforobot to your group to get the metadata easily.")
     elif cmd[1] == "selfdest":
@@ -281,6 +293,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
         await get_bool_variable("RCLONE_ENABLED","Enable Rclone.",menu,"rcloneenable",session_id)
         await get_bool_variable("LEECH_ENABLED","Enable Leech.",menu,"leechenable",session_id)
         await get_bool_variable("FAST_UPLOAD","Enable Fast Upload.(Turn off if errored)",menu,"fastupload",session_id)
+        await get_bool_variable("EXPRESS_UPLOAD","Enable Express Upload.(read README on github for more info)(Turn off if errored)",menu,"expressupload",session_id)
         await get_bool_variable("FORCE_DOCS_USER","Not Implemented.User will choose force docs.",menu,"forcedocsuser",session_id)
 
 

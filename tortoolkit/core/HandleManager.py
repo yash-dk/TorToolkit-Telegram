@@ -440,6 +440,8 @@ async def callback_handler_canc(e):
 
 
 async def handle_exec_message_f(e):
+    if get_val("REST11"):
+        return
     message = e
     client = e.client
     if await is_admin(client, message.sender_id, message.chat_id):
@@ -499,6 +501,8 @@ async def handle_pincode_cb(e):
         await e.answer("Its not you torrent.",alert=True)
 
 async def upload_document_f(message):
+    if get_val("REST11"):
+        return
     imsegd = await message.reply(
         "processing ..."
     )
@@ -666,10 +670,13 @@ async def about_me(message):
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
-        "Fixed a glitch where sometimes the torrent was told to be in leech list.\n"
-        "YTDL supports all forms of links now.\n"
-        "Optimize the VPS Docker Compose\n"
-        "Added probing to direct link leeching to asses the reason of failure\n"
+        "Uploads To TG will be Fast AF.\n"
+        "Integrated Pyrogram.\n"
+        "Added EXPRESS UPLOAD option to settings. (On by defailt)\n"
+        "Fixed some config errors.\n"
+        "Zeet Web Support added.\n"
+        "Direct links optimized and not gives exact errors.\n"
+        "Glitches of the torrent not getting added fixed forever.\n"
     )
 
     await message.reply(msg,parse_mode="html")
