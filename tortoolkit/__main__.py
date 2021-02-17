@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from os import cpu_count
 from telethon import TelegramClient
 from tortoolkit.core.HandleManager import add_handlers
 from tortoolkit.core.getVars import get_val
@@ -31,13 +32,13 @@ if __name__ == "__main__":
     ttkbot = TortkClient("TorToolkitBot",get_val("API_ID"),get_val("API_HASH"))
     ttkbot.queue = queue
     ttkbot.start(bot_token=get_val("BOT_TOKEN"))
-    logging.info("Telethon Client created.")
+    logging.info("Telethon Client initiated.")
 
     # Pyro Client creation and linking
-    pyroclient = Client("pyrosession", api_id=get_val("API_ID"), api_hash=get_val("API_HASH"), bot_token=get_val("BOT_TOKEN"), workers=343)
+    pyroclient = Client("pyrosession", api_id=get_val("API_ID"), api_hash=get_val("API_HASH"), bot_token=get_val("BOT_TOKEN"), workers=cpu_count() + 4)
     pyroclient.start()
     ttkbot.pyro = pyroclient
-    logging.info("Pryogram Client created.")
+    logging.info("Pyrogram Client initiated.")
 
     # Associate the handlers
     add_handlers(ttkbot)
