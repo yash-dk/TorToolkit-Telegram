@@ -89,14 +89,20 @@ async def add_torrent_magnet(magnet,message):
             while True:
                 if (datetime.now() - st).seconds >= 10:
                     torlog.warning("The provided torrent was not added and it was timed out. magnet was:- {}".format(magnet))
+                    torlog.error(ext_hash)
                     await message.edit("The torrent was not added due to an error.")
                     return False
-                ctor_new = client.torrents_info()
-                if len(ctor_new) > ctor:
-                    # https://t.me/c/1439207386/2977 below line is for this
-                    torlog.info(ctor_new)
-                    torlog.info(magnet)
-                    return ctor_new[0]
+                # commenting in favour of wrong torrent getting returned
+                # ctor_new = client.torrents_info()
+                #if len(ctor_new) > ctor:
+                #    # https://t.me/c/1439207386/2977 below line is for this
+                #    torlog.info(ctor_new)
+                #    torlog.info(magnet)
+                #    return ctor_new[0]
+                ext_res = client.torrents_info(torrent_hashes=ext_hash)
+                if len(ext_res) > 0:
+                    torlog.info("Got torrent info from ext hash.")
+                    return ext_res[0]
 
         else:
             await message.edit("This is an unsupported/invalid link.")
@@ -148,11 +154,16 @@ async def add_torrent_file(path,message):
             while True:
                 if (datetime.now() - st).seconds >= 20:
                     torlog.warning("The provided torrent was not added and it was timed out. file path was:- {}".format(path))
+                    torlog.error(ext_hash)
                     await message.edit("The torrent was not added due to an error.")
                     return False
-                ctor_new = client.torrents_info()
-                if len(ctor_new) > ctor:
-                    return ctor_new[0]
+                #ctor_new = client.torrents_info()
+                #if len(ctor_new) > ctor:
+                #    return ctor_new[0]
+                ext_res = client.torrents_info(torrent_hashes=ext_hash)
+                if len(ext_res) > 0:
+                    torlog.info("Got torrent info from ext hash.")
+                    return ext_res[0]
 
         else:
             await message.edit("This is an unsupported/invalid link.")

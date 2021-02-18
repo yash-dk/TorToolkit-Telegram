@@ -24,10 +24,11 @@ requests==2.24.0
 rsa==4.6
 six==1.15.0
 Telethon==1.17.0
-TgCrypto==1.2.1
+TgCrypto==1.2.2
 torrentool==1.1.0
 urllib3==1.25.10
 yarl==1.5.1
 youtube-dl
 instaloader==4.6
 natsort==7.1.0
+Pyrogram==1.0.2
