@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-import os,logging,time,traceback,shutil
+import os,logging,time,traceback,shutil, asyncio
 from ..core.getVars import get_val
 from ..core import thumb_manage # i guess i will dodge this one ;) as i am importing the vids helper anyways
 from . import vids_helpers,zip7_utils
@@ -402,6 +402,9 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     force_docs = get_val("FORCE_DOCUMENTS")
     if user_msg is not None:
         force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)
+    
+    # Avoid Flood in Express
+    await asyncio.sleep(5)
 
     thonmsg = message
     message = await message.client.pyro.get_messages(message.chat_id, message.id)
