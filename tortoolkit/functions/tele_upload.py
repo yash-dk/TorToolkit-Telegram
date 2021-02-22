@@ -38,7 +38,10 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             message = message[0]
         except:pass
 
-        message = await message.edit("{}\nFound {} files for this download".format(message.text,len(directory_contents)))
+        try:
+            message = await message.edit("{}\nFound {} files for this download".format(message.text,len(directory_contents)))
+        except:
+            torlog.warning("Too much folders will stop the editing of this message")
         
         if not from_in:
             updb.register_upload(message.chat_id,message.id)

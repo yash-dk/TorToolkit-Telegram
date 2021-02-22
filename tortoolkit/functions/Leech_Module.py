@@ -468,7 +468,7 @@ async def print_files(e,files,thash=None):
             #await i.edit("{} {} {}".format(prev,i.text,nextt),parse_mode="html")
             await i.edit(buttons=buttons)
         except:pass
-        await aio.sleep(1)
+        await aio.sleep(2)
     
 
 
