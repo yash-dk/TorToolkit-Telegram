@@ -374,10 +374,14 @@ async def handle_ext_zip(path, rmess, omess):
                 wrong_pwd = False
                 continue
         
-        if "Wrong Password" in ext_path:
-            mess = f"<a href='tg://user?id={omess.sender_id}'>RE-ENTER PASSWORD</a>\nThe passowrd <code>{password}</code> you provided is a wrong password.You have {((time.time()-start)/60)-20} Mins to reply else un extracted zip will be uploaded.\n Use <code>/setpass {omess.id} password-here</code>"
-            await omess.reply(mess, parse_mode="html")
-            wrong_pwd = True
+        if isinstance(ext_path, str):
+            if "Wrong Password" in ext_path:
+                mess = f"<a href='tg://user?id={omess.sender_id}'>RE-ENTER PASSWORD</a>\nThe passowrd <code>{password}</code> you provided is a wrong password.You have {((time.time()-start)/60)-20} Mins to reply else un extracted zip will be uploaded.\n Use <code>/setpass {omess.id} password-here</code>"
+                await omess.reply(mess, parse_mode="html")
+                wrong_pwd = True
+            else:
+                return ext_path
+        
         elif ext_path is False:
             return False
         elif ext_path is None:

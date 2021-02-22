@@ -425,6 +425,10 @@ async def register_torrent(entity,message,user_msg=None,magnet=False,file=False)
             return await update_progress(client,message,torrent)
     if file:
         torrent = await add_torrent_file(entity,message)
+        if isinstance(torrent,bool):
+            return False
+        torlog.info(torrent)
+        
         if torrent.progress == 1:
             await message.edit("The provided torrent was already completly downloaded.")
             return True
