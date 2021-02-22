@@ -34,7 +34,7 @@ if __name__ == "__main__":
     logging.info("Telethon Client created.")
 
     # Pyro Client creation and linking
-    pyroclient = Client("pyrosession", api_id=get_val("API_ID"), api_hash=get_val("API_HASH"), bot_token=get_val("BOT_TOKEN"), workers=343)
+    pyroclient = Client("pyrosession", api_id=get_val("API_ID"), api_hash=get_val("API_HASH"), bot_token=get_val("BOT_TOKEN"), workers=100)
     pyroclient.start()
     ttkbot.pyro = pyroclient
     logging.info("Pryogram Client created.")
