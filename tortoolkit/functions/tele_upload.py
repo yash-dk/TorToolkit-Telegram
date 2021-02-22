@@ -419,7 +419,11 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     try:
         message_for_progress_display = message
         if not force_edit:
-            data = "upcancel {} {} {}".format(message.chat.id,message.message_id,user_msg.sender_id)
+            if user_msg is None:
+                sup_mes = await thonmsg.get_reply_message()
+            else:
+                sup_mes = user_msg
+            data = "upcancel {} {} {}".format(message.chat.id,message.message_id,sup_mes.sender_id)
             markup = InlineKeyboardMarkup([[InlineKeyboardButton("Cancel Upload", callback_data=data.encode("UTF-8"))]])
             message_for_progress_display = await message.reply_text(
                 "starting upload of {}".format(os.path.basename(path)),
