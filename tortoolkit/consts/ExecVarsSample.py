@@ -66,6 +66,10 @@ except:
         # Max size of the torrent allowed
         MAX_TORRENT_SIZE = 10
 
+        # Set this to your bot username if you want to add the username of your bot at the end of the commands like
+        # /leech@TorToolkitBot so the value will be @TorToolkitBot
+        BOT_CMD_POSTFIX = "" 
+
         # This is to stop someone from abusing the system by imposing the limit
         # [<GBs of total torrent sapce>, <Number of youtube videos allowed to download>, <Number of youtube playlists allowed to download>]
         USER_CAP_ENABLE = False

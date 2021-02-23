@@ -2,6 +2,7 @@
 # (c) YashDK [yash-dk@github]
 
 from ..consts.DefaultCommands import Commands
+from ..core.getVars import get_val 
 import os,logging
 
 torlog = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ def get_command(command):
         raise Exception("The command was not found in either the constants, environment or database. Command is :- {}".format(command))
     
     cmd = cmd.strip("/")
+    cmd += get_val("BOT_CMD_POSTFIX")
 
     torlog.debug(f"Final resolver for {command} is {cmd}")
     return f"/{cmd}"
