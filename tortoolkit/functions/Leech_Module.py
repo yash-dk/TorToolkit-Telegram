@@ -319,7 +319,15 @@ async def purge_all(msg):
 
 async def get_status(msg,all=False):
     smsg = await QBittorrentWrap.get_status(msg,all)
-    await msg.reply(smsg,parse_mode="html")
+    if len(smsg) > 3600:
+        chunks, chunk_size = len(smsg), len(smsg)//4
+        msgs = [ smsg[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
+        
+        for j in msgs:
+            await msg.reply(j,parse_mode="html")
+            await aio.sleep(1)
+    else:
+        await msg.reply(smsg,parse_mode="html")
 
 async def handle_zips(path, is_zip, rmess):
     # refetch rmess
