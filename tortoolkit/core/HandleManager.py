@@ -601,24 +601,24 @@ async def handle_server_command(message):
     diff = Human_Format.human_readable_timedelta(diff)
 
     msg = (
-        f"<b>BOT UPTIME:-</b> {diff}\n\n"
-        "<b>CPU STATS:-</b>\n"
+        f"<b>Bot Uptime: </b> {diff}\n\n"
+        "<b>CPU Stats: </b>\n"
         f"Cores: {cores} Logical: {lcores}\n"
         f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
         f"CPU Utilization: {cpupercent}%\n"
         "\n"
-        "<b>STORAGE STATS:-</b>\n"
+        "<b>Storage Stats: </b>\n"
         f"Total: {totaldsk}\n"
         f"Used: {useddsk}\n"
         f"Free: {freedsk}\n"
         "\n"
-        "<b>MEMORY STATS:-</b>\n"
+        "<b>Memory Stats: </b>\n"
         f"Available: {memavailable}\n"
         f"Total: {memtotal}\n"
         f"Usage: {mempercent}%\n"
         f"Free: {memfree}\n"
         "\n"
-        "<b>TRANSFER INFO:</b>\n"
+        "<b>📊Data Usage📊</b>\n"
         f"Download: {dlb}\n"
         f"Upload: {upb}\n"
     )
@@ -635,18 +635,18 @@ async def about_me(message):
     val1  = get_val("RCLONE_ENABLED")
     if val1 is not None:
         if val1:
-            rclone = "Rclone enabled by admin."
+            rclone = "Rclone is enabled by admin."
         else:
-            rclone = "Rclone disabled by admin."
+            rclone = "Rclone is disabled by admin."
     else:
         rclone = "N/A"
 
     val1  = get_val("LEECH_ENABLED")
     if val1 is not None:
         if val1:
-            leen = "Leech command enabled by admin."
+            leen = "Leech command is enabled by admin."
         else:
-            leen = "Leech command disabled by admin."
+            leen = "Leech command is disabled by admin."
     else:
         leen = "N/A"
 
@@ -659,7 +659,7 @@ async def about_me(message):
         f"<b>Version</b>: <code>{__version__}</code>\n"
         f"<b>Telethon Version</b>: {telever}\n"
         "<b>Created By</b>: @yaknight\n\n"
-        "<u>Currents Configs:-</u>\n\n"
+        "<u>🎞 Currents Configs:-</u>\n\n"
         f"<b>Bot Uptime:-</b> {diff}\n"
         "<b>Torrent Download Engine:-</b> <code>qBittorrent [4.3.0 fix active]</code> \n"
         "<b>Direct Link Download Engine:-</b> <code>aria2</code> \n"
@@ -669,7 +669,7 @@ async def about_me(message):
         f"<b>Leech:- </b> <code>{leen}</code>\n"
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         "\n"
-        f"<b>Latest {__version__} Changelog :- </b>\n"
+        f"<b>🖥 Latest {__version__} Changelog :- </b>\n"
         "Uploads To TG will be Fast AF.\n"
         "Integrated Pyrogram.\n"
         "Added EXPRESS UPLOAD option to settings. (On by defailt)\n"
