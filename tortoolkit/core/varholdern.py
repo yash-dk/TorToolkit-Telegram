@@ -58,10 +58,11 @@ class VarHolder:
             val =  int(envval) if envval is not None else val
         elif variable in BOOLS:
             if envval:
-                if "true" in envval.lower():
-                    val = True
-                else:
-                    val = False
+                if not isinstance(val, bool):
+                    if "true" in envval.lower():
+                        val = True
+                    else:
+                        val = False
             else:
                 val = None
         else:

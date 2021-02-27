@@ -198,6 +198,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     if not os.path.exists(path):
         return None
         
+    if user_msg is None:
+        user_msg = await message.get_reply_message()
     
     #todo improve this uploading ✔️
     file_name = os.path.basename(path)
@@ -219,15 +221,11 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     #print(metadata)
     
 
-    if not force_edit:
-        if user_msg is None:
-            sup_mes = await message.get_reply_message()
-        else:
-            sup_mes = user_msg
-        
-        data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
+    if not force_edit:        
+        data = "upcancel {} {} {}".format(message.chat_id,message.id,user_msg.sender_id)
         buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
         msg = await message.reply("Uploading {}".format(file_name),buttons=buts)
+
     else:
         msg = message
 
@@ -258,7 +256,13 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                 lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database)
                 )
 
-
+        if user_msg is not None:
+            force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
+        else:
+            force_docs = None
+        
+        if force_docs is None:
+            force_docs = get_val("FORCE_DOCUMENTS")
     
         if message.media and force_edit:
             out_msg = await msg.edit(
@@ -267,65 +271,43 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
             )
         else:
             
-            if ftype == "video":
-                if user_msg is not None:
-                    force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
-                else:
-                    force_docs = None
-
-                
-                if force_docs is None:
-                    force_docs = get_val("FORCE_DOCUMENTS") 
-                if force_docs == True:
+            if ftype == "video" and not force_docs:
+                try:
+                    if thumb_path is not None:
+                        thumb = thumb_path
+                    else:
+                        thumb = await thumb_manage.get_thumbnail(opath)
+                except:
+                    thumb = None
+                    torlog.exception("Error in thumb")
+                try:
+                    attrs, _ = get_attributes(opath,supports_streaming=True)
+                    out_msg = await msg.client.send_file(
+                        msg.to_id,
+                        file=path,
+                        thumb=thumb,
+                        caption=file_name,
+                        reply_to=message.id,
+                        supports_streaming=True,
+                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
+                        attributes=attrs
+                    )
+                except VideoContentTypeInvalidError:
                     attrs, _ = get_attributes(opath,force_document=True)
-                    # add the thumbs for the docs too
+                    torlog.warning("Streamable file send failed fallback to document.")
                     out_msg = await msg.client.send_file(
                         msg.to_id,
                         file=path,
                         caption=file_name,
+                        thumb=thumb,
                         reply_to=message.id,
                         force_document=True,
                         progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
-                        attributes=attrs,
-                        thumb=thumb_path
+                        attributes=attrs
                     )
-                else:
-                    try:
-                        if thumb_path is not None:
-                            thumb = thumb_path
-                        else:
-                            thumb = await thumb_manage.get_thumbnail(opath)
-                    except:
-                        thumb = None
-                        torlog.exception("Error in thumb")
-                    try:
-                        attrs, _ = get_attributes(opath,supports_streaming=True)
-                        out_msg = await msg.client.send_file(
-                            msg.to_id,
-                            file=path,
-                            thumb=thumb,
-                            caption=file_name,
-                            reply_to=message.id,
-                            supports_streaming=True,
-                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
-                            attributes=attrs
-                        )
-                    except VideoContentTypeInvalidError:
-                        attrs, _ = get_attributes(opath,force_document=True)
-                        torlog.warning("Streamable file send failed fallback to document.")
-                        out_msg = await msg.client.send_file(
-                            msg.to_id,
-                            file=path,
-                            caption=file_name,
-                            thumb=thumb,
-                            reply_to=message.id,
-                            force_document=True,
-                            progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
-                            attributes=attrs
-                        )
-                    except Exception:
-                        torlog.error("Error:- {}".format(traceback.format_exc()))
-            elif ftype == "audio":
+                except Exception:
+                    torlog.error("Error:- {}".format(traceback.format_exc()))
+            elif ftype == "audio" and not force_docs:
                 # not sure about this if
                 attrs, _ = get_attributes(opath)
                 out_msg = await msg.client.send_file(
@@ -337,13 +319,6 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                     attributes=attrs
                 )
             else:
-                if user_msg is not None:
-                    force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
-                else:
-                    force_docs = None
-                
-                if force_docs is None:
-                    force_docs = get_val("FORCE_DOCUMENTS") 
                 if force_docs:
                     attrs, _ = get_attributes(opath,force_document=True)
                     out_msg = await msg.client.send_file(
@@ -364,7 +339,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                         caption=file_name,
                         reply_to=message.id,
                         progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
-                        attributes=attrs
+                        attributes=attrs,
+                        thumb=thumb_path
                     )
     except Exception as e:
         if str(e).find("cancel") != -1:
@@ -402,12 +378,30 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     if not os.path.exists(path):
         return None
     
+    if user_msg is None:
+        user_msg = await message.get_reply_message()
+
     force_docs = get_val("FORCE_DOCUMENTS")
     if user_msg is not None:
         force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)
     
     # Avoid Flood in Express
     await asyncio.sleep(5)
+
+    metadata = extractMetadata(createParser(path))
+    
+    if metadata is not None:
+        # handle none for unknown
+        metadata = metadata.exportDictionary()
+        try:
+            mime = metadata.get("Common").get("MIME type")
+        except:
+            mime = metadata.get("Metadata").get("MIME type")
+
+        ftype = mime.split("/")[0]
+        ftype = ftype.lower().strip()
+    else:
+        ftype = "unknown"
 
     thonmsg = message
     message = await message.client.pyro.get_messages(message.chat_id, message.id)
@@ -425,17 +419,14 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     try:
         message_for_progress_display = message
         if not force_edit:
-            if user_msg is None:
-                sup_mes = await thonmsg.get_reply_message()
-            else:
-                sup_mes = user_msg
-            data = "upcancel {} {} {}".format(message.chat.id,message.message_id,sup_mes.sender_id)
+            data = "upcancel {} {} {}".format(message.chat.id,message.message_id,user_msg.sender_id)
             markup = InlineKeyboardMarkup([[InlineKeyboardButton("Cancel Upload", callback_data=data.encode("UTF-8"))]])
             message_for_progress_display = await message.reply_text(
                 "starting upload of {}".format(os.path.basename(path)),
                 reply_markup=markup
             )
-        if str(path).upper().endswith(("MKV", "MP4", "WEBM")) and not force_docs:
+        
+        if ftype == "video" and not force_docs:
             metadata = extractMetadata(createParser(path))
             duration = 0
             if metadata.has("duration"):
@@ -491,7 +482,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                 )
             if thumb is not None:
                 os.remove(thumb)
-        elif str(path).upper().endswith(("MP3", "M4A", "M4B", "FLAC", "WAV")) and not force_docs:
+        elif ftype == "audio" and not force_docs:
             metadata = extractMetadata(createParser(path))
             duration = 0
             title = ""
