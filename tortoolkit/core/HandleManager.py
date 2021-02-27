@@ -3,6 +3,7 @@
 
 from telethon import TelegramClient,events 
 from telethon import __version__ as telever
+from pyrogram import __version__ as pyrover
 from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
@@ -658,6 +659,7 @@ async def about_me(message):
         "<b>Name</b>: <code>TorToolkit</code>\n"
         f"<b>Version</b>: <code>{__version__}</code>\n"
         f"<b>Telethon Version</b>: {telever}\n"
+        f"<b>Pyrogram Version</b>: {pyrover}\n"
         "<b>Created By</b>: @yaknight\n\n"
         "<u>Currents Configs:-</u>\n\n"
         f"<b>Bot Uptime:-</b> {diff}\n"
