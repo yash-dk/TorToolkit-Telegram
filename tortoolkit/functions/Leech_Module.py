@@ -99,6 +99,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         pass
                     else:
                         dl_path = newpath
+                
                 tm = [84 , 
                 73 , 77 , 69 , 
                 95 , 83 , 
@@ -108,6 +109,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     strfg += chr(i)
                 if os.environ.get(strfg, False):
                     return
+                
                 if not rclone:
                     rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess)
                     await print_files(omess,rdict,dl_task.hash)
