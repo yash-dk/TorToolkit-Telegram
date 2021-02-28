@@ -59,7 +59,7 @@ async def split_in_zip(path,size=None):
     else:
         return None
 
-async def add_to_zip(path, size = None):
+async def add_to_zip(path, size = None, split = True):
     if os.path.exists(path):
         fname = os.path.basename(path)
         bdir = os.path.dirname(path)
@@ -78,7 +78,7 @@ async def add_to_zip(path, size = None):
             size = int(size/(1024*1024)) - 10 #for safe
 
         total_size = get_size(path)
-        if total_size > size:
+        if total_size > size and split:
             cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' -v{size}m "
         else:
             cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}'"
