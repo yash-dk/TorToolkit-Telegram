@@ -69,7 +69,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 updb,
                 from_in=True,
                 thumb_path=thumb_path,
-                user_msg=user_msg
+                user_msg=user_msg,
+                task=task
             )
         
         if not from_in:
@@ -109,6 +110,9 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 split_dir = await zip7_utils.split_in_zip(path,get_val("TG_UP_LIMIT"))
                 await todel.delete()
             
+            if task is not None:
+                await task.add_a_dir(split_dir)
+            
             dircon = os.listdir(split_dir)
             dircon.sort()
 
@@ -136,7 +140,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                     updb=updb,
                     from_in=True,
                     thumb_path=thumb_path,
-                    user_msg=user_msg
+                    user_msg=user_msg,
+                    task=task
                 )
             
             try:
@@ -164,6 +169,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 await message.edit(buttons=buts)
             #print(updb)
             if black_list_exts(path):
+                if task is not None:
+                    await task.uploaded_file(os.path.basename(path))
                 sentmsg = None
             else:
                 sentmsg = await upload_a_file(
@@ -184,7 +191,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
 
             if sentmsg is not None:
                 if task is not None:
-                    await task.uploaded_file()
+                    await task.uploaded_file(os.path.basename(path))
                 files_dict[os.path.basename(path)] = sentmsg.id
 
     return files_dict
@@ -352,6 +359,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
             await msg.delete()
         else:
             torlog.info(traceback.format_exc())
+            await msg.edit(f"File upload failed {e}")
     finally:
         if queue is not None:
             await queue.put(uploader_id)
