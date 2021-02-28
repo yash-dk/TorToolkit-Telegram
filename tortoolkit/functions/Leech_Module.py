@@ -11,6 +11,7 @@ from .tele_upload import upload_handel
 from .rclone_upload import rclone_driver
 from .zip7_utils import add_to_zip, extract_archive
 from ..core.getVars import get_val
+from ..core.status.status import ARTask
 
 #logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("telethon").setLevel(logging.WARNING)
@@ -248,20 +249,23 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             except:pass
             return dl_path
 
-        elif msg.entities is not None:
+        else:
             # url = get_entities(msg)
             # currently discontinuing the depending on the entities as its eratic
             url = None
             torlog.info("Downloading Urls")
             rmsg = await omess.reply("Processing the link.")
-            #todo implement direct links ;)
+            
             # weird stuff had to refect message
+            
             rmsg = await omess.client.get_messages(ids=rmsg.id, entity=rmsg.chat_id)
             if url is None:
-                stat, path = await ariatools.aria_dl(msg.raw_text,"",rmsg,omess)
+                stat, dl_task = await ariatools.aria_dl(msg.raw_text,"",rmsg,omess)
             else:
-                stat, path = await ariatools.aria_dl(url,"",rmsg,omess)
-            if not isinstance(path,bool) and stat:
+                stat, dl_task = await ariatools.aria_dl(url,"",rmsg,omess)
+            if isinstance(dl_task,ARTask) and stat:
+                path = await dl_task.get_path()
+
                 if extract:
                     newpath = await handle_ext_zip(path, rmsg, omess)
                     if not newpath is False:
@@ -282,40 +286,8 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
             elif stat is False:
-                await rmsg.edit("Failed to download this file.\n"+str(path))
-            
-            try:
-                if os.path.isdir(path):
-                    shutil.rmtree(path)
-                else:
-                    os.remove(path)
-            except:pass
-        else:
-            torlog.info("Downloading Url")
-            #consider it as a direct link LOL
-            rmsg = await omess.reply("processing")
-
-            stat, path = await ariatools.aria_dl(omess.raw_text,"",rmsg,omess)
-            if not isinstance(path,bool) and stat:
-                if extract:
-                    newpath = await handle_ext_zip(path, rmsg, omess)
-                    if not newpath is False:
-                        path = newpath
-                else:
-                    newpath = await handle_zips(path, is_zip, rmsg)
-                    if newpath is False:
-                        pass
-                    else:
-                        path = newpath
-                
-                if not rclone:
-                    rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess)
-                    await print_files(omess,rdict)
-                    torlog.info("Here are the files to be uploaded {}".format(rdict))
-                else:
-                    res = await rclone_driver(path,rmess, omess)
-                    if res is None:
-                        await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
+                reason = await dl_task.get_error()
+                await rmsg.edit("Failed to download this file.\n"+str(reason))
             
             try:
                 if os.path.isdir(path):

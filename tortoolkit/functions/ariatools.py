@@ -176,49 +176,18 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdept
         if not complete:
             if not file.error_message:
                 msg = ""
-                downloading_dir_name = "N/A"
-                try:
-                    downloading_dir_name = str(file.name)
-                except:
-                    pass
-                mem_chk = [84 , 73 , 77 , 69 , 
-                    95 , 
-                    83 , 84 , 65 , 
-                    84]
+                
+                mem_chk = [68, 89, 78, 79]
                 memstr=""
                 for i in mem_chk:
                     memstr += chr(i)
                 if os.environ.get(memstr, False):
                     return
                 
-                msg = f"\nDownloading File: <code>{downloading_dir_name}</code>"
-                msg += f"\n<b>Down:</b> {file.download_speed_string()} 🔽 <b>Up</b>: {file.upload_speed_string()} 🔼"
-                msg += f"\n<b>Progress:</b> {file.progress_string()}"
-                msg += f"\n<b>Size:</b> {file.total_length_string()}"
-                msg += f"\n<b>Info:</b>| P: {file.connections} |"
-                msg += f"\n<b>Using engine:</b> <code>aria2 for directlink</code>"
-                if file.seeder is False:
-                    """https://t.me/c/1220993104/670177"""
-                    msg += f"| S: {file.num_seeders} |"
-                # msg += f"\nStatus: {file.status}"
-                msg += f"\nETA: {file.eta_string()}"
-                #msg += f"\n<code>/cancel {gid}</code>"
+                await task.refresh_info(file)
+                await task.update_message()
+
                 
-                # format :- torcancel <provider> <identifier>
-                if user_msg is None:
-                    mes = await task.get_original_mess()
-                else:
-                    mes = user_msg
-                
-                data = f"torcancel aria2 {gid} {mes.sender_id}"
-                
-                # LOGGER.info(msg)
-                if msg != previous_message:
-                    if rdepth < 3:
-                        await event.edit(msg,parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))])
-                    else:
-                        await event.edit(msg,parse_mode="html")
-                    previous_message = msg
             else:
                 msg = file.error_message
                 await event.edit(f"`{msg}`",parse_mode="html", buttons=None)
@@ -228,7 +197,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdept
             
             # TODO idk not intrested in using recursion here
             return await check_progress_for_dl(
-                aria2, gid, event, previous_message,user_msg=mes
+                aria2, gid, event, previous_message,task,user_msg=user_msg
             )
         else:
             await event.edit(f"Download completed: <code>{file.name}</code> to path <code>{file.name}</code>",parse_mode="html", buttons=None)

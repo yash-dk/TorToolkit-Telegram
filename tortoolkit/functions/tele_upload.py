@@ -378,6 +378,8 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     if not os.path.exists(path):
         return None
     
+    file_name = os.path.basename(path)
+
     if user_msg is None:
         user_msg = await message.get_reply_message()
 
@@ -452,7 +454,8 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                         width=width,
                         height=height,
                         duration=duration,
-                        supports_streaming=True
+                        supports_streaming=True,
+                        caption=file_name
                     )
                     # quote=True,
                 )
@@ -465,6 +468,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     width=width,
                     height=height,
                     thumb=thumb,
+                    caption=file_name,
                     supports_streaming=True,
                     disable_notification=True,
                     # reply_to_message_id=message.reply_to_message.message_id,
@@ -506,7 +510,8 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                         parse_mode="html",
                         duration=duration,
                         performer=artist,
-                        title=title
+                        title=title,
+                        caption=file_name
                     )
                     # quote=True,
                 )
@@ -518,6 +523,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     duration=duration,
                     performer=artist,
                     title=title,
+                    caption=file_name,
                     thumb=thumb,
                     disable_notification=True,
                     # reply_to_message_id=message.reply_to_message.message_id,
@@ -547,6 +553,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                 sent_message = await message.edit_media(
                     media=InputMediaDocument(
                         media=path,
+                        caption=file_name,
                         thumb=thumb,
                         parse_mode="html"
                     )
@@ -561,6 +568,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     disable_notification=True,
                     # reply_to_message_id=message.reply_to_message.message_id,
                     progress=progress_for_pyrogram,
+                    caption=file_name,
                     progress_args=(
                         "trying to upload",
                         message_for_progress_display,

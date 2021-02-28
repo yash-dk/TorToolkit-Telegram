@@ -4,6 +4,7 @@ import logging
 from ...functions.Human_Format import human_readable_bytes, human_readable_timedelta
 from ..getVars import get_val
 from telethon.errors.rpcerrorlist import MessageNotModifiedError, FloodWaitError
+from telethon.tl.types import KeyboardButtonCallback
 from datetime import datetime
 
 torlog = logging.getLogger(__name__)
@@ -188,7 +189,7 @@ class ARTask(Status):
             human_readable_bytes(self._dl_file.total_length)
             )
         msg += "<b>ETA:</b> <b>{} Mins</b>\n".format(
-            human_readable_timedelta(self._dl_file.eta_string())
+            self._dl_file.eta_string()
             )
         msg += "<b>Conns:</b>{} <b>\n".format(
             self._dl_file.connections
@@ -207,8 +208,11 @@ class ARTask(Status):
     async def update_message(self):
         msg = await self.create_message()
         try:
-            
-            await self._message.edit(msg,parse_mode="html",buttons=self._message.reply_markup) 
+            data = "torcancel aria2 {} {}".format(
+                self._gid,
+                self._omess.sender_id
+            )
+            await self._message.edit(msg,parse_mode="html",buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))]) 
 
         except (MessageNotModifiedError,FloodWaitError) as e:
             torlog.error("{}".format(e))
@@ -225,8 +229,14 @@ class ARTask(Status):
         if error is not None:
             self._error = error
 
+    async def get_error(self):
+        return self._error
+
     async def set_path(self, path):
         self._path = path
+
+    async def get_path(self):
+        return self._path
 
     def progress_bar(self, percentage):
         """Returns a progress bar for download
