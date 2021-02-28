@@ -62,7 +62,7 @@ class QBTask(Status):
             human_readable_bytes(self._torrent.downloaded),
             human_readable_bytes(self._torrent.total_size)
             )
-        msg += "<b>ETA:</b> <b>{} Mins</b>\n".format(
+        msg += "<b>ETA:</b> <b>{}</b>\n".format(
             human_readable_timedelta(self._torrent.eta)
             )
         msg += "<b>S:</b>{} <b>L:</b>{}\n".format(
@@ -114,6 +114,119 @@ class QBTask(Status):
         self._active = False
         if error is not None:
             self._error = error
+
+    def progress_bar(self, percentage):
+        """Returns a progress bar for download
+        """
+        #percentage is on the scale of 0-1
+        comp = get_val("COMPLETED_STR")
+        ncomp = get_val("REMAINING_STR")
+        pr = ""
+
+        for i in range(1,11):
+            if i <= int(percentage*10):
+                pr += comp
+            else:
+                pr += ncomp
+        return pr
+
+
+class ARTask(Status):
+    
+    def __init__(self, gid, message, aria2, dl_file):
+        super().__init__()
+        self._gid = gid
+        self._dl_file = dl_file 
+        self._message = message
+        self._aria2 = aria2
+        self._active = True
+        self._error = ""
+        self._done = False
+        self.cancel = False
+        self._omess = None
+        self._path =None 
+
+    async def set_original_mess(self, omess=None):
+        if omess is None:
+            omess = await self._message.get_reply_message()
+
+        self._omess = omess
+
+    async def get_original_mess(self):
+        return self._omess
+
+    async def refresh_info(self, dl_file = None):
+        if dl_file is None:
+            try:
+                self._dl_file = self._aria2.get_download(self._gid)
+            except:
+                torlog.exception("Errored in fetching the direct DL.")
+        else:
+            self._dl_file = dl_file
+
+    async def create_message(self):
+        # Getting the vars pre handed
+        downloading_dir_name = "N/A"
+        try:
+            downloading_dir_name = str(self._dl_file.name)
+        except:
+            pass
+
+        msg = "<b>Downloading:</b> <code>{}</code>\n".format(
+            downloading_dir_name
+            )
+        msg += "<b>Down:</b> {} <b>Up:</b> {}\n".format(
+            self._dl_file.download_speed_string(),
+            self._dl_file.upload_speed_string()
+            )
+        msg += "<b>Progress:</b> {} - {}%\n".format(
+            self.progress_bar(self._dl_file.progress),
+            round(self._dl_file.progress,2)
+            )
+        msg += "<b>Downloaded:</b> {} of {}\n".format(
+            human_readable_bytes(self._dl_file.completed_length),
+            human_readable_bytes(self._dl_file.total_length)
+            )
+        msg += "<b>ETA:</b> <b>{} Mins</b>\n".format(
+            human_readable_timedelta(self._dl_file.eta_string())
+            )
+        msg += "<b>Conns:</b>{} <b>\n".format(
+            self._dl_file.connections
+            )
+        msg += "<b>Using engine:</b> <code>Aria2 For DirectLinks</code>"
+
+        return msg
+
+    async def get_state(self):
+        # No states for aria2
+        pass
+
+    async def central_message(self):
+        return await self.create_message()
+
+    async def update_message(self):
+        msg = await self.create_message()
+        try:
+            
+            await self._message.edit(msg,parse_mode="html",buttons=self._message.reply_markup) 
+
+        except (MessageNotModifiedError,FloodWaitError) as e:
+            torlog.error("{}".format(e))
+
+    async def set_done(self):
+        self._done = True
+        await self.set_inactive()
+
+    def is_done(self):
+        return self._done
+
+    async def set_inactive(self, error=None):
+        self._active = False
+        if error is not None:
+            self._error = error
+
+    async def set_path(self, path):
+        self._path = path
 
     def progress_bar(self, percentage):
         """Returns a progress bar for download

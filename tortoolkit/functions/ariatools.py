@@ -5,6 +5,7 @@ import asyncio, aria2p, logging, os
 from ..core.getVars import get_val
 from telethon.tl.types import KeyboardButtonCallback
 from telethon.errors.rpcerrorlist import MessageNotModifiedError
+from ..core.status.status import ARTask
 
 # referenced from public leech
 # pylint: disable=no-value-for-parameter
@@ -107,16 +108,23 @@ async def aria_dl(
     user_msg
 ):
     aria_instance = await aria_start()
+    
+    ar_task = ARTask(None, sent_message_to_update_tg_p, aria_instance, None)
+    await ar_task.set_original_mess()
+
     if incoming_link.lower().startswith("magnet:"):
         sagtus, err_message = add_magnet(aria_instance, incoming_link, c_file_name)
     elif incoming_link.lower().endswith(".torrent"):
         #sagtus, err_message = add_torrent(aria_instance, incoming_link)
         #sagtus, err_message = add_url(aria_instance, incoming_link, c_file_name)
-        return False, "Cant download this .torrent file"
+        await ar_task.set_inactive("Cant download this .torrent file")
+        return False, ar_task
     else:
         sagtus, err_message = add_url(aria_instance, incoming_link, c_file_name)
     if not sagtus:
-        return sagtus, err_message
+        await ar_task.set_inactive(err_message)
+        return sagtus, ar_task
+        
     torlog.info(err_message)
 
     op = await check_progress_for_dl(
@@ -124,6 +132,7 @@ async def aria_dl(
         err_message,
         sent_message_to_update_tg_p,
         None,
+        ar_task,
         user_msg=user_msg
     )
     if incoming_link.startswith("magnet:"):
@@ -137,25 +146,30 @@ async def aria_dl(
                 err_message,
                 sent_message_to_update_tg_p,
                 None,
+                ar_task,
                 user_msg=user_msg
             )
         else:
-            return False, "can't get metadata \n\n#stopped"
+            await ar_task.set_inactive("Can't get metadata.\n")
+            return False, ar_task
     await asyncio.sleep(1)
     
     if op is None:
-        return False, "Known error. Nothing wrong here. You didnt follow instructions."
+        await ar_task.set_inactive("Known error. Nothing wrong here. You didnt follow instructions.")
+        return False, ar_task
     else:
         statusr, stmsg = op
         if statusr:
             file = aria_instance.get_download(err_message)
             to_upload_file = file.name
-        
-            return True, to_upload_file
+            await ar_task.set_path(to_upload_file)
+            await ar_task.set_done()
+            return True, ar_task
         else:
-            return False, stmsg
+            await ar_task.set_inactive(stmsg)
+            return False, ar_task
 
-async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0, user_msg=None):
+async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdepth = 0, user_msg=None):
     try:
         file = aria2.get_download(gid)
         complete = file.is_complete
@@ -176,6 +190,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0,
                     memstr += chr(i)
                 if os.environ.get(memstr, False):
                     return
+                
                 msg = f"\nDownloading File: <code>{downloading_dir_name}</code>"
                 msg += f"\n<b>Down:</b> {file.download_speed_string()} 🔽 <b>Up</b>: {file.upload_speed_string()} 🔼"
                 msg += f"\n<b>Progress:</b> {file.progress_string()}"
@@ -191,9 +206,10 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0,
                 
                 # format :- torcancel <provider> <identifier>
                 if user_msg is None:
-                    mes = await event.get_reply_message()
+                    mes = await task.get_original_mess()
                 else:
                     mes = user_msg
+                
                 data = f"torcancel aria2 {gid} {mes.sender_id}"
                 
                 # LOGGER.info(msg)
