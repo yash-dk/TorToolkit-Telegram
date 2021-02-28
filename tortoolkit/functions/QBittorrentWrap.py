@@ -14,6 +14,7 @@ from telethon import events
 from functools import partial
 from random import randint
 from .. import tor_db
+from ..core.status.status import QBTask
 #logging.basicConfig(level=logging.DEBUG)
 torlog = logging.getLogger(__name__)
 logging.getLogger('qbittorrentapi').setLevel(logging.ERROR)
@@ -177,7 +178,8 @@ async def add_torrent_file(path,message):
         await message.edit("Error occured check logs.")
         return False
 
-async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
+async def update_progress(client,message,torrent,task,except_retry=0,sleepsec=None):
+    #task = QBTask(torrent, message, client)
     if sleepsec is None:
         sleepsec = get_val("EDIT_SLEEP_SECS")
     #switch to iteration from recursion as python dosent have tailing optimization :O
@@ -189,6 +191,7 @@ async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
         if len(tor_info) > 0:
             tor_info = tor_info[0]
         else:
+            task.cancel = True
             await message.edit("Torrent canceled ```{}``` ".format(torrent.name),buttons=None)
             return True
         
@@ -197,44 +200,18 @@ async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
             client.torrents_delete(torrent_hashes=tor_info.hash,delete_files=True)
             return True
         try:
-            msg = "<b>Downloading:</b> <code>{}</code>\n".format(
-                tor_info.name
-                )
-            msg += "<b>Down:</b> {} <b>Up:</b> {}\n".format(
-                human_readable_bytes(tor_info.dlspeed,postfix="/s"),
-                human_readable_bytes(tor_info.upspeed,postfix="/s")
-                )
-            msg += "<b>Progress:</b> {} - {}%\n".format(
-                progress_bar(tor_info.progress),
-                round(tor_info.progress*100,2)
-                )
-            msg += "<b>Downloaded:</b> {} of {}\n".format(
-                human_readable_bytes(tor_info.downloaded),
-                human_readable_bytes(tor_info.total_size)
-                )
-            msg += "<b>ETA:</b> <b>{} Mins</b>\n".format(
-                human_readable_timedelta(tor_info.eta)
-                )
-            msg += "<b>S:</b>{} <b>L:</b>{}\n".format(
-                tor_info.num_seeds,tor_info.num_leechs
-                )
-            msg += "<b>Using engine:</b> <code>qBittorrent</code>"
-            
-            #error condition
+            await task.refresh_info(tor_info)
+            await task.update_message()
+
             try:
                 if tor_info.state == "error":
-                    await message.edit("Torrent <code>{}</code> errored out.",buttons=message.reply_markup,parse_mode="html")
+                    await message.edit("Torrent <code>{}</code> errored out.".format(tor_info.name),buttons=message.reply_markup,parse_mode="html")
                     torlog.error("An torrent has error clearing that torrent now. Torrent:- {} - {}".format(tor_info.hash,tor_info.name))
+                    
+                    await task.set_inactive("Torrent <code>{}</code> errored out.".format(tor_info.name))
+                    
                     return False
-                #stalled
-                if tor_info.state == "stalledDL":
-                    await message.edit("Torrent <code>{}</code> is stalled(waiting for connection) temporarily.".format(tor_info.name),buttons=message.reply_markup,parse_mode="html")
-                #meta stage
-                if tor_info.state == "metaDL":
-                    await message.edit("Getting metadata for {} - {}".format(tor_info.name,datetime.now().strftime("%H:%M:%S")),buttons=message.reply_markup)
-                elif tor_info.state == "downloading" or tor_info.state.lower().endswith("dl"):
-                    await message.edit(msg,parse_mode="html",buttons=message.reply_markup) 
-
+                
                 #aio timeout have to switch to global something
                 await aio.sleep(sleepsec)
 
@@ -250,10 +227,12 @@ async def update_progress(client,message,torrent,except_retry=0,sleepsec=None):
                         savepath = os.path.join(tor_info.save_path, os.listdir(tor_info.save_path)[-1])
                     except:
                         await message.edit("Download path location failed", buttons=None)
+                        await task.set_inactive("Download path location failed")
                         return None
 
+                    await task.set_done()
                     await message.edit("Download completed ```{}```. To path ```{}```".format(tor_info.name,tor_info.save_path),buttons=None)
-                    return [savepath, tor_info.hash]
+                    return [savepath, task]
                 else:
                     #return await update_progress(client,message,torrent)
                     pass
@@ -421,8 +400,9 @@ async def register_torrent(entity,message,user_msg=None,magnet=False,file=False)
             db.disable_torrent(torrent.hash)
             
 
-
-            return await update_progress(client,message,torrent)
+            task = QBTask(torrent, message, client)
+            await task.set_original_mess(omess)
+            return await update_progress(client,message,torrent, task)
     if file:
         torrent = await add_torrent_file(entity,message)
         if isinstance(torrent,bool):
@@ -461,8 +441,9 @@ async def register_torrent(entity,message,user_msg=None,magnet=False,file=False)
 
             db.disable_torrent(torrent.hash)
             
-
-            return await update_progress(client,message,torrent)
+            task = QBTask(torrent, message, client)
+            await task.set_original_mess(omess)
+            return await update_progress(client,message,torrent, task)
 
 async def get_confirm(e):
     # abstract for getting the confirm in a context

@@ -54,6 +54,8 @@ def get_entities(msg):
         return None
 
 async def check_link(msg,rclone=False,is_zip=False, extract=False):
+    # here moslty rmess = Reply message which the bot uses to update
+    # omess = original message from the sender user 
     urls = None
     print("here2")
     omess = msg
@@ -81,19 +83,22 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             #not worring about the download location now
             # TODO do something to de register the torrents
             path = await msg.download_media()
-            rval =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
+            torrent_return =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
             
-            if not isinstance(rval,bool) and rval is not None:
+            if not isinstance(torrent_return, bool) and torrent_return is not None:
+                dl_path = torrent_return[0]
+                dl_task = torrent_return[1]
+
                 if extract:
-                    newpath = await handle_ext_zip(rval[0], rmess, omess)
+                    newpath = await handle_ext_zip(dl_path, rmess, omess)
                     if not newpath is False:
-                        rval[0] = newpath
+                        dl_path = newpath
                 else:
-                    newpath = await handle_zips(rval[0], is_zip, rmess)
+                    newpath = await handle_zips(dl_path, is_zip, rmess)
                     if newpath is False:
                         pass
                     else:
-                        rval[0] = newpath
+                        dl_path = newpath
                 tm = [84 , 
                 73 , 77 , 69 , 
                 95 , 83 , 
@@ -104,25 +109,25 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 if os.environ.get(strfg, False):
                     return
                 if not rclone:
-                    rdict = await upload_handel(rval[0],rmess,omess.from_id,dict(),user_msg=omess)
-                    await print_files(omess,rdict,rval[1])
+                    rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess)
+                    await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
-                    await QBittorrentWrap.delete_this(rval[1])
+                    await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
-                    res = await rclone_driver(rval[0],rmess,omess)
+                    res = await rclone_driver(dl_path,rmess,omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
-                    await QBittorrentWrap.delete_this(rval[1])
+                    await QBittorrentWrap.delete_this(dl_task.hash)
 
             try:
                 
                 os.remove(path)
-                if os.path.isdir(rval):
-                    shutil.rmtree(rval)
+                if os.path.isdir(dl_path):
+                    shutil.rmtree(dl_path)
                 else:
-                    os.remove(rval)
+                    os.remove(dl_path)
             except:pass
-            return rval
+            return dl_path
         else:
             await omess.reply("This is not a torrent file to leech from. Send <code>.torrent</code> file",parse_mode="html")
 
@@ -131,19 +136,23 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             rmess = await omess.reply("Scanning....")
             
             mgt = get_magnets(msg.raw_text.strip())
-            path = await QBittorrentWrap.register_torrent(mgt,rmess,omess,True)
+            torrent_return = await QBittorrentWrap.register_torrent(mgt,rmess,omess,True)
             
-            if not isinstance(path,bool) and path is not None:
+            if not isinstance(torrent_return,bool) and torrent_return is not None:
+                dl_path = torrent_return[0]
+                dl_task = torrent_return[1]
+                
                 if extract:
-                    newpath = await handle_ext_zip(path[0], rmess, omess)
+                    newpath = await handle_ext_zip(dl_path, rmess, omess)
                     if not newpath is False:
-                        path[0] = newpath
+                        dl_path = newpath
                 else:
-                    newpath = await handle_zips(path[0], is_zip, rmess)
+                    newpath = await handle_zips(dl_path, is_zip, rmess)
                     if newpath is False:
                         pass
                     else:
-                        path[0] = newpath
+                        dl_path = newpath
+                
                 tm = [84 , 
                 73 , 77 , 69 , 
                 95 , 83 , 
@@ -155,27 +164,29 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     return
 
                 if not rclone:
-                    rdict = await upload_handel(path[0],rmess,omess.from_id,dict(),user_msg=omess)
-                    await print_files(omess,rdict,path[1])
+                    # TODO add exception update for tg upload everywhere
+                    rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess)
+                    await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
-                    await QBittorrentWrap.delete_this(path[1])
+                    await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
-                    res = await rclone_driver(path[0],rmess,omess)
+                    res = await rclone_driver(dl_path,rmess,omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
-                    await QBittorrentWrap.delete_this(path[1])
+                    await QBittorrentWrap.delete_this(dl_task.hash)
+            print("Is done",dl_task.is_done())
             try:
                 
-                if os.path.isdir(path):
-                    shutil.rmtree(path)
+                if os.path.isdir(dl_path):
+                    shutil.rmtree(dl_path)
                 else:
-                    os.remove(path)
+                    os.remove(dl_path)
             except:pass
+
         elif msg.raw_text.lower().endswith(".torrent"):
             rmess = await omess.reply("Downloading the torrent file.")
 
-            #not worring about the download location now
-            # TODO do something to de register the torrents
+            # TODO do something to de register the torrents - done
             path = ""
             async with aiohttp.ClientSession() as sess:
                 async with sess.get(msg.raw_text) as resp:
@@ -187,19 +198,23 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         await rmess.edit("Error got HTTP response code:- "+str(resp.status))
                         return    
 
-            rval =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
+            torrent_return =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
             
-            if not isinstance(rval,bool) and rval is not None:
+            if not isinstance(torrent_return,bool) and torrent_return is not None:
+                dl_path = torrent_return[0]
+                dl_task = torrent_return[1]
+
                 if extract:
-                    newpath = await handle_ext_zip(rval[0], rmess, omess)
+                    newpath = await handle_ext_zip(dl_path, rmess, omess)
                     if not newpath is False:
-                        rval[0] = newpath
+                        dl_path = newpath
                 else:
-                    newpath = await handle_zips(rval[0], is_zip, rmess)
+                    newpath = await handle_zips(dl_path, is_zip, rmess)
                     if newpath is False:
                         pass
                     else:
-                        rval[0] = newpath
+                        dl_path = newpath
+
                 tm = [84 , 
                 73 , 77 , 69 , 
                 95 , 83 , 
@@ -209,26 +224,27 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     strfg += chr(i)
                 if os.environ.get(strfg, False):
                     return
+                
                 if not rclone:
-                    rdict = await upload_handel(rval[0],rmess,omess.from_id,dict(),user_msg=omess)
-                    await print_files(omess,rdict,rval[1])
+                    rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess)
+                    await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
-                    await QBittorrentWrap.delete_this(rval[1])
+                    await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
-                    res = await rclone_driver(rval[0],rmess,omess)
+                    res = await rclone_driver(dl_path,rmess,omess)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
-                    await QBittorrentWrap.delete_this(rval[1])
+                    await QBittorrentWrap.delete_this(dl_task.hash)
 
             try:
                 
                 os.remove(path)
-                if os.path.isdir(rval):
-                    shutil.rmtree(rval)
+                if os.path.isdir(dl_path):
+                    shutil.rmtree(dl_path)
                 else:
-                    os.remove(rval)
+                    os.remove(dl_path)
             except:pass
-            return rval
+            return dl_path
 
         elif msg.entities is not None:
             # url = get_entities(msg)
