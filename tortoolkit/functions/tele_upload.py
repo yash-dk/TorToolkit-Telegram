@@ -19,7 +19,7 @@ from .progress_for_pyrogram import progress_for_pyrogram
 torlog = logging.getLogger(__name__)
 
 #thanks @SpEcHiDe for this concept of recursion
-async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None, user_msg=None):
+async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None, user_msg=None, task=None):
     # creting here so connections are kept low
     if updb is None:
         # Central object is not used its Acknowledged 
@@ -103,9 +103,11 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             if ftype == "video":    
                 todel = await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....\n```Using Algo FFMPEG SPLIT```") 
                 split_dir = await vids_helpers.split_file(path,get_val("TG_UP_LIMIT"))
+                await todel.delete()
             else:
                 todel = await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....\n```Using Algo PARTED ZIP SPLIT```") 
                 split_dir = await zip7_utils.split_in_zip(path,get_val("TG_UP_LIMIT"))
+                await todel.delete()
             
             dircon = os.listdir(split_dir)
             dircon.sort()
@@ -181,6 +183,8 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 updb.deregister_upload(message.chat_id,message.id)
 
             if sentmsg is not None:
+                if task is not None:
+                    await task.uploaded_file()
                 files_dict[os.path.basename(path)] = sentmsg.id
 
     return files_dict

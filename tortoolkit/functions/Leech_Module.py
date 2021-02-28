@@ -95,7 +95,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     if not newpath is False:
                         dl_path = newpath
                 else:
-                    newpath = await handle_zips(dl_path, is_zip, rmess)
+                    newpath = await handle_zips(dl_path, is_zip, rmess, not rclone)
                     if newpath is False:
                         pass
                     else:
@@ -150,7 +150,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     if not newpath is False:
                         dl_path = newpath
                 else:
-                    newpath = await handle_zips(dl_path, is_zip, rmess)
+                    newpath = await handle_zips(dl_path, is_zip, rmess, not rclone)
                     if newpath is False:
                         pass
                     else:
@@ -212,7 +212,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     if not newpath is False:
                         dl_path = newpath
                 else:
-                    newpath = await handle_zips(dl_path, is_zip, rmess)
+                    newpath = await handle_zips(dl_path, is_zip, rmess, not rclone)
                     if newpath is False:
                         pass
                     else:
@@ -239,14 +239,8 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(dl_task.hash)
 
-            try:
-                
-                os.remove(path)
-                if os.path.isdir(dl_path):
-                    shutil.rmtree(dl_path)
-                else:
-                    os.remove(dl_path)
-            except:pass
+            await clear_stuff(path)
+            await clear_stuff(dl_path)
             return dl_path
 
         else:
@@ -271,7 +265,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     if not newpath is False:
                         path = newpath
                 else:
-                    newpath = await handle_zips(path, is_zip, rmsg)
+                    newpath = await handle_zips(path, is_zip, rmsg, not rclone)
                     if newpath is False:
                         pass
                     else:
@@ -289,13 +283,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 reason = await dl_task.get_error()
                 await rmsg.edit("Failed to download this file.\n"+str(reason))
             
-            try:
-                if os.path.isdir(path):
-                    shutil.rmtree(path)
-                else:
-                    os.remove(path)
-            except:pass
-    
+            await clear_stuff(path)    
     return None
 
 async def pause_all(msg):
@@ -319,13 +307,13 @@ async def get_status(msg,all=False):
     else:
         await msg.reply(smsg,parse_mode="html")
 
-async def handle_zips(path, is_zip, rmess):
+async def handle_zips(path, is_zip, rmess, split=True):
     # refetch rmess
     rmess = await rmess.client.get_messages(rmess.chat_id,ids=rmess.id)
     if is_zip:
         try:
             await rmess.edit(rmess.text+"\n Starting to Zip the contents. Please wait.")
-            zip_path = await add_to_zip(path, get_val("TG_UP_LIMIT"))
+            zip_path = await add_to_zip(path, get_val("TG_UP_LIMIT"), split)
             
             if zip_path is None:
                 await rmess.edit(rmess.text+"\n Zip failed. Falback to normal")
@@ -336,6 +324,7 @@ async def handle_zips(path, is_zip, rmess):
             if os.path.isfile(path):
                 os.remove(path)
             await rmess.edit(rmess.text+"\n Zipping Done now uploading.")
+            await clear_stuff(path)
             return zip_path
         except:
             await rmess.edit(rmess.text+"\n Zip failed. Falback to normal")
@@ -378,6 +367,7 @@ async def handle_ext_zip(path, rmess, omess):
                 await omess.reply(mess, parse_mode="html")
                 wrong_pwd = True
             else:
+                await clear_stuff(path)
                 return ext_path
         
         elif ext_path is False:
@@ -387,6 +377,7 @@ async def handle_ext_zip(path, rmess, omess):
             # itself further nothing to handle here
             return False
         else:
+            await clear_stuff(path)
             return ext_path
     
 
@@ -475,6 +466,15 @@ async def get_transfer():
     data = client.transfer_info()
     print(data)
     return data
+
+async def clear_stuff(path):
+    try:
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+    except:pass
+
 
 async def cancel_torrent(hashid, is_aria = False):
     if not is_aria:

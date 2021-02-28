@@ -147,6 +147,8 @@ class ARTask(Status):
         self._omess = None
         self._path =None 
 
+    # Setters
+
     async def set_original_mess(self, omess=None):
         if omess is None:
             omess = await self._message.get_reply_message()
