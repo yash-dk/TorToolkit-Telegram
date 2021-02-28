@@ -111,6 +111,12 @@ class QBTask(Status):
     def is_done(self):
         return self._done
 
+    async def set_path(self, path):
+        self._path = path
+
+    async def get_path(self):
+        return self._path
+
     async def set_inactive(self, error=None):
         self._active = False
         if error is not None:
@@ -183,7 +189,7 @@ class ARTask(Status):
             self._dl_file.upload_speed_string()
             )
         msg += "<b>Progress:</b> {} - {}%\n".format(
-            self.progress_bar(self._dl_file.progress),
+            self.progress_bar(self._dl_file.progress/100),
             round(self._dl_file.progress,2)
             )
         msg += "<b>Downloaded:</b> {} of {}\n".format(
