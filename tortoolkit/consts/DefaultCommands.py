@@ -15,3 +15,4 @@ class Commands:
     USERSETTINGS = "usetting"
     INSTADL = "instadl"
     START = "start"
+    USTATUS = "ustatus"

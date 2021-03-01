@@ -25,7 +25,7 @@ from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file
 from ..functions.instadl import _insta_post_downloader
 torlog = logging.getLogger(__name__)
 from .status.status import Status
-from .status.menu import create_status_menu
+from .status.menu import create_status_menu, create_status_user_menu
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -57,6 +57,12 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         handle_status_command,
         events.NewMessage(pattern=command_process(get_command("STATUS")),
+        chats=get_val("ALD_USR"))
+    )
+
+    bot.add_event_handler(
+        handle_u_status_command,
+        events.NewMessage(pattern=command_process(get_command("USTATUS")),
         chats=get_val("ALD_USR"))
     )
 
@@ -392,6 +398,9 @@ async def handle_status_command(e):
             await get_status(e)
     else:
         await create_status_menu(e)
+
+async def handle_u_status_command(e):
+    await create_status_user_menu(e)
         
         
 

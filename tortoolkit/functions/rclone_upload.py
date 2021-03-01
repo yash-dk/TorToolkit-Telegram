@@ -69,6 +69,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
             await message.edit(message.text + "\nCanceled Rclone Upload")
             await msg.delete()
             rclone_pr.kill()
+            task.cancel = True
             await task.set_inactive("Canceled Rclone Upload")
             return task
             
@@ -118,6 +119,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
             await message.edit(message.text + "\nCanceled Rclone Upload")
             await msg.delete()
             rclone_pr.kill()
+            task.cancel = True
             await task.set_inactive("Canceled Rclone Upload")
             return task
 
