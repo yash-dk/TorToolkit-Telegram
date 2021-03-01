@@ -22,11 +22,18 @@ class Status():
     def update_message(self):
         raise NotImplementedError
 
+    def is_active(self):
+        raise NotImplementedError
+
+    def set_inactive(self):
+        raise NotImplementedError
+
 # qBittorrent Task Class
 class QBTask(Status):
     
     def __init__(self, torrent, message, client):
         super().__init__()
+        self.Tasks.append(self)
         self.hash = torrent.hash
         self._torrent = torrent
         self._message = message
@@ -122,6 +129,9 @@ class QBTask(Status):
         if error is not None:
             self._error = error
 
+    async def is_active(self):
+        return self._active
+
     def progress_bar(self, percentage):
         """Returns a progress bar for download
         """
@@ -142,6 +152,7 @@ class ARTask(Status):
     
     def __init__(self, gid, message, aria2, dl_file):
         super().__init__()
+        self.Tasks.append(self)
         self._gid = gid
         self._dl_file = dl_file 
         self._message = message
@@ -236,6 +247,9 @@ class ARTask(Status):
         self._active = False
         if error is not None:
             self._error = error
+
+    async def is_active(self):
+        return self._active
 
     async def get_error(self):
         return self._error

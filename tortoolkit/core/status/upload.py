@@ -6,25 +6,26 @@ class TGUploadTask(Status):
     
     def __init__(self, task):
         super().__init__()
+        self.Tasks.append(self)
         self._dl_task = task
         self._files = 0
         self._dirs = 0
         self._uploaded_files = 0
-        self._inactive = False
+        self._active = True
         self._current_file = ""
 
     async def set_inactive(self):
-        self._inactive = True
+        self._active = False
 
-    async def get_inactive(self):
-        return self._inactive
+    async def is_active(self):
+        return self._active
 
     async def add_a_dir(self, path):
-        self.dl_files(path)
+        await self.dl_files(path)
 
     async def dl_files(self, path = None):
         if path is None:
-            path = self._dl_task.path
+            path = await self._dl_task.get_path()
         
         files = self._files
         dirs = self._dirs
@@ -58,9 +59,10 @@ class TGUploadTask(Status):
         )
         msg += "<b>Files:- </b> {} of {} done.\n".format(
             self._uploaded_files,
-            self.dl_files
+            self._files
         )
         msg += "<b>Type:- </b> <code>TG Upload</code>\n"
+        return msg
 
     def progress_bar(self, percentage):
         """Returns a progress bar for download
