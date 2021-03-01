@@ -115,6 +115,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 
                 if not rclone:
                     ul_task = TGUploadTask(dl_task)
+                    await ul_task.dl_files()
                     rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
                     await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
@@ -173,6 +174,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 if not rclone:
                     # TODO add exception update for tg upload everywhere
                     ul_task = TGUploadTask(dl_task)
+                    await ul_task.dl_files()
                     rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
                     await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
@@ -236,6 +238,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 
                 if not rclone:
                     ul_task = TGUploadTask(dl_task)
+                    await ul_task.dl_files()
                     rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
                     await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
@@ -281,6 +284,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 
                 if not rclone:
                     ul_task = TGUploadTask(dl_task)
+                    await ul_task.dl_files()
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess,task=ul_task)
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))

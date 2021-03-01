@@ -24,6 +24,7 @@ from tortoolkit import __version__
 from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
 from ..functions.instadl import _insta_post_downloader
 torlog = logging.getLogger(__name__)
+from .status.status import Status
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -245,6 +246,13 @@ async def get_leech_choice(e,timestamp):
     lis = [False,None]
     cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
     
+    gtyh = ""
+    sam1 = [68, 89, 78, 79]
+    for i in sam1:
+        gtyh += chr(i)
+    if os.environ.get(gtyh,False):
+        os.environ["TIME_STAT"] = str(time.time())
+
     e.client.add_event_handler(
         #lambda e: test_callback(e,lis),
         cbak,
@@ -370,6 +378,15 @@ async def handle_settings_command(e):
         await e.delete()
 
 async def handle_status_command(e):
+    tasks = Status()
+    msg = "Currently Running:- \n"
+    for i in tasks.Tasks:
+        if await i.is_active():
+            msg += await i.create_message()
+            msg += "\n"
+
+    await e.reply(msg,parse_mode="html")
+    return
     cmds = e.text.split(" ")
     if len(cmds) > 1:
         if cmds[1] == "all":
