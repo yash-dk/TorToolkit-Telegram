@@ -16,6 +16,20 @@ class TGUploadTask(Status):
         self._uploaded_files = 0
         self._active = True
         self._current_file = ""
+        self._message = None
+        self._omess = None
+
+    async def get_message(self):
+        return self._message
+
+    async def get_sender_id(self):
+        return self._omess.sender_id
+
+    async def set_message(self, message):
+        self._message = message
+    
+    async def set_original_message(self, omess):
+        self._omess = omess
 
     async def set_inactive(self):
         self._active = False
@@ -64,7 +78,7 @@ class TGUploadTask(Status):
             self._uploaded_files,
             self._files
         )
-        msg += "<b>Type:- </b> <code>TG Upload</code>\n"
+        msg += "<b>Using Engine:- </b> <code>TG Upload</code>\n"
         return msg
 
     def progress_bar(self, percentage):
@@ -92,7 +106,14 @@ class RCUploadTask(Status):
         self._prev_cont = ""
         self._message = None
         self._error = ""
-        
+        self._omess = None
+
+    async def set_original_message(self, omess):
+        self._omess = omess
+
+    async def get_original_message(self):
+        return self._omess
+    
     async def set_message(self, message):
         self._message = message
     

@@ -41,6 +41,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         await task.set_inactive(f"Returning none cuz the path {path} not found")
         return None
     omsg = user_msg
+    await task.set_original_message(omsg)
     upload_db.register_upload(omsg.chat_id, omsg.id)
     data = "upcancel {} {} {}".format(omsg.chat_id,omsg.id,omsg.sender_id)
     buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
