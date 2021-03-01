@@ -117,9 +117,9 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     ul_task = TGUploadTask(dl_task)
                     await ul_task.dl_files()
                     rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    await ul_task.set_inactive()
                     await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
-                    await ul_task.set_inactive()
                     await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
                     res = await rclone_driver(dl_path,rmess,omess)
@@ -176,9 +176,9 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     ul_task = TGUploadTask(dl_task)
                     await ul_task.dl_files()
                     rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    await ul_task.set_inactive()
                     await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
-                    await ul_task.set_inactive()
                     await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
                     res = await rclone_driver(dl_path,rmess,omess)
@@ -240,9 +240,9 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     ul_task = TGUploadTask(dl_task)
                     await ul_task.dl_files()
                     rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    await ul_task.set_inactive()
                     await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
-                    await ul_task.set_inactive()
                     await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
                     res = await rclone_driver(dl_path,rmess,omess)
@@ -286,9 +286,9 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     ul_task = TGUploadTask(dl_task)
                     await ul_task.dl_files()
                     rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    await ul_task.set_inactive()
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
-                    await ul_task.set_inactive()
                 else:
                     res = await rclone_driver(path,rmsg, omess)
                     if res is None:
