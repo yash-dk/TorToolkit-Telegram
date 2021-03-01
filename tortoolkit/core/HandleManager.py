@@ -689,13 +689,7 @@ async def about_me(message):
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
-        "Uploads To TG will be Fast AF.\n"
-        "Integrated Pyrogram.\n"
-        "Added EXPRESS UPLOAD option to settings. (On by defailt)\n"
-        "Fixed some config errors.\n"
-        "Zeet Web Support added.\n"
-        "Direct links optimized and not gives exact errors.\n"
-        "Glitches of the torrent not getting added fixed forever.\n"
+        "Will be updated in next update.\n"
     )
 
     await message.reply(msg,parse_mode="html")
