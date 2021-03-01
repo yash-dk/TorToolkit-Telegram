@@ -1,6 +1,9 @@
 from .status import Status, QBTask
 from ..getVars import get_val
-import os
+import os, re, logging
+
+torlog = logging.getLogger(__name__)
+
 
 class TGUploadTask(Status):
     
@@ -53,7 +56,7 @@ class TGUploadTask(Status):
             prg = self._uploaded_files/self._files
 
         except ZeroDivisionError:pass
-        msg += "<b>Progress:- </b> {} - {}\n".format(
+        msg += "<b>Progress:- </b> {} - {}%\n".format(
             self.progress_bar(prg),
             prg*100
         )
@@ -78,3 +81,69 @@ class TGUploadTask(Status):
             else:
                 pr += ncomp
         return pr
+
+class RCUploadTask(Status):
+    def __init__(self, task):
+        super().__init__()
+        self.Tasks.append(self)
+        self._dl_task = task
+        self._active = True
+        self._upmsg = ""
+        self._prev_cont = ""
+        self._message = None
+        self._error = ""
+        
+    async def set_message(self, message):
+        self._message = message
+    
+    async def refresh_info(self,msg):
+        # The rclone is process dependent so cant be updated here.
+        self._upmsg = msg
+
+    async def create_message(self):
+        mat = re.findall("Transferred:.*ETA.*",self._upmsg)
+        nstr = mat[0].replace("Transferred:","")
+        nstr = nstr.strip()
+        nstr = nstr.split(",")
+        prg = nstr[1].strip("% ")
+        prg = "Progress:- {} - {}%".format(self.progress_bar(prg),prg)
+        progress = "<b>Uploaded:- {} \n{} \nSpeed:- {} \nETA:- {}</b> \n<b>Using Engine:- </b><code>RCLONE</code>".format(nstr[0],prg,nstr[2],nstr[3].replace("ETA",""))
+        return progress
+
+    def progress_bar(self,percentage):
+        """Returns a progress bar for download
+        """
+        #percentage is on the scale of 0-1
+        comp = get_val("COMPLETED_STR")
+        ncomp = get_val("REMAINING_STR")
+        pr = ""
+
+        try:
+            percentage=int(percentage)
+        except:
+            percentage = 0
+
+        for i in range(1,11):
+            if i <= int(percentage/10):
+                pr += comp
+            else:
+                pr += ncomp
+        return pr
+
+    async def update_message(self):
+        progress = await self.create_message()
+        if not self._prev_cont == progress:
+            #kept just in case
+            self._prev_cont = progress
+            try:
+                await self._message.edit(progress,parse_mode="html")
+            except Exception as e:
+                torlog.error(e)
+
+    async def is_active(self):
+        return self._active
+
+    async def set_inactive(self, error = None):
+        self._active = False
+        if error is not None:
+            self._error = error

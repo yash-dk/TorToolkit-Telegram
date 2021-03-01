@@ -10,11 +10,12 @@ from requests.utils import requote_uri
 from ..core.getVars import get_val
 from .. import upload_db, var_db
 from telethon.tl.types import KeyboardButtonCallback
+from ..core.status.upload import RCUploadTask 
 
 torlog = logging.getLogger(__name__)
 
 
-async def rclone_driver(path,message, user_msg):
+async def rclone_driver(path,message, user_msg, dl_task):
     # this driver will need to do this
     # get the default drive
     conf_path = await get_config()
@@ -26,14 +27,18 @@ async def rclone_driver(path,message, user_msg):
         rem_base = get_val("RCLONE_BASE_DIR")
         edtime = get_val("EDIT_SLEEP_SECS")
 
-        return await rclone_upload(path,message,user_msg,drive_name,rem_base,edtime,conf_path)
+        
+        ul_task = RCUploadTask(dl_task)
+
+        return await rclone_upload(path,message,user_msg,drive_name,rem_base,edtime,conf_path, ul_task)
     
 
 # add user prompt here
-async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,conf_path):
+async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,conf_path, task):
     # this function will need a driver for him :o
     if not os.path.exists(path):
         torlog.info(f"Returning none cuz the path {path} not found")
+        await task.set_inactive(f"Returning none cuz the path {path} not found")
         return None
     omsg = user_msg
     upload_db.register_upload(omsg.chat_id, omsg.id)
@@ -41,6 +46,8 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
     buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
     
     msg = await message.reply("<b>Uploading to configured drive.... will be updated soon.",parse_mode="html", buttons=buts)
+    await task.set_message(msg)
+
     if os.path.isdir(path):
         # handle dirs
         new_dest_base = os.path.join(dest_base,os.path.basename(path))
@@ -55,13 +62,14 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
             rclone_copy_cmd,
             stdout=subprocess.PIPE
         )
-        rcres = await rclone_process_display(rclone_pr,edit_time,msg, message, omsg)
+        rcres = await rclone_process_display(rclone_pr,edit_time,msg, message, omsg, task)
         
         if rcres is False:
             await message.edit(message.text + "\nCanceled Rclone Upload")
             await msg.delete()
             rclone_pr.kill()
-            return True
+            await task.set_inactive("Canceled Rclone Upload")
+            return task
             
 
         torlog.info("Upload complete")
@@ -103,13 +111,14 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
             rclone_copy_cmd,
             stdout=subprocess.PIPE
         )
-        rcres = await rclone_process_display(rclone_pr,edit_time,msg, message, omsg)
+        rcres = await rclone_process_display(rclone_pr,edit_time,msg, message, omsg, task)
         
         if rcres is False:
             await message.edit(message.text + "\nCanceled Rclone Upload")
             await msg.delete()
             rclone_pr.kill()
-            return True
+            await task.set_inactive("Canceled Rclone Upload")
+            return task
 
         torlog.info("Upload complete")
         gid = await get_glink(dest_drive,dest_base,os.path.basename(path),conf_path,False)
@@ -137,32 +146,12 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         await msg.delete()
 
     upload_db.deregister_upload(message.chat_id, message.id)
-    return True
+    await task.set_inactive()
+    return task
 
-def progress_bar(percentage):
-    """Returns a progress bar for download
-    """
-    #percentage is on the scale of 0-1
-    comp = "▰"
-    ncomp = "▱"
-    pr = ""
-
-    try:
-        percentage=int(percentage)
-    except:
-        percentage = 0
-
-    for i in range(1,11):
-        if i <= int(percentage/10):
-            pr += comp
-        else:
-            pr += ncomp
-    return pr
-
-async def rclone_process_display(process,edit_time,msg, omessage, cancelmsg):
+async def rclone_process_display(process,edit_time,msg, omessage, cancelmsg, task):
     blank=0
     sleeps = False
-    prev_cont = None
     start = time.time()
     while True:
         
@@ -176,23 +165,9 @@ async def rclone_process_display(process,edit_time,msg, omessage, cancelmsg):
                 if time.time() - start > edit_time:
                     start = time.time()
                     
-                    nstr = mat[0].replace("Transferred:","")
-                    nstr = nstr.strip()
-                    nstr = nstr.split(",")
-                    prg = nstr[1].strip("% ")
-                    prg = "Progress:- {} - {}%".format(progress_bar(prg),prg)
-                    progress = "<b>Uploaded:- {} \n{} \nSpeed:- {} \nETA:- {}</b> \n<b>Using Engine:- </b><code>RCLONE</code>".format(nstr[0],prg,nstr[2],nstr[3].replace("ETA",""))
-                    if not prev_cont == progress:
-                        #kept just in case
-                        prev_cont = progress
-                        try:
-                            await msg.edit(progress,parse_mode="html")
-                        except Exception as e:
-                            torlog.error(e)
+                    await task.refresh_info(data)
+                    await task.update_message()
 
-                    
-                    torlog.debug(progress)
-    
         if data == "":
             blank += 1
             if blank == 20:

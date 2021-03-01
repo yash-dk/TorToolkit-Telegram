@@ -122,7 +122,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
-                    res = await rclone_driver(dl_path,rmess,omess)
+                    res = await rclone_driver(dl_path,rmess,omess, dl_task)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(dl_task.hash)
@@ -181,7 +181,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
-                    res = await rclone_driver(dl_path,rmess,omess)
+                    res = await rclone_driver(dl_path,rmess,omess, dl_task)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(dl_task.hash)
@@ -245,7 +245,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
-                    res = await rclone_driver(dl_path,rmess,omess)
+                    res = await rclone_driver(dl_path,rmess,omess, dl_task)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(dl_task.hash)
@@ -290,7 +290,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:
-                    res = await rclone_driver(path,rmsg, omess)
+                    res = await rclone_driver(path,rmsg, omess, dl_task)
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
             elif stat is False:
