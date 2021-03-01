@@ -25,6 +25,7 @@ from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file
 from ..functions.instadl import _insta_post_downloader
 torlog = logging.getLogger(__name__)
 from .status.status import Status
+from .status.menu import create_status_menu
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -129,6 +130,11 @@ def add_handlers(bot: TelegramClient):
         _insta_post_downloader,
         events.NewMessage(pattern=command_process(get_command("INSTADL")),
         chats=get_val("ALD_USR"))
+    )
+
+    bot.add_event_handler(
+        start_handler,
+        events.NewMessage(pattern=command_process(get_command("START")))
     )
 
     
@@ -378,15 +384,6 @@ async def handle_settings_command(e):
         await e.delete()
 
 async def handle_status_command(e):
-    tasks = Status()
-    msg = "Currently Running:- \n"
-    for i in tasks.Tasks:
-        if await i.is_active():
-            msg += await i.create_message()
-            msg += "\n"
-
-    await e.reply(msg,parse_mode="html")
-    return
     cmds = e.text.split(" ")
     if len(cmds) > 1:
         if cmds[1] == "all":
@@ -394,7 +391,8 @@ async def handle_status_command(e):
         else:
             await get_status(e)
     else:
-        await get_status(e)
+        await create_status_menu(e)
+        
         
 
 async def handle_test_command(e):
@@ -558,6 +556,11 @@ async def set_password_zip(message):
             await message.reply(f"Password updated successfully.")
         else:
             await message.reply(f"Cannot update the password this is not your download.")
+
+async def start_handler(event):
+    msg = "Hello This is TorToolkit an instance of <a href='https://github.com/yash-dk/TorToolkit-Telegram'>This Repo</a>. Try the repo for yourself and dont forget to put a STAR and fork."
+    await event.reply(msg, parse_mode="html")
+
 
 async def handle_server_command(message):
     try:

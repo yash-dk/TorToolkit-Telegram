@@ -50,6 +50,10 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             else:
                 sup_mes = user_msg
             
+            if task is not None:
+                await task.set_message(message)
+                await task.set_original_message(sup_mes)
+            
             data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
             buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
             message = await message.edit(buttons=buts)
@@ -122,6 +126,11 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                     sup_mes = await message.get_reply_message()
                 else:
                     sup_mes = user_msg
+
+                if task is not None:
+                    await task.set_message(message)
+                    await task.set_original_message(sup_mes)
+
                 data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
                 buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
@@ -164,6 +173,14 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 else:
                     sup_mes = user_msg
                 
+                if task is not None:
+                    await task.set_message(message)
+                    await task.set_original_message(sup_mes)
+
+                if task is not None:
+                    await task.set_message(message)
+                    await task.set_original_message(sup_mes)
+
                 data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
                 buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)

@@ -47,12 +47,18 @@ class QBTask(Status):
     
     async def set_original_mess(self, omess):
         self._omess = omess
+    
+    async def get_original_message(self):
+        return self._omess
 
     async def refresh_info(self, torrent = None):
         if torrent is None:
             self._torrent = self._client.torrents_info(torrent_hashes=self._torrent.hash)
         else:
             self._torrent = torrent
+
+    async def get_sender_id(self):
+        return self._omess.sender_id
 
     async def create_message(self):
         msg = "<b>Downloading:</b> <code>{}</code>\n".format(
@@ -174,6 +180,12 @@ class ARTask(Status):
 
     async def get_original_mess(self):
         return self._omess
+
+    async def get_gid(self):
+        return self._gid
+    
+    async def get_sender_id(self):
+        return self._omess.sender_id
 
     async def refresh_info(self, dl_file = None):
         if dl_file is None:
