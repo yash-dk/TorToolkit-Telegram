@@ -18,6 +18,7 @@ class TGUploadTask(Status):
         self._current_file = ""
         self._message = None
         self._omess = None
+        self.cancel = False
 
     async def get_message(self):
         return self._message
@@ -107,6 +108,7 @@ class RCUploadTask(Status):
         self._message = None
         self._error = ""
         self._omess = None
+        self.cancel = False
 
     async def set_original_message(self, omess):
         self._omess = omess

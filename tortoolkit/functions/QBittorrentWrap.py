@@ -192,6 +192,7 @@ async def update_progress(client,message,torrent,task,except_retry=0,sleepsec=No
             tor_info = tor_info[0]
         else:
             task.cancel = True
+            await task.set_inactive()
             await message.edit("Torrent canceled ```{}``` ".format(torrent.name),buttons=None)
             return True
         
