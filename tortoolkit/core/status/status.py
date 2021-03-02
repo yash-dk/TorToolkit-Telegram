@@ -183,6 +183,9 @@ class ARTask(Status):
 
     async def get_gid(self):
         return self._gid
+
+    async def set_gid(self, gid):
+        self._gid = gid
     
     async def get_sender_id(self):
         return self._omess.sender_id
