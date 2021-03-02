@@ -29,9 +29,12 @@ async def rclone_driver(path,message, user_msg, dl_task):
 
         
         ul_task = RCUploadTask(dl_task)
-
-        return await rclone_upload(path,message,user_msg,drive_name,rem_base,edtime,conf_path, ul_task)
-    
+        try:
+            return await rclone_upload(path,message,user_msg,drive_name,rem_base,edtime,conf_path, ul_task)
+        except:
+            await ul_task.set_inactive()
+            torlog.exception("Stuff gone wrong in here")
+            return 
 
 # add user prompt here
 async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,conf_path, task):
