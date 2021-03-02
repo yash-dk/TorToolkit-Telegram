@@ -127,6 +127,8 @@ async def aria_dl(
         
     torlog.info(err_message)
 
+    await ar_task.set_gid(err_message)
+
     op = await check_progress_for_dl(
         aria_instance,
         err_message,
