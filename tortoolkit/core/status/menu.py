@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from .status import Status, QBTask, ARTask
 from .upload import TGUploadTask, RCUploadTask
 from telethon.tl.types import KeyboardButtonCallback
