@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from .status import Status, QBTask
 from ..getVars import get_val
 import os, re, logging
