@@ -87,7 +87,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             path = await msg.download_media()
             torrent_return =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
             
-            
+            dl_path, dl_task = None, None
             if not isinstance(torrent_return, bool) and torrent_return is not None:
                 dl_path = torrent_return[0]
                 dl_task = torrent_return[1]
@@ -116,7 +116,12 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 if not rclone:
                     ul_task = TGUploadTask(dl_task)
                     await ul_task.dl_files()
-                    rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    try:
+                        rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    except:
+                        rdict = dict()
+                        torlog.exception("Exception in torrent file")
+                    
                     await ul_task.set_inactive()
                     await print_files(omess,rdict,dl_task.hash)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
@@ -146,6 +151,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             mgt = get_magnets(msg.raw_text.strip())
             torrent_return = await QBittorrentWrap.register_torrent(mgt,rmess,omess,True)
             
+            dl_path, dl_task = None, None
             if not isinstance(torrent_return,bool) and torrent_return is not None:
                 dl_path = torrent_return[0]
                 dl_task = torrent_return[1]
@@ -173,13 +179,22 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
 
                 if not rclone:
                     # TODO add exception update for tg upload everywhere
+                    
                     ul_task = TGUploadTask(dl_task)
                     await ul_task.dl_files()
-                    rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    
+                    try:
+                        rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    except:
+                        rdict = dict()
+                        torlog.exception("Exception in magnet")
+                    
                     await ul_task.set_inactive()
                     await print_files(omess,rdict,dl_task.hash)
+                    
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(dl_task.hash)
+
                 else:
                     res = await rclone_driver(dl_path,rmess,omess, dl_task)
                     if res is None:
@@ -210,7 +225,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         return    
 
             torrent_return =  await QBittorrentWrap.register_torrent(path,rmess,omess,file=True)
-            
+            dl_path, dl_task = None, None
             if not isinstance(torrent_return,bool) and torrent_return is not None:
                 dl_path = torrent_return[0]
                 dl_task = torrent_return[1]
@@ -239,9 +254,16 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 if not rclone:
                     ul_task = TGUploadTask(dl_task)
                     await ul_task.dl_files()
-                    rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
+
+                    try:
+                        rdict = await upload_handel(dl_path,rmess,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    except:
+                        rdict = dict()
+                        torlog.exception("Exception in torrent link")
+                    
                     await ul_task.set_inactive()
                     await print_files(omess,rdict,dl_task.hash)
+                    
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
@@ -285,7 +307,13 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 if not rclone:
                     ul_task = TGUploadTask(dl_task)
                     await ul_task.dl_files()
-                    rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    
+                    try:
+                        rdict = await upload_handel(path,rmsg,omess.from_id,dict(),user_msg=omess,task=ul_task)
+                    except:
+                        rdict = dict()
+                        torlog.exception("Exception in Direct links.")
+                    
                     await ul_task.set_inactive()
                     await print_files(omess,rdict)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
