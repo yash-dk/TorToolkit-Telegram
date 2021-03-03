@@ -4,6 +4,8 @@
 from .status import Status, QBTask, ARTask
 from .upload import TGUploadTask, RCUploadTask
 from telethon.tl.types import KeyboardButtonCallback
+from ... import to_del
+import time
 
 def get_num(no):
     nums = ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
@@ -69,7 +71,8 @@ async def create_status_menu(event):
 
     if not Buttons:
         Buttons = None
-    await event.reply(msg,parse_mode="html", buttons=Buttons)
+    memsg = await event.reply(msg,parse_mode="html", buttons=Buttons)
+    to_del.append([memsg, time.time()])
 
 async def create_status_user_menu(event):
     
@@ -132,4 +135,5 @@ async def create_status_user_menu(event):
 
     if not Buttons:
         Buttons = None
-    await event.reply(msg,parse_mode="html", buttons=Buttons)
+    memsg = await event.reply(msg,parse_mode="html", buttons=Buttons)
+    to_del.append([memsg, time.time()])

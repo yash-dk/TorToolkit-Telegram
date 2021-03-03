@@ -22,5 +22,5 @@ tor_db = TtkTorrents()
 user_db = UserDB()
 
 uptime = time.time()
-
+to_del = []
 SessionVars = VarHolder(var_db)
