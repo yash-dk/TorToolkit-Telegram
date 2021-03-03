@@ -48,6 +48,10 @@ class TGUploadTask(Status):
         if path is None:
             path = await self._dl_task.get_path()
         
+        if os.path.isfile(path):
+            self._files += 1
+            return
+        
         files = self._files
         dirs = self._dirs
         for _, d, f in os.walk(path, topdown=False):
