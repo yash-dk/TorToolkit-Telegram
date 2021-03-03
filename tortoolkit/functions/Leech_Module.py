@@ -132,14 +132,8 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(dl_task.hash)
 
-            try:
-                
-                os.remove(path)
-                if os.path.isdir(dl_path):
-                    shutil.rmtree(dl_path)
-                else:
-                    os.remove(dl_path)
-            except:pass
+            await clear_stuff(path)
+            await clear_stuff(dl_path)
             return dl_path
         else:
             await omess.reply("This is not a torrent file to leech from. Send <code>.torrent</code> file",parse_mode="html")
@@ -201,13 +195,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(dl_task.hash)
             
-            try:
-                
-                if os.path.isdir(dl_path):
-                    shutil.rmtree(dl_path)
-                else:
-                    os.remove(dl_path)
-            except:pass
+            await clear_stuff(dl_path)
 
         elif msg.raw_text.lower().endswith(".torrent"):
             rmess = await omess.reply("Downloading the torrent file.")
@@ -284,7 +272,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             rmsg = await omess.reply("Processing the link.")
             
             # weird stuff had to refect message
-            
+            path = None
             rmsg = await omess.client.get_messages(ids=rmsg.id, entity=rmsg.chat_id)
             if url is None:
                 stat, dl_task = await ariatools.aria_dl(msg.raw_text,"",rmsg,omess)
