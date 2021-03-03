@@ -5,6 +5,7 @@ from tortoolkit.core.HandleManager import add_handlers
 from tortoolkit.core.getVars import get_val
 import logging,asyncio
 from tortoolkit.core.wserver import start_server_async
+from tortoolkit.core.status.auto_delete import del_status
 from pyrogram import Client
 try:
     from tortoolkit.functions.rstuff import get_rstuff
@@ -41,6 +42,8 @@ if __name__ == "__main__":
 
     # Associate the handlers
     add_handlers(ttkbot)
+
+    ttkbot.loop.create_task(del_status())
 
     if get_val("IS_VPS"):
         ttkbot.loop.run_until_complete(start_server_async(get_val("SERVPORT")))

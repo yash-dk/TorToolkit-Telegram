@@ -70,6 +70,8 @@ except:
         # /leech@TorToolkitBot so the value will be @TorToolkitBot
         BOT_CMD_POSTFIX = "" 
 
+        STATUS_DEL_TOUT = 20
+
         # This is to stop someone from abusing the system by imposing the limit
         # [<GBs of total torrent sapce>, <Number of youtube videos allowed to download>, <Number of youtube playlists allowed to download>]
         USER_CAP_ENABLE = False
