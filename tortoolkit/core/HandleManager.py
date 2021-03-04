@@ -704,7 +704,16 @@ async def about_me(message):
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
-        "Will be updated in next update.\n"
+        "0.Note its a beta update can contain some bugs please co-operate. thanks.\n"
+        "1.Core Changes for all downloads and uploads\n"
+        "2.Central Message is more detailed.\n"
+        "3.Cancleing from central menu\n"
+        "4.Zip split issue for rclone fixed.\n"
+        "5.Thumbnail size fixed for some devices.\n"
+        "6.Upload flood errors fixed. /getlogs fixed.\n"
+        "7.Introduced the /ustatus to get the users task status.\n"
+        "8.Glithces for the upload failed torrent is fixed.\n"
+        "9.More detailed overall progress of TG Upload.\n"
     )
 
     await message.reply(msg,parse_mode="html")
