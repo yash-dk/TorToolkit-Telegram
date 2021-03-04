@@ -26,6 +26,7 @@ from ..functions.instadl import _insta_post_downloader
 torlog = logging.getLogger(__name__)
 from .status.status import Status
 from .status.menu import create_status_menu, create_status_user_menu
+import signal
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -143,7 +144,9 @@ def add_handlers(bot: TelegramClient):
         events.NewMessage(pattern=command_process(get_command("START")))
     )
 
-    
+
+    signal.signal(signal.SIGINT, partial(term_handler,client=bot))
+    signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
 
     #*********** Callback Handlers *********** 
     
@@ -708,6 +711,33 @@ async def about_me(message):
 
 async def handle_user_settings_(message):
     await handle_user_settings(message)
+
+def term_handler(signum, frame, client):
+    torlog.info("TERM RECEIVD")
+    async def term_async():
+        omess = None
+        st = Status().Tasks
+        msg = "Bot Rebooting Re Add your Tasks\n\n"
+        for i in st:
+            if not await i.is_active():
+                continue
+
+            omess = await i.get_original_message()
+            if str(omess.chat_id).startswith("-100"):
+                chat_id = str(omess.chat_id)[4:]
+                chat_id = int(chat_id)
+            else:
+                chat_id = omess.chat_id
+            
+            sender = await i.get_sender_id()
+            msg += f"<a href='tg://user?id={sender}'>REBOOT</a> - <a href='https://t.me/c/{chat_id}/{omess.id}'>Task</a>\n"
+        
+        if omess is not None:
+            await omess.respond(msg, parse_mode="html")
+        exit(0)
+
+    client.loop.create_task(term_async())
+        
 
 def command_process(command):
     return re.compile(command,re.IGNORECASE)

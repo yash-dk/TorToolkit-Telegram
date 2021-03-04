@@ -29,6 +29,9 @@ class TGUploadTask(Status):
     async def get_sender_id(self):
         return self._omess.sender_id
 
+    async def get_original_message(self):
+        return self._omess
+
     async def set_message(self, message):
         self._message = message
     
@@ -123,6 +126,9 @@ class RCUploadTask(Status):
     async def get_original_message(self):
         return self._omess
     
+    async def get_sender_id(self):
+        return self._omess.sender_id
+
     async def set_message(self, message):
         self._message = message
     
