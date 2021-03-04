@@ -157,7 +157,7 @@ async def create_status_user_menu(event):
             to_del.append([memsg, time.time()])
             await asyncio.sleep(1)
     else:
-        memsg = await event.reply(j,parse_mode="html",  buttons=Buttons)
+        memsg = await event.reply(msg,parse_mode="html",  buttons=Buttons)
         to_del.append([memsg, time.time()])
     
     #memsg = await event.reply(msg,parse_mode="html", buttons=Buttons)
