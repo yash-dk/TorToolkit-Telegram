@@ -79,9 +79,9 @@ async def add_to_zip(path, size = None, split = True):
 
         total_size = get_size(path)
         if total_size > size and split:
-            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' -v{size}m "
+            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' -v{size}m s=0b"
         else:
-            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}'"
+            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' s=0b"
     
         _, err = await cli_call(cmd)
         
