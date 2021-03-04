@@ -178,7 +178,7 @@ class ARTask(Status):
 
         self._omess = omess
 
-    async def get_original_mess(self):
+    async def get_original_message(self):
         return self._omess
 
     async def get_gid(self):

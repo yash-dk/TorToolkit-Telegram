@@ -5,7 +5,7 @@ from .status import Status, QBTask, ARTask
 from .upload import TGUploadTask, RCUploadTask
 from telethon.tl.types import KeyboardButtonCallback
 from ... import to_del
-import time
+import time, asyncio
 
 def get_num(no):
     nums = ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
@@ -71,8 +71,20 @@ async def create_status_menu(event):
 
     if not Buttons:
         Buttons = None
-    memsg = await event.reply(msg,parse_mode="html", buttons=Buttons)
-    to_del.append([memsg, time.time()])
+    
+    if len(msg) > 3600:
+        chunks, chunk_size = len(msg), len(msg)//4
+        msgs = [ msg[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
+        
+        for j in msgs:
+            memsg = await event.reply(j,parse_mode="html",  buttons=Buttons)
+            to_del.append([memsg, time.time()])
+            await asyncio.sleep(1)
+    else:
+        memsg = await event.reply(j,parse_mode="html",  buttons=Buttons)
+        to_del.append([memsg, time.time()])
+    #memsg = await event.reply(msg,parse_mode="html", buttons=Buttons)
+    #to_del.append([memsg, time.time()])
 
 async def create_status_user_menu(event):
     
@@ -135,5 +147,18 @@ async def create_status_user_menu(event):
 
     if not Buttons:
         Buttons = None
-    memsg = await event.reply(msg,parse_mode="html", buttons=Buttons)
-    to_del.append([memsg, time.time()])
+    
+    if len(msg) > 3600:
+        chunks, chunk_size = len(msg), len(msg)//4
+        msgs = [ msg[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
+        
+        for j in msgs:
+            memsg = await event.reply(j,parse_mode="html",  buttons=Buttons)
+            to_del.append([memsg, time.time()])
+            await asyncio.sleep(1)
+    else:
+        memsg = await event.reply(j,parse_mode="html",  buttons=Buttons)
+        to_del.append([memsg, time.time()])
+    
+    #memsg = await event.reply(msg,parse_mode="html", buttons=Buttons)
+    #to_del.append([memsg, time.time()])
