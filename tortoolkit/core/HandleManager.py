@@ -714,6 +714,7 @@ async def about_me(message):
         "7.Introduced the /ustatus to get the users task status.\n"
         "8.Glithces for the upload failed torrent is fixed.\n"
         "9.More detailed overall progress of TG Upload.\n"
+        "10.Fixed the Unpack files error.\n"
     )
 
     await message.reply(msg,parse_mode="html")
