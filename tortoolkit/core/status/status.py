@@ -44,6 +44,7 @@ class QBTask(Status):
         self._done = False
         self.cancel = False
         self._omess = None
+        self._prevmsg = ""
     
     async def set_original_mess(self, omess):
         self._omess = omess
@@ -106,6 +107,11 @@ class QBTask(Status):
 
     async def update_message(self):
         msg = await self.create_message()
+        if self._prevmsg == msg:
+            return
+
+        self._prevmsg = msg
+        
         try:
         
             cstate = await self.get_state()
@@ -169,7 +175,7 @@ class ARTask(Status):
         self.cancel = False
         self._omess = None
         self._path =None 
-
+        self._prevmsg = ""
     # Setters
 
     async def set_original_mess(self, omess=None):
@@ -241,6 +247,11 @@ class ARTask(Status):
 
     async def update_message(self):
         msg = await self.create_message()
+        if self._prevmsg == msg:
+            return
+        
+        self._prevmsg = msg
+        
         try:
             data = "torcancel aria2 {} {}".format(
                 self._gid,

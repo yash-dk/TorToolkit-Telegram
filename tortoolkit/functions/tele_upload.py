@@ -423,7 +423,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
         force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)
     
     # Avoid Flood in Express
-    await asyncio.sleep(5)
+    await asyncio.sleep(int(get_val("EDIT_SLEEP_SECS"))+5)
 
     metadata = extractMetadata(createParser(path))
     
