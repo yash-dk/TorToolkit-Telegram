@@ -379,10 +379,10 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     except Exception as e:
         if str(e).find("cancel") != -1:
             torlog.info("cancled an upload lol")
-            await msg.delete()
+            await msg.edit(f"Failed to upload {e}")
         else:
-            torlog.info(traceback.format_exc())
-            await msg.edit(f"File upload failed {e}")
+            torlog.exception("In Tele Upload")
+            await msg.edit(f"Failed to upload {e}")
     finally:
         if queue is not None:
             await queue.put(uploader_id)
@@ -620,9 +620,14 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     except Exception as e:
         if str(e).find("cancel") != -1:
             torlog.info("cancled an upload lol")
-            await message_for_progress_display.delete()
+            try:
+                await message_for_progress_display.edit(f"Failed to upload {e}")
+            except:pass
         else:
-            torlog.info(traceback.format_exc())
+            try:
+                await message_for_progress_display.edit(f"Failed to upload {e}")
+            except:pass
+            torlog.exception("IN Pyro upload")
     else:
         if message.message_id != message_for_progress_display.message_id:
             await message_for_progress_display.delete()
