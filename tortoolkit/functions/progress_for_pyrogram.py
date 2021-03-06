@@ -3,7 +3,7 @@
 # (c) Shrimadhav U K
 
 # the logging things
-import logging
+import logging, asyncio
 
 import math
 import os
@@ -79,6 +79,7 @@ async def progress_for_pyrogram(
                     ),
                     reply_markup=markup
                 )
+            await asyncio.sleep(1)
         except:
             pass
 
