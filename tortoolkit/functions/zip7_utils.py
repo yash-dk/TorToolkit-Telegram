@@ -10,12 +10,15 @@ torlog = logging.getLogger(__name__)
 # TODO change the hard coded value of the size from here
 
 async def cli_call(cmd: Union[str,List[str]]) -> Tuple[str,str]:
+    torlog.info("Got cmd:- "+str(cmd))
     if isinstance(cmd,str):
         cmd = shlex.split(cmd)
     elif isinstance(cmd,(list,tuple)):
         pass
     else:
         return None,None
+
+    torlog.info("Exc cmd:- "+str(cmd))
     
     process = await asyncio.create_subprocess_exec(
         *cmd,
@@ -44,7 +47,7 @@ async def split_in_zip(path,size=None):
             else:
                 size = int(size)
                 size = int(size/(1024*1024)) - 10 #for safe
-            cmd = f'7z a -tzip "{bdir}/{fname}.zip" "{path}" -v{size}m '
+            cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}" -v{size}m '
 
             _, err, rcode = await cli_call(cmd)
             
@@ -79,9 +82,9 @@ async def add_to_zip(path, size = None, split = True):
 
         total_size = get_size(path)
         if total_size > size and split:
-            cmd = f'7z a -tzip "{bdir}/{fname}.zip" "{path}" -v{size}m s=0b'
+            cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}" -v{size}m'
         else:
-            cmd = f'7z a -tzip "{bdir}/{fname}.zip" "{path}" s=0b'
+            cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}"'
     
         _, err, rcode = await cli_call(cmd)
         
