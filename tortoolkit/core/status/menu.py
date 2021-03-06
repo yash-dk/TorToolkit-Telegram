@@ -78,8 +78,8 @@ async def create_status_menu(event):
     if not Buttons:
         Buttons = None
     
-    if len(msg) > 3600:
-        chunks, chunk_size = len(msg), len(msg)//4
+    if len(msg) > 3900:
+        chunks, chunk_size = len(msg), 3900
         msgs = [ msg[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
         
         for j in msgs:
@@ -158,8 +158,8 @@ async def create_status_user_menu(event):
     if not Buttons:
         Buttons = None
     
-    if len(msg) > 3600:
-        chunks, chunk_size = len(msg), len(msg)//4
+    if len(msg) > 3900:
+        chunks, chunk_size = len(msg), 3900
         msgs = [ msg[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
         
         for j in msgs:
