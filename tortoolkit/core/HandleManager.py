@@ -703,7 +703,6 @@ async def about_me(message):
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
-        "0.Note its a beta update can contain some bugs please co-operate. thanks.\n"
         "1.Core Changes for all downloads and uploads\n"
         "2.Central Message is more detailed.\n"
         "3.Cancleing from central menu\n"
