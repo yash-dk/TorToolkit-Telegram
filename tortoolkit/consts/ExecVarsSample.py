@@ -70,7 +70,11 @@ except:
         # /leech@TorToolkitBot so the value will be @TorToolkitBot
         BOT_CMD_POSTFIX = "" 
 
+        # Time out for the status Delete.
         STATUS_DEL_TOUT = 20
+
+        # Allow the user settings to be accessed in private
+        USETTINGS_IN_PRIVATE = False
 
         # This is to stop someone from abusing the system by imposing the limit
         # [<GBs of total torrent sapce>, <Number of youtube videos allowed to download>, <Number of youtube playlists allowed to download>]

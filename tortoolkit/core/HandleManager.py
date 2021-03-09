@@ -129,8 +129,7 @@ def add_handlers(bot: TelegramClient):
 
     bot.add_event_handler(
         handle_user_settings_,
-        events.NewMessage(pattern=command_process(get_command("USERSETTINGS")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(pattern=command_process(get_command("USERSETTINGS")))
     )
 
     bot.add_event_handler(
@@ -715,11 +714,16 @@ async def about_me(message):
         "8.Glithces for the upload failed torrent is fixed.\n"
         "9.More detailed overall progress of TG Upload.\n"
         "10.Fixed the Unpack files error.\n"
+        "11.Added a way to modify Status delete timeout and usettings in private.\n"
     )
 
     await message.reply(msg,parse_mode="html")
 
 async def handle_user_settings_(message):
+    if not message.sender_id in get_val("ALD_USR"):
+        if not get_val("USETTINGS_IN_PRIVATE") and message.is_private:
+            return
+
     await handle_user_settings(message)
 
 def term_handler(signum, frame, client):
