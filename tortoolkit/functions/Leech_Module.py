@@ -270,6 +270,17 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             url = None
             torlog.info("Downloading Urls")
             rmsg = await omess.reply("Processing the link.")
+
+            re_name = None
+            try:
+                if " "  in omess.raw_text:
+                    cmd = omess.raw_text.split(" ", 1)[-1]
+                    if len(cmd) > 0:
+                        re_name = cmd
+                    else:
+                        torlog.info(f"This is not a valid name for renaming:= {omess.raw_text}")
+            except:
+                torlog.exception("Wronged in rename detect")
             
             # weird stuff had to refect message
             path = None
@@ -280,6 +291,13 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 stat, dl_task = await ariatools.aria_dl(url,"",rmsg,omess)
             if isinstance(dl_task,ARTask) and stat:
                 path = await dl_task.get_path()
+                if re_name:
+                    try:
+                        rename_path = os.path.join(os.path.dirname(path), re_name)
+                        os.rename(path, rename_path)
+                        path = rename_path
+                    except:
+                        torlog.warning("Wrong in renaming the file.")
 
                 if extract:
                     newpath = await handle_ext_zip(path, rmsg, omess)

@@ -197,7 +197,6 @@ def add_handlers(bot: TelegramClient):
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
-
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
