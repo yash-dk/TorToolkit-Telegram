@@ -146,12 +146,14 @@ def add_handlers(bot: TelegramClient):
 
     bot.add_event_handler(
         clear_thumb_cmd,
-        events.NewMessage(pattern=command_process(get_command("CLRTHUMB")))
+        events.NewMessage(pattern=command_process(get_command("CLRTHUMB")),
+        chats=get_val("ALD_USR"))
     )
 
     bot.add_event_handler(
         set_thumb_cmd,
-        events.NewMessage(pattern=command_process(get_command("SETTHUMB")))
+        events.NewMessage(pattern=command_process(get_command("SETTHUMB")),
+        chats=get_val("ALD_USR"))
     )
 
 
