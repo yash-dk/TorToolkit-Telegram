@@ -250,8 +250,10 @@ Steps:-
     about - About the bot
     status - Status of all the downloads
     server - Get server status
-    usettings - User Settings
+    usettings - User Settings (private also)
     instadl - Instagram Post/Reel/IGTV download
+    setthumb - Set the thumbnail
+    clearthumb - Clear the thumbnail
     settings - Settings of the bot ⚠️ Admin Only
     pauseall - Pause all torrents⚠️ Admin Only
     resumeall - Resume all torrents⚠️ Admin Only
@@ -260,5 +262,7 @@ Steps:-
 
 # Credits
 [Yash-DK](https://github.com/yash-dk)
+
 [Lonami](https://github.com/LonamiWebs/Telethon/) for awesome Telethon
+
 [All the Libraries owner](https://github.com/yash-dk/TorToolkit-Telegram/blob/master/requirements.txt)
