@@ -39,7 +39,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
         except:pass
 
         try:
-            message = await message.edit("{}\nFound {} files for this download".format(message.text,len(directory_contents)))
+            message = await message.edit("{}\n📦 Found **{}** files for this download.".format(message.text,len(directory_contents)))
         except:
             torlog.warning("Too much folders will stop the editing of this message")
         
@@ -81,13 +81,13 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             if updb.get_cancel_status(message.chat_id,message.id):
                 task.cancel = True
                 await task.set_inactive()
-                await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
+                await message.edit("`{}` - Canceled By user.".format(message.text),buttons=None)
             else:
                 await message.edit(buttons=None)
             updb.deregister_upload(message.chat_id,message.id)
 
     else:
-        logging.info("Uplaoding the file:- {}".format(path))
+        logging.info("Uploading the file:- {}".format(path))
         if os.path.getsize(path) > get_val("TG_UP_LIMIT"):
             # the splitted file will be considered as a single upload ;)
             
@@ -108,11 +108,11 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 ftype = "unknown"
             
             if ftype == "video":    
-                todel = await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....\n```Using Algo FFMPEG SPLIT```") 
+                todel = await message.reply("⚠ **FILE LAGRE THEN THRESHOLD, SPLITTING NOW. **\n⌛ **Processing.....** ```Using Algo FFMPEG SPLIT```") 
                 split_dir = await vids_helpers.split_file(path,get_val("TG_UP_LIMIT"))
                 await todel.delete()
             else:
-                todel = await message.reply("FILE LAGRE THEN THRESHOLD SPLITTING NOW.Processing.....\n```Using Algo PARTED ZIP SPLIT```") 
+                todel = await message.reply("⚠ **FILE LAGRE THEN THRESHOLD, SPLITTING NOW. **\n⌛ **Processing.....** ```Using Algo FFMPEG SPLIT```") 
                 split_dir = await zip7_utils.split_in_zip(path,get_val("TG_UP_LIMIT"))
                 await todel.delete()
             
@@ -164,7 +164,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 if updb.get_cancel_status(message.chat_id,message.id):
                     task.cancel = True
                     await task.set_inactive()
-                    await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
+                    await message.edit("`{}` - Canceled By user.".format(message.text),buttons=None)
                 else:
                     await message.edit(buttons=None)
                 updb.deregister_upload(message.chat_id,message.id)
@@ -207,7 +207,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 if updb.get_cancel_status(message.chat_id,message.id):
                     task.cancel = True
                     await task.set_inactive()
-                    await message.edit("{} - Cancled By user.".format(message.text),buttons=None)
+                    await message.edit("`{}` - Canceled By user.".format(message.text),buttons=None)
                 else:
                     await message.edit(buttons=None)
                 updb.deregister_upload(message.chat_id,message.id)
@@ -237,6 +237,10 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     
     #todo improve this uploading ✔️
     file_name = os.path.basename(path)
+    caption_str = ""
+    caption_str += "<code>"
+    caption_str += file_name
+    caption_str += "</code>"
     metadata = extractMetadata(createParser(path))
     ometa = metadata
     
@@ -258,7 +262,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     if not force_edit:        
         data = "upcancel {} {} {}".format(message.chat_id,message.id,user_msg.sender_id)
         buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
-        msg = await message.reply("Uploading {}".format(file_name),buttons=buts)
+        msg = await message.reply("📤 **Uploading:** `{}`".format(file_name),buttons=buts)
 
     else:
         msg = message
@@ -266,7 +270,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     uploader_id = None
     if queue is not None:
         torlog.info(f"Waiting for the worker here for {file_name}")
-        msg = await msg.edit(f"{msg.text} - Waiting for a uploaders to get free")
+        msg = await msg.edit(f"{msg.text}\n⌛ Waiting for a uploaders to get free... ")
         uploader_id = await queue.get()
         torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
 
@@ -301,7 +305,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
         if message.media and force_edit:
             out_msg = await msg.edit(
                 file=path,
-                text=file_name
+                text=caption_str
             )
         else:
             
@@ -319,8 +323,9 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                     out_msg = await msg.client.send_file(
                         msg.to_id,
                         file=path,
+                        parse_mode="html",
                         thumb=thumb,
-                        caption=file_name,
+                        caption=caption_str,
                         reply_to=message.id,
                         supports_streaming=True,
                         progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
@@ -332,7 +337,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                     out_msg = await msg.client.send_file(
                         msg.to_id,
                         file=path,
-                        caption=file_name,
+                        parse_mode="html",
+                        caption=caption_str,
                         thumb=thumb,
                         reply_to=message.id,
                         force_document=True,
@@ -347,7 +353,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                 out_msg = await msg.client.send_file(
                     msg.to_id,
                     file=path,
-                    caption=file_name,
+                    parse_mode="html",
+                    caption=caption_str,
                     reply_to=message.id,
                     progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
                     attributes=attrs
@@ -358,7 +365,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                     out_msg = await msg.client.send_file(
                         msg.to_id,
                         file=path,
-                        caption=file_name,
+                        parse_mode="html",
+                        caption=caption_str,
                         reply_to=message.id,
                         force_document=True,
                         progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
@@ -370,7 +378,8 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                     out_msg = await msg.client.send_file(
                         msg.to_id,
                         file=path,
-                        caption=file_name,
+                        parse_mode="html",
+                        caption=caption_str,
                         reply_to=message.id,
                         progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,database),
                         attributes=attrs,
@@ -378,7 +387,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
                     )
     except Exception as e:
         if str(e).find("cancel") != -1:
-            torlog.info("cancled an upload lol")
+            torlog.info("Canceled an upload lol")
             await msg.edit(f"Failed to upload {e}")
         else:
             torlog.exception("In Tele Upload")
@@ -414,6 +423,10 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
         return None
     
     file_name = os.path.basename(path)
+    caption_str = ""
+    caption_str += "<code>"
+    caption_str += file_name
+    caption_str += "</code>"
 
     if user_msg is None:
         user_msg = await message.get_reply_message()
@@ -459,7 +472,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
             data = "upcancel {} {} {}".format(message.chat.id,message.message_id,user_msg.sender_id)
             markup = InlineKeyboardMarkup([[InlineKeyboardButton("Cancel Upload", callback_data=data.encode("UTF-8"))]])
             message_for_progress_display = await message.reply_text(
-                "starting upload of {}".format(os.path.basename(path)),
+                "📤 **Starting upload of** `{}`".format(os.path.basename(path)),
                 reply_markup=markup
             )
         
@@ -490,7 +503,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                         height=height,
                         duration=duration,
                         supports_streaming=True,
-                        caption=file_name
+                        caption=caption_str
                     )
                     # quote=True,
                 )
@@ -503,13 +516,13 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     width=width,
                     height=height,
                     thumb=thumb,
-                    caption=file_name,
+                    caption=caption_str,
                     supports_streaming=True,
                     disable_notification=True,
                     # reply_to_message_id=message.reply_to_message.message_id,
                     progress=progress_for_pyrogram,
                     progress_args=(
-                        "trying to upload",
+                        "💠 Trying to upload...",
                         message_for_progress_display,
                         start_time,
                         tout,
@@ -546,7 +559,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                         duration=duration,
                         performer=artist,
                         title=title,
-                        caption=file_name
+                        caption=caption_str
                     )
                     # quote=True,
                 )
@@ -558,13 +571,13 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     duration=duration,
                     performer=artist,
                     title=title,
-                    caption=file_name,
+                    caption=caption_str,
                     thumb=thumb,
                     disable_notification=True,
                     # reply_to_message_id=message.reply_to_message.message_id,
                     progress=progress_for_pyrogram,
                     progress_args=(
-                        "trying to upload",
+                        "💠 Trying to upload...",
                         message_for_progress_display,
                         start_time,
                         tout,
@@ -588,7 +601,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                 sent_message = await message.edit_media(
                     media=InputMediaDocument(
                         media=path,
-                        caption=file_name,
+                        caption=caption_str,
                         thumb=thumb,
                         parse_mode="html"
                     )
@@ -603,9 +616,9 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     disable_notification=True,
                     # reply_to_message_id=message.reply_to_message.message_id,
                     progress=progress_for_pyrogram,
-                    caption=file_name,
+                    caption=caption_str,
                     progress_args=(
-                        "trying to upload",
+                        "💠 Trying to upload...",
                         message_for_progress_display,
                         start_time,
                         tout,
@@ -619,7 +632,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                 os.remove(thumb)
     except Exception as e:
         if str(e).find("cancel") != -1:
-            torlog.info("cancled an upload lol")
+            torlog.info("Canceled an upload lol")
             try:
                 await message_for_progress_display.edit(f"Failed to upload {e}")
             except:pass
