@@ -27,6 +27,7 @@ torlog = logging.getLogger(__name__)
 from .status.status import Status
 from .status.menu import create_status_menu, create_status_user_menu
 import signal
+from PIL import Image
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -141,6 +142,16 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         start_handler,
         events.NewMessage(pattern=command_process(get_command("START")))
+    )
+
+    bot.add_event_handler(
+        clear_thumb_cmd,
+        events.NewMessage(pattern=command_process(get_command("CLRTHUMB")))
+    )
+
+    bot.add_event_handler(
+        set_thumb_cmd,
+        events.NewMessage(pattern=command_process(get_command("SETTHUMB")))
     )
 
 
@@ -716,6 +727,41 @@ async def about_me(message):
     )
 
     await message.reply(msg,parse_mode="html")
+
+
+async def set_thumb_cmd(e):
+    thumb_msg = await e.get_reply_message()
+    if thumb_msg.document is not None or thumb_msg.photo is not None:
+        value = await thumb_msg.download_media()
+    else:
+        await e.reply("Reply to a photo or photo as a document.")
+        return
+
+    try:
+        im = Image.open(value)
+        im.convert("RGB").save(value,"JPEG")
+        im = Image.open(value)
+        im.thumbnail((320,320), Image.ANTIALIAS)
+        im.save(value,"JPEG")
+        with open(value,"rb") as fi:
+            data = fi.read()
+            user_db.set_thumbnail(data, e.sender_id)
+        os.remove(value)
+    except Exception:
+        torlog.exception("Set Thumb")
+        await e.reply("Errored in setting thumbnail.")
+        return
+    
+    try:
+        os.remove(value)
+    except:pass
+
+    user_db.set_var("DISABLE_THUMBNAIL",False, str(e.sender_id))
+    await e.reply("Thumbnail set. try using /usettings to get more control. Can be used in private too.")
+
+async def clear_thumb_cmd(e):
+    user_db.set_var("DISABLE_THUMBNAIL",True, str(e.sender_id))
+    await e.reply("Thumbnail disabled. Try using /usettings to get more control. Can be used in private too.")
 
 async def handle_user_settings_(message):
     if not message.sender_id in get_val("ALD_USR"):
