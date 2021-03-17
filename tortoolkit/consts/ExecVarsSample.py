@@ -76,6 +76,9 @@ except:
         # Allow the user settings to be accessed in private
         USETTINGS_IN_PRIVATE = False
 
+        # Torrent max time to collect metadata in seconds
+        TOR_MAX_TOUT = 180
+
         # This is to stop someone from abusing the system by imposing the limit
         # [<GBs of total torrent sapce>, <Number of youtube videos allowed to download>, <Number of youtube playlists allowed to download>]
         USER_CAP_ENABLE = False

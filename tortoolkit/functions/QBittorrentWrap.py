@@ -184,7 +184,9 @@ async def update_progress(client,message,torrent,task,except_retry=0,sleepsec=No
         sleepsec = get_val("EDIT_SLEEP_SECS")
     #switch to iteration from recursion as python dosent have tailing optimization :O
     #RecursionError: maximum recursion depth exceeded
-    
+    is_meta = False
+    meta_time = time.time()
+
     while True:
         tor_info = client.torrents_info(torrent_hashes=torrent.hash)
         #update cancellation
@@ -204,11 +206,27 @@ async def update_progress(client,message,torrent,task,except_retry=0,sleepsec=No
             await task.refresh_info(tor_info)
             await task.update_message()
 
+            if  tor_info.state == "metaDL":
+                is_meta = True
+            else:
+                meta_time = time.time()
+                is_meta = False
+
+            if (is_meta and (time.time() - meta_time) > get_val("TOR_MAX_TOUT")):
+                
+                await message.edit("Torrent <code>{}</code> is DEAD. [Metadata Failed]".format(tor_info.name),buttons=None,parse_mode="html")
+                torlog.error("An torrent has no seeds clearing that torrent now. Torrent:- {} - {}".format(tor_info.hash,tor_info.name))
+                client.torrents_delete(torrent_hashes=tor_info.hash,delete_files=True)
+                await task.set_inactive("Torrent <code>{}</code> is DEAD. [Metadata Failed]".format(tor_info.name))
+                
+                return False
+
             try:
                 if tor_info.state == "error":
-                    await message.edit("Torrent <code>{}</code> errored out.".format(tor_info.name),buttons=message.reply_markup,parse_mode="html")
+
+                    await message.edit("Torrent <code>{}</code> errored out.".format(tor_info.name),buttons=None,parse_mode="html")
                     torlog.error("An torrent has error clearing that torrent now. Torrent:- {} - {}".format(tor_info.hash,tor_info.name))
-                    
+                    client.torrents_delete(torrent_hashes=tor_info.hash,delete_files=True)
                     await task.set_inactive("Torrent <code>{}</code> errored out.".format(tor_info.name))
                     
                     return False
@@ -229,6 +247,7 @@ async def update_progress(client,message,torrent,task,except_retry=0,sleepsec=No
                     except:
                         await message.edit("Download path location failed", buttons=None)
                         await task.set_inactive("Download path location failed")
+                        client.torrents_delete(torrent_hashes=tor_info.hash,delete_files=True)
                         return None
 
                     await task.set_path(savepath)
