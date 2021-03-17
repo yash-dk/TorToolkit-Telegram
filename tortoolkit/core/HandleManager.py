@@ -727,6 +727,10 @@ async def about_me(message):
 
 async def set_thumb_cmd(e):
     thumb_msg = await e.get_reply_message()
+    if thumb_msg is None:
+        await e.reply("Reply to a photo or photo as a document.")
+        return
+    
     if thumb_msg.document is not None or thumb_msg.photo is not None:
         value = await thumb_msg.download_media()
     else:
