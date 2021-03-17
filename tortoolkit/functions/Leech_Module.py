@@ -13,6 +13,7 @@ from .zip7_utils import add_to_zip, extract_archive
 from ..core.getVars import get_val
 from ..core.status.status import ARTask
 from ..core.status.upload import TGUploadTask
+from ..functions.Human_Format import human_readable_bytes
 
 #logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("telethon").setLevel(logging.WARNING)
@@ -123,7 +124,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         torlog.exception("Exception in torrent file")
                     
                     await ul_task.set_inactive()
-                    await print_files(omess,rdict,dl_task.hash)
+                    await print_files(omess,rdict,dl_task.hash, path = dl_path)
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(dl_task.hash)
                 else:
@@ -131,6 +132,9 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(dl_task.hash)
+            
+            else:
+                await errored_message(omess, rmess)
 
             await clear_stuff(path)
             await clear_stuff(dl_path)
@@ -184,7 +188,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         torlog.exception("Exception in magnet")
                     
                     await ul_task.set_inactive()
-                    await print_files(omess,rdict,dl_task.hash)
+                    await print_files(omess,rdict,dl_task.hash, path = dl_path)
                     
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(dl_task.hash)
@@ -194,6 +198,8 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(dl_task.hash)
+            else:
+                await errored_message(omess, rmess)
             
             await clear_stuff(dl_path)
 
@@ -250,7 +256,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         torlog.exception("Exception in torrent link")
                     
                     await ul_task.set_inactive()
-                    await print_files(omess,rdict,dl_task.hash)
+                    await print_files(omess,rdict,dl_task.hash, path = dl_path)
                     
                     torlog.info("Here are the fiels uploaded {}".format(rdict))
                     await QBittorrentWrap.delete_this(dl_task.hash)
@@ -259,6 +265,8 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     if res is None:
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
                     await QBittorrentWrap.delete_this(dl_task.hash)
+            else:
+                await errored_message(omess, rmess)
 
             await clear_stuff(path)
             await clear_stuff(dl_path)
@@ -321,7 +329,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                         torlog.exception("Exception in Direct links.")
                     
                     await ul_task.set_inactive()
-                    await print_files(omess,rdict)
+                    await print_files(omess,rdict, path = path)
                     torlog.info("Here are the files to be uploaded {}".format(rdict))
                 else:
                     res = await rclone_driver(path,rmsg, omess, dl_task)
@@ -330,6 +338,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             elif stat is False:
                 reason = await dl_task.get_error()
                 await rmsg.edit("Failed to download this file.\n"+str(reason))
+                await errored_message(omess, rmsg)
             
             await clear_stuff(path)    
     return None
@@ -429,10 +438,29 @@ async def handle_ext_zip(path, rmess, omess):
             return ext_path
     
 
+async def errored_message(e, reason):
+    msg = f"<a href='tg://user?id={e.sender_id}'>Done</a>\nYour Download Failed."
+    if reason is not None:
+        await reason.reply(msg, parse_mode="html")
+    else:
+        await e.reply(msg, parse_mode="html")
 
-
-async def print_files(e,files,thash=None):
+async def print_files(e,files,thash=None, path = None):
     msg = f"<a href='tg://user?id={e.sender_id}'>Done</a>\n#uploads\n"
+
+    if path is not None:
+        size = 0
+        try:
+            if os.path.isdir(path):
+                size = get_size_fl(path)
+            else:
+                size = os.path.getsize(path)
+        except:
+            torlog.warning("Size Calculation Failed.")
+        
+        size = human_readable_bytes(size)
+        msg += f"Uploaded Size:- {str(size)}\n\n"
+    
     if len(files) == 0:
         return
     
@@ -529,3 +557,14 @@ async def cancel_torrent(hashid, is_aria = False):
         await QBittorrentWrap.deregister_torrent(hashid)
     else:
         await ariatools.remove_dl(hashid)
+
+def get_size_fl(start_path = '.'):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(start_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            # skip if it is symbolic link
+            if not os.path.islink(fp):
+                total_size += os.path.getsize(fp)
+
+    return total_size
