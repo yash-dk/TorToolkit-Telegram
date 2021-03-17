@@ -520,6 +520,8 @@ async def handle_exec_message_f(e):
             await message.delete()
         else:
             await message.reply(OUTPUT)
+    else:
+        await message.reply("Only for owner")
 
 async def handle_pincode_cb(e):
     data = e.data.decode("UTF-8")
@@ -554,6 +556,8 @@ async def upload_document_f(message):
                 upload_db
             )
             #torlog.info(recvd_response)
+    else:
+        await message.reply("Only for owner")
     await imsegd.delete()
 
 async def get_logs_f(e):
