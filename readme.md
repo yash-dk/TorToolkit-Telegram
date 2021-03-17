@@ -164,6 +164,10 @@ Steps:-
   - Default Value :- `dbname=tortk user=postgres password=your-pass host=127.0.0.1 port=5432`
   - Use :- Used to connect to DB. DB is used for many stuff in this bot. 
 
+- `OWNER_ID` = 
+  - Values :- Owner's ID
+  - Default Value :- `0`
+  - Use :- Used to restrict use of certain stuff to owner only. 
 ### ***Optional Vars***
 - `GD_INDEX_URL`
   - Values :- Base URL of the index that you are using. (Now that you should include the directory also in URL if you have set `RCLONE_BASE_DIR`). (Dosen't matter if a slash is at the end or not)
