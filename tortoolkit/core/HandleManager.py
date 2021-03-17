@@ -537,7 +537,7 @@ async def handle_pincode_cb(e):
 
         
     else:
-        await e.answer("Its not you torrent.",alert=True)
+        await e.answer("Its not your😡 torrent.",alert=True)
 
 async def upload_document_f(message):
     if get_val("REST11"):
