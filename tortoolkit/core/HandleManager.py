@@ -481,7 +481,7 @@ async def handle_exec_message_f(e):
         return
     message = e
     client = e.client
-    if await is_admin(client, message.sender_id, message.chat_id):
+    if await is_admin(client, message.sender_id, message.chat_id, force_owner=True):
         PROCESS_RUN_TIME = 100
         cmd = message.text.split(" ", maxsplit=1)[1]
 
@@ -544,7 +544,7 @@ async def upload_document_f(message):
         "processing ..."
     )
     imsegd = await message.client.get_messages(message.chat_id,ids=imsegd.id)
-    if await is_admin(message.client, message.sender_id, message.chat_id):
+    if await is_admin(message.client, message.sender_id, message.chat_id, force_owner=True):
         if " " in message.text:
             recvd_command, local_file_name = message.text.split(" ", 1)
             recvd_response = await upload_a_file(
@@ -557,7 +557,7 @@ async def upload_document_f(message):
     await imsegd.delete()
 
 async def get_logs_f(e):
-    if await is_admin(e.client,e.sender_id,e.chat_id):
+    if await is_admin(e.client,e.sender_id,e.chat_id, force_owner=True):
         e.text += " torlog.txt"
         await upload_document_f(e)
     else:

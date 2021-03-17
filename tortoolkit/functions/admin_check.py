@@ -9,7 +9,13 @@ torlog = logging.getLogger(__name__)
 
 #todo add alpha admin if needed
 
-async def is_admin(client,user_id,chat_id):
+async def is_admin(client,user_id,chat_id, force_owner=False):
+    if force_owner:
+        if user_id == get_val("OWNER_ID"):
+            return True
+        else:
+            return False
+        
     try:
         res = await client(GetParticipantRequest(
             channel=chat_id,
