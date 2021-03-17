@@ -16,3 +16,5 @@ class Commands:
     INSTADL = "instadl"
     START = "start"
     USTATUS = "ustatus"
+    SETTHUMB = "setthumb"
+    CLRTHUMB = "clearthumb"
