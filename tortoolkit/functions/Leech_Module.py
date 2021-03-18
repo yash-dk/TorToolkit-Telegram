@@ -5,6 +5,9 @@ import re,os,shutil,time, aiohttp
 from telethon.tl import types
 import logging, os, shutil
 import asyncio as aio
+import requests
+import urllib.parse
+from bs4 import BeautifulSoup
 from . import QBittorrentWrap
 from . import ariatools
 from .tele_upload import upload_handel
@@ -272,12 +275,56 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             await clear_stuff(dl_path)
             return dl_path
 
-        else:
-            # url = get_entities(msg)
+        elif msg.entities is not None:
+            urls = get_entities(msg)
             # currently discontinuing the depending on the entities as its eratic
             url = None
-            torlog.info("Downloading Urls")
-            rmsg = await omess.reply("Processing the link.")
+            rmsg = await omess.reply("`Scanning...`")
+            await aio.sleep(1)
+
+            if 'zippyshare.com' in urls:
+                await rmsg.edit("`Zippyshare Link Found`")
+                await aio.sleep(2)
+                try:
+                    link = re.findall(r'\bhttps?://.*zippyshare\.com\S+', urls)[0]
+                except:
+                    await rmsg.edit("`No ZippyShare link found`")
+                session = requests.Session()
+                base_url = re.search('http.+.com', link).group()
+                response = session.get(link)
+                page_soup = BeautifulSoup(response.content, "lxml")
+                scripts = page_soup.find_all("script", {"type": "text/javascript"})
+                for script in scripts:
+                    if "getElementById('dlbutton')" in script.text:
+                        url_raw = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
+                                            script.text).group('url')
+                        math = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
+                           script.text).group('math')
+                        url = url_raw.replace(math, '"' + str(eval(math)) + '"')
+                        break
+                url = base_url + eval(url)
+                name = urllib.parse.unquote(url.split('/')[-1])
+                #torlog.info(dl_url)
+                #return url
+
+            elif 'mediafire.com' in urls:
+                await rmsg.edit("`Mediafire Link Found`")
+                await aio.sleep(2)
+                try:
+                    link = re.findall(r'\bhttps?://.*mediafire\.com\S+', urls)[0]
+                except:
+                    await omess.reply("`No Mediafire link found`")
+                page = BeautifulSoup(requests.get(link).content, 'lxml')
+                info = page.find('a', {'aria-label': 'Download file'})
+                url = info.get('href')
+                #torlog.info(dl_url)
+                #return url
+
+            else:
+                #return url
+                url = None
+                await rmsg.edit("`Processing Link...`")
+                await aio.sleep(1)
 
             re_name = None
             try:
