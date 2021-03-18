@@ -282,32 +282,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             rmsg = await omess.reply("`Scanning...`")
             await aio.sleep(1)
 
-            if 'zippyshare.com' in urls:
-                await rmsg.edit("`Zippyshare Link Found`")
-                await aio.sleep(2)
-                try:
-                    link = re.findall(r'\bhttps?://.*zippyshare\.com\S+', urls)[0]
-                except:
-                    await rmsg.edit("`No ZippyShare link found`")
-                session = requests.Session()
-                base_url = re.search('http.+.com', link).group()
-                response = session.get(link)
-                page_soup = BeautifulSoup(response.content, "lxml")
-                scripts = page_soup.find_all("script", {"type": "text/javascript"})
-                for script in scripts:
-                    if "getElementById('dlbutton')" in script.text:
-                        url_raw = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
-                                            script.text).group('url')
-                        math = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
-                           script.text).group('math')
-                        url = url_raw.replace(math, '"' + str(eval(math)) + '"')
-                        break
-                url = base_url + eval(url)
-                name = urllib.parse.unquote(url.split('/')[-1])
-                #torlog.info(dl_url)
-                #return url
-
-            elif 'mediafire.com' in urls:
+            if 'mediafire.com' in urls:
                 await rmsg.edit("`Mediafire Link Found`")
                 await aio.sleep(2)
                 try:
