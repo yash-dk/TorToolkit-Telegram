@@ -305,7 +305,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 url = base_url + eval(url)
                 name = urllib.parse.unquote(url.split('/')[-1])
                 #torlog.info(dl_url)
- #               return url
+                #return url
 
             elif 'mediafire.com' in urls:
                 await rmsg.edit("`Mediafire Link Found`")
@@ -318,10 +318,10 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 info = page.find('a', {'aria-label': 'Download file'})
                 url = info.get('href')
                 #torlog.info(dl_url)
-#                return url
+                #return url
 
             else:
-#                return url
+                #return url
                 url = None
                 await rmsg.edit("`Processing Link...`")
                 await aio.sleep(1)
