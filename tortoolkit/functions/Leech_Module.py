@@ -7,6 +7,7 @@ import logging, os, shutil
 import asyncio as aio
 import requests
 import urllib.parse
+import math
 from bs4 import BeautifulSoup
 from . import QBittorrentWrap
 from . import ariatools
@@ -276,6 +277,12 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             return dl_path
 
         elif msg.entities is not None:
+            #Zippyshare fix for ttk by @yourtulloh
+            #based on https://github.com/UsergeTeam/Userge-Plugins/blob/master/plugins/zippyshare.py
+            tulloh = r'https://www(\d{1,3}).zippyshare.com/v/(\w{8})/file.html'
+            regex_result = (
+                r'var a = (\d{6});\s+var b = (\d{6});\s+document\.getElementById'
+                r'\(\'dlbutton\'\).omg = "f";\s+if \(document.getElementById\(\'
             urls = get_entities(msg)
             # currently discontinuing the depending on the entities as its eratic
             url = None
