@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-import psycopg2
+import psycopg2, logging
+
+torlog = logging.getLogger(__name__)
 
 class DataBaseHandle:
+    _active_connections = []
     def __init__(self,dburl=None):
         """Load the DB URL if available
         """
@@ -16,7 +19,12 @@ class DataBaseHandle:
         if self._block:
             return
         
-        self._conn = psycopg2.connect(self._dburl)
+        if self._active_connections:
+            self._conn = self._active_connections[0]
+        else:
+            torlog.debug("Established Connection")
+            self._conn = psycopg2.connect(self._dburl)
+            self._active_connections.append(self._conn)
 
     def scur(self):
         # start cursor
