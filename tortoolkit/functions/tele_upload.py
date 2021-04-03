@@ -522,7 +522,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     # reply_to_message_id=message.reply_to_message.message_id,
                     progress=progress_for_pyrogram,
                     progress_args=(
-                        "💠 Trying to upload...",
+                        f"💠 Uploading {os.path.basename(path)}",
                         message_for_progress_display,
                         start_time,
                         tout,
@@ -577,7 +577,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     # reply_to_message_id=message.reply_to_message.message_id,
                     progress=progress_for_pyrogram,
                     progress_args=(
-                        "💠 Trying to upload...",
+                        f"💠 Uploading {os.path.basename(path)}",
                         message_for_progress_display,
                         start_time,
                         tout,
@@ -618,7 +618,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     progress=progress_for_pyrogram,
                     caption=caption_str,
                     progress_args=(
-                        "💠 Trying to upload...",
+                        f"💠 Uploading {os.path.basename(path)}",
                         message_for_progress_display,
                         start_time,
                         tout,
