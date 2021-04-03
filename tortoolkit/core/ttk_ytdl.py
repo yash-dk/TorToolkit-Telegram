@@ -95,15 +95,15 @@ async def get_max_thumb(data: dict, suid: str) -> str:
         torlog.exception("Error in thumb gen")
         return None
 
-async def create_quality_menu(url: str,message: MessageLike, message1: MessageLike,jsons: Optional[str] = None, suid: Optional[str] = None):
+async def create_quality_menu(url: str,message: MessageLike, message1: MessageLike, dest: str,jsons: Optional[str] = None, suid: Optional[str] = None):
     if jsons is None:
         data, err = await get_yt_link_details(url)
         suid = str(time.time()).replace(".","")
     else:
         data = jsons
 
-    with open("test.txt","w") as f:
-        f.write(json.dumps(data))
+    #with open("test.txt","w") as f:
+    #    f.write(json.dumps(data))
 
     if data is None:
         await message.edit("Errored failed parsing.")
@@ -133,12 +133,12 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
             # add human bytes here
             if i == "tiny":
                 text = f"tiny [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
-                cdata = f"ytdlsmenu|{i}|{message1.sender_id}|{suid}" # add user id
+                cdata = f"ytdlsmenu|{i}|{message1.sender_id}|{suid}|{dest}" # add user id
             else:
                 text = f"{i} [{human_readable_bytes(unique_formats[i][0])} - {human_readable_bytes(unique_formats[i][1])}] ➡️"
-                cdata = f"ytdlsmenu|{i}|{message1.sender_id}|{suid}" # add user id
+                cdata = f"ytdlsmenu|{i}|{message1.sender_id}|{suid}|{dest}" # add user id
             buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
-        buttons.append([KeyboardButtonCallback("Audios ➡️",f"ytdlsmenu|audios|{message1.sender_id}|{suid}")])
+        buttons.append([KeyboardButtonCallback("Audios ➡️",f"ytdlsmenu|audios|{message1.sender_id}|{suid}|{dest}")])
         await message.edit("Choose a quality/option available below.",buttons=buttons)
         
         if jsons is None:
@@ -161,15 +161,27 @@ async def handle_ytdl_command(e: MessageLike):
         await e.reply("Reply to a youtube video link.")
         return
     msg = await e.get_reply_message()
-    msg1 = await e.reply("Processing the given link.....")
+
+    tsp = time.time()
+    buts = [[KeyboardButtonCallback("To Telegram",data=f"ytdlselect tg {tsp}")]]
+    if await get_config() is not None:
+        buts.append(
+            [KeyboardButtonCallback("To Drive",data=f"ytdlselect drive {tsp}")]
+        )
+
+    msg1 = await e.reply("Processing the given link......\nChoose destination. Default destination will be chosen in {get_val('DEFAULT_TIMEOUT')}.", buttons=buts)
+    
+    choice = await get_ytdl_choice(e,tsp)
+
     if msg.text.find("http") != -1:
-        res, err = await create_quality_menu(msg.text.strip(),msg1,msg)
+        res, err = await create_quality_menu(msg.text.strip(),msg1,msg, choice)
         if res is None:
             await msg1.edit(f"<code>Invalid link provided.\n{err}</code>",parse_mode="html")
     else:
         await e.reply("Invalid link provided.")
 
 async def handle_ytdl_callbacks(e: MessageLike):
+    # ytdlsmenu | format | sender_id | suid | dest
     data = e.data.decode("UTF-8")
     data = data.split("|")
     
@@ -186,7 +198,7 @@ async def handle_ytdl_callbacks(e: MessageLike):
                 if data[1] == "audios":
                     for i in ["64K","128K","320K"]:
                         text = f"{i} [MP3]"
-                        cdata = f"ytdldfile|{i}|{e.sender_id}|{data[3]}"
+                        cdata = f"ytdldfile|{i}|{e.sender_id}|{data[3]}|{data[4]}"
                         buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
                 else:
                     j = 0
@@ -206,12 +218,12 @@ async def handle_ytdl_callbacks(e: MessageLike):
                             continue
                             
                         text = f"{height} [{i.get('ext')}] [{human_readable_bytes(i.get('filesize'))}] {str(i.get('vcodec'))}"
-                        cdata = f"ytdldfile|{format_id}|{e.sender_id}|{data[3]}"
+                        cdata = f"ytdldfile|{format_id}|{e.sender_id}|{data[3]}|{data[4]}"
                         
                         buttons.append([KeyboardButtonCallback(text,cdata.encode("UTF-8"))])
                         j+=1
                 
-                buttons.append([KeyboardButtonCallback("Go Back 😒",f"ytdlmmenu|{data[2]}|{data[3]}")])
+                buttons.append([KeyboardButtonCallback("Go Back 😒",f"ytdlmmenu|{data[2]}|{data[3]}|{data[4]}")])
                 await e.edit(f"Files for quality {data[1]}, at the end it is the Video Codec. Mostly prefer the last one with you desired extension if you want streamable video. Try rest if you want.",buttons=buttons)
                 
 
@@ -234,7 +246,7 @@ async def handle_ytdl_callbacks(e: MessageLike):
             await e.delete()
 
 async def handle_ytdl_file_download(e: MessageLike):
-    # ytdldfile | format_id | sender_id | suid | is_audio
+    # ytdldfile | format_id | sender_id | suid | dest
 
     data = e.data.decode("UTF-8")
     data = data.split("|")
@@ -293,9 +305,14 @@ async def handle_ytdl_file_download(e: MessageLike):
                 # TODO Fix the original thumbnail
                 # rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),thumb_path=thumb_path)
                 
-                rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(), user_msg=e)
-                await print_files(e,rdict)
-                
+                if data[4] == "tg":
+                    rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(), user_msg=e)
+                    await print_files(e,rdict)
+                else:
+                    res = await rclone_driver(op_dir,await e.get_message(), e, None)
+                    if res is None:
+                        torlog.error("Error in YTDL Rclone upload.")
+
                 shutil.rmtree(op_dir)
                 os.remove(thumb_path)
                 os.remove(path)
@@ -313,8 +330,14 @@ async def handle_ytdl_file_download(e: MessageLike):
                 else:
                     await omess1.reply(emsg)
                 
-                rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(), user_msg=e)
-                await print_files(e,rdict)
+                if data[4] == "tg":
+                    rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(), user_msg=e)
+                    await print_files(e,rdict)
+                else:
+                    res = await rclone_driver(op_dir,await e.get_message(), e, None)
+                    if res is None:
+                        torlog.error("Error in YTDL Rclone upload.")
+                
 
                 try:
                     shutil.rmtree(op_dir)
@@ -343,7 +366,7 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
             [KeyboardButtonCallback("To Drive",data=f"ytdlselect drive {tsp}")]
         )
 
-    msg = await e.reply("Processing your Youtube Playlist download request",buttons=buts)
+    msg = await e.reply(f"Processing your Youtube Playlist download request.\nChoose destination. Default destination will be chosen in {get_val('DEFAULT_TIMEOUT')}.",buttons=buts)
 
     choice = await get_ytdl_choice(e,tsp) #blocking call
 
@@ -451,7 +474,7 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
                 else:
                     res = await rclone_driver(opdir,await e.get_message(), e, None)
                     if res is None:
-                        print("faild bro")
+                        torlog.error("Error in YTDL Rclone upload.")
         shutil.rmtree(opdir)
         os.remove(path)
     else:
