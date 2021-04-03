@@ -169,7 +169,7 @@ async def handle_ytdl_command(e: MessageLike):
             [KeyboardButtonCallback("To Drive",data=f"ytdlselect drive {tsp}")]
         )
 
-    msg1 = await e.reply("Processing the given link......\nChoose destination. Default destination will be chosen in {get_val('DEFAULT_TIMEOUT')}.", buttons=buts)
+    msg1 = await e.reply(f"Processing the given link......\nChoose destination. Default destination will be chosen in {get_val('DEFAULT_TIMEOUT')}.", buttons=buts)
     
     choice = await get_ytdl_choice(e,tsp)
 
