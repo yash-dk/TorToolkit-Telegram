@@ -454,9 +454,15 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
         if data[1].endswith("k"):
             audcmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
             out, err = await cli_call(audcmd)
-            if err:
+
+            ofiles = len(os.listdir(opdir))
+
+            if err and ofiles < 2 :
                 await e.reply(f"Failed to download the audios <code>{err}</code>",parse_mode="html")
             else:
+                if err:
+                    await e.reply("Some videos from this have errored in download. Uploading which are successfull.")
+                
                 if data[4] == "tg":
                     rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
                     await print_files(e,rdict)
@@ -471,9 +477,15 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
             else:
                 vidcmd = f"youtube-dl --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4,height<={data[1]}]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
             out, err = await cli_call(vidcmd)
-            if err:
+            
+            ofiles = len(os.listdir(opdir))
+
+            if err and ofiles < 2 :
                 await e.reply(f"Failed to download the videos <code>{err}</code>",parse_mode="html")
             else:
+                if err:
+                    await e.reply("Some videos from this have errored in download. Uploading which are successfull.")
+                
                 if data[4] == "tg":
                     rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
                     await print_files(e,rdict)
