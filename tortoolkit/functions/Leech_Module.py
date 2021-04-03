@@ -59,8 +59,7 @@ def get_entities(msg):
 async def check_link(msg,rclone=False,is_zip=False, extract=False):
     # here moslty rmess = Reply message which the bot uses to update
     # omess = original message from the sender user 
-    urls = None
-    print("here2")
+    
     omess = msg
     msg = await msg.get_reply_message()
 
@@ -560,7 +559,7 @@ async def cancel_torrent(hashid, is_aria = False):
 
 def get_size_fl(start_path = '.'):
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path):
+    for dirpath, _, filenames in os.walk(start_path):
         for f in filenames:
             fp = os.path.join(dirpath, f)
             # skip if it is symbolic link

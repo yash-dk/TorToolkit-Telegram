@@ -491,7 +491,6 @@ async def handle_exec_message_f(e):
         if message.is_reply:
             reply_to_id = message.reply_to_msg_id
 
-        start_time = time.time() + PROCESS_RUN_TIME
         process = await aio.create_subprocess_shell(
             cmd,
             stdout=aio.subprocess.PIPE,
