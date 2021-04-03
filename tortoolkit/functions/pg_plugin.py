@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-import psycopg2, logging
+import psycopg2, logging, time
 
 torlog = logging.getLogger(__name__)
 
@@ -29,10 +29,36 @@ class DataBaseHandle:
             self._connection_users.append(1)
             self._active_connections.append(self._conn)
 
-    def scur(self):
+    def scur(self, dictcur=False):
         # start cursor
-        cur = self._conn.cursor()
+        cur = None
+        for i in range(0,5):
+            try:
+                if dictcur:
+                    cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                else:
+                    cur = self._conn.cursor()
+                
+                break
+            except psycopg2.InterfaceError:
+                torlog.info(f"Attempting to Re-establish the connection to server {i} times.")
+                self.re_establish()
+
+        
         return cur
+
+    def re_establish(self):
+        try:
+            if self._active_connections[0].closed != 0:
+                torlog.info("Re-establish Success.")
+                self._conn = psycopg2.connect(self._dburl)
+                self._active_connections[0] = self._conn
+            else:
+                torlog.info("Re-establish Success Cache.")
+                self._conn = self._active_connections[0]
+        except:
+            time.sleep(1) # Blocking call ... this stage is panic.
+
 
     def ccur(self,cursor):
         if cursor is not None:

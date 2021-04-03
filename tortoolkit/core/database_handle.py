@@ -28,7 +28,7 @@ class TorToolkitDB(DataBaseHandle):
             date_changed TIMESTAMP NOT NULL
         )"""
 
-        cur = self._conn.cursor()
+        cur = self.scur()
         try:
             # Sometimes multiple instance try to creat which may cause this error
             cur.execute(settings_schema)
@@ -36,7 +36,7 @@ class TorToolkitDB(DataBaseHandle):
             pass
         
         self._conn.commit()
-        cur.close()
+        self.ccur(cur)
 
     def set_variable(self,var_name,var_value,update_blob=False,blob_val=None):
         #todo implement blob - done
@@ -123,7 +123,7 @@ class TtkUpload(DataBaseHandle):
             is_batch BOOLEAN DEFAULT false
         )"""
 
-        cur = self._conn.cursor()
+        cur = self.scur()
         
         try:
             # Sometimes multiple instance try to creat which may cause this error
@@ -132,7 +132,7 @@ class TtkUpload(DataBaseHandle):
             pass
 
         self._conn.commit()
-        cur.close()
+        self.ccur(cur)
         
 
     def register_upload(self,chat_id,mes_id,is_batch=False):
@@ -318,7 +318,7 @@ class UserDB(DataBaseHandle):
         if user is not None:
             return user.get(var)
         else:
-            cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cur = self.scur(dictcur=True)
             
             cur.execute(sql, (user_id,))
             if cur.rowcount > 0:
@@ -337,7 +337,7 @@ class UserDB(DataBaseHandle):
         user_id = str(user_id)
         sql = "SELECT * FROM ttk_users WHERE user_id=%s"
         # search the cache
-        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur = self.scur(dictcur=True)
 
         user = self.shared_users.get(user_id)
         if user is not None:
@@ -369,7 +369,7 @@ class UserDB(DataBaseHandle):
     def get_rclone(self, user_id):
         user_id = str(user_id)
         sql = "SELECT * FROM ttk_users WHERE user_id=%s"
-        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur = self.scur(dictcur=True)
 
         cur.execute(sql, (user_id,))
         
@@ -400,7 +400,7 @@ class UserDB(DataBaseHandle):
     def get_thumbnail(self, user_id):
         user_id = str(user_id)
         sql = "SELECT * FROM ttk_users WHERE user_id=%s"
-        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur = self.scur(dictcur=True)
 
         cur.execute(sql, (user_id,))
         
@@ -431,7 +431,7 @@ class UserDB(DataBaseHandle):
         user_id = str(user_id)
 
         sql = "SELECT * FROM ttk_users WHERE user_id=%s"
-        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur = self.scur(dictcur=True)
 
         cur.execute(sql, (user_id,))
         if cur.rowcount > 0:
@@ -449,7 +449,7 @@ class UserDB(DataBaseHandle):
         user_id = str(user_id)
 
         sql = "SELECT * FROM ttk_users WHERE user_id=%s"
-        cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur = self.scur(dictcur=True)
 
         cur.execute(sql, (user_id,))
         if cur.rowcount > 0:
