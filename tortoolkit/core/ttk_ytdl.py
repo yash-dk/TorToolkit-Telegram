@@ -2,13 +2,16 @@
 # (c) YashDK [yash-dk@github]
 
 import asyncio,shlex,logging,time,os,aiohttp,shutil
-import json
+import json, time, asyncio
 from telethon.hints import MessageLike
+from telethon import events
 from telethon.tl.types import KeyboardButtonCallback, KeyboardButtonUrl
 from typing import Union,List,Tuple,Dict,Optional
 from ..functions.Human_Format import human_readable_bytes
 from ..functions.tele_upload import upload_handel
 from ..core.getVars import get_val
+from ..functions.rclone_upload import get_config,rclone_driver
+from functools import partial
 from PIL import Image
 
 torlog = logging.getLogger(__name__)
@@ -333,7 +336,16 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
     url = url.text.strip()
     cmd = f"youtube-dl -i --flat-playlist --dump-single-json {url}"
     
-    msg = await e.reply("Processing your Youtube Playlist download request")
+    tsp = time.time()
+    buts = [[KeyboardButtonCallback("To Telegram",data=f"ytdlselect tg {tsp}")]]
+    if await get_config() is not None:
+        buts.append(
+            [KeyboardButtonCallback("To Drive",data=f"ytdlselect drive {tsp}")]
+        )
+
+    msg = await e.reply("Processing your Youtube Playlist download request",buttons=buts)
+
+    choice = await get_ytdl_choice(e,tsp) #blocking call
 
     # cancel the playlist if time exceed 5 mins
     try:
@@ -368,14 +380,14 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         suid = str(time.time()).replace(".","")
 
         for i in ["144","240","360","480","720","1080","1440","2160"]:
-            keybr.append([KeyboardButtonCallback(text=f"{i}p All videos",data=f"ytdlplaylist|{i}|{suid}|{e.sender_id}")])
+            keybr.append([KeyboardButtonCallback(text=f"{i}p All videos",data=f"ytdlplaylist|{i}|{suid}|{e.sender_id}|{choice}")])
 
-        keybr.append([KeyboardButtonCallback(text=f"Best All videos",data=f"ytdlplaylist|best|{suid}|{e.sender_id}")])
+        keybr.append([KeyboardButtonCallback(text=f"Best All videos",data=f"ytdlplaylist|best|{suid}|{e.sender_id}|{choice}")])
         
         
-        keybr.append([KeyboardButtonCallback(text="Best all audio only. [340k]",data=f"ytdlplaylist|320k|{suid}|{e.sender_id}")])
-        keybr.append([KeyboardButtonCallback(text="Medium all audio only. [128k]",data=f"ytdlplaylist|128k|{suid}|{e.sender_id}")])
-        keybr.append([KeyboardButtonCallback(text="Worst all audio only. [64k]",data=f"ytdlplaylist|64k|{suid}|{e.sender_id}")])
+        keybr.append([KeyboardButtonCallback(text="Best all audio only. [340k]",data=f"ytdlplaylist|320k|{suid}|{e.sender_id}|{choice}")])
+        keybr.append([KeyboardButtonCallback(text="Medium all audio only. [128k]",data=f"ytdlplaylist|128k|{suid}|{e.sender_id}|{choice}")])
+        keybr.append([KeyboardButtonCallback(text="Worst all audio only. [64k]",data=f"ytdlplaylist|64k|{suid}|{e.sender_id}|{choice}")])
 
         await msg.edit(f"Found {entlen} videos in the playlist.",buttons=keybr) 
 
@@ -394,7 +406,7 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         torlog.exception("Playlist Parse failed") 
 
 async def handle_ytdl_playlist_down(e: MessageLike) -> None:
-    # ytdlplaylist | quality | suid | sender_id
+    # ytdlplaylist | quality | suid | sender_id | choice(tg/drive)
     
     data = e.data.decode("UTF-8").split("|")
     
@@ -433,8 +445,13 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
             if err:
                 await e.reply(f"Failed to download the videos <code>{err}</code>",parse_mode="html")
             else:
-                rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
-                await print_files(e,rdict)
+                if data[4] == "tg":
+                    rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
+                    await print_files(e,rdict)
+                else:
+                    res = await rclone_driver(opdir,await e.get_message(), e, None)
+                    if res is None:
+                        print("faild bro")
         shutil.rmtree(opdir)
         os.remove(path)
     else:
@@ -512,6 +529,59 @@ async def print_files(e,files):
         except:pass
         await asyncio.sleep(1)
 
+async def get_ytdl_choice(e,timestamp):
+    # abstract for getting the confirm in a context
+
+    lis = [False,None]
+    cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
+    
+    gtyh = ""
+    sam1 = [68, 89, 78, 79]
+    for i in sam1:
+        gtyh += chr(i)
+    if os.environ.get(gtyh,False):
+        os.environ["TIME_STAT"] = str(time.time())
+
+    e.client.add_event_handler(
+        #lambda e: test_callback(e,lis),
+        cbak,
+        events.CallbackQuery(pattern="ytdlselect")
+    )
+
+    start = time.time()
+    defleech = get_val("DEFAULT_TIMEOUT")
+
+    while not lis[0]:
+        if (time.time() - start) >= 60: #TIMEOUT_SEC:
+            
+            if defleech == "leech":
+                return "tg"
+            elif defleech == "rclone":
+                return "drive"
+            else:
+                # just in case something goes wrong
+                return "tg"
+            break
+        await asyncio.sleep(1)
+
+    val = lis[1]
+    
+    e.client.remove_event_handler(cbak)
+
+    return val
+
+async def get_leech_choice_callback(e,o_sender,lis,ts):
+    # handle the confirm callback
+
+    if o_sender != e.sender_id:
+        return
+    data = e.data.decode().split(" ")
+    if data [2] != str(ts):
+        return
+    
+    lis[0] = True
+    
+    lis[1] = data[1]
 #todo
 # Add the YT playlist feature here
 # Add the YT channels feature here 
