@@ -2,7 +2,7 @@
 # (c) YashDK [yash-dk@github]
 
 import asyncio,shlex,logging,time,os,aiohttp,shutil
-import orjson as json
+import json
 from telethon.hints import MessageLike
 from telethon.tl.types import KeyboardButtonCallback, KeyboardButtonUrl
 from typing import Union,List,Tuple,Dict,Optional
@@ -100,7 +100,7 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
         data = jsons
 
     with open("test.txt","w") as f:
-        f.write(json.dumps(data).decode("UTF-8"))
+        f.write(json.dumps(data))
 
     if data is None:
         await message.edit("Errored failed parsing.")
@@ -147,7 +147,7 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
             path = os.path.join(path,f"{suid}.json")
             
             with open(path,"w",encoding="UTF-8") as file:
-                file.write(json.dumps(data).decode("UTF-8"))
+                file.write(json.dumps(data))
 
 
 
@@ -387,7 +387,7 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         path = os.path.join(path,f"{suid}.json")
         
         with open(path,"w",encoding="UTF-8") as file:
-            file.write(json.dumps(pldata).decode("UTF-8"))
+            file.write(json.dumps(pldata))
 
     except:
         await msg.edit("Failed to parse the playlist. Check log if you think its error.")
