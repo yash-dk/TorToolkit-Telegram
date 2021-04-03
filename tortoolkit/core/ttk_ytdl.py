@@ -457,8 +457,14 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
             if err:
                 await e.reply(f"Failed to download the audios <code>{err}</code>",parse_mode="html")
             else:
-                rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
-                await print_files(e,rdict)
+                if data[4] == "tg":
+                    rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
+                    await print_files(e,rdict)
+                else:
+                    res = await rclone_driver(opdir,await e.get_message(), e, None)
+                    if res is None:
+                        torlog.error("Error in YTDL Rclone upload.")
+                
         else:
             if data[1] == "best":
                 vidcmd = f"youtube-dl --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
