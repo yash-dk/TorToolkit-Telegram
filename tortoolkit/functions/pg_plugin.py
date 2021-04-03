@@ -7,6 +7,7 @@ torlog = logging.getLogger(__name__)
 
 class DataBaseHandle:
     _active_connections = []
+    _connection_users = []
     def __init__(self,dburl=None):
         """Load the DB URL if available
         """
@@ -21,9 +22,11 @@ class DataBaseHandle:
         
         if self._active_connections:
             self._conn = self._active_connections[0]
+            self._connection_users.append(1)
         else:
             torlog.debug("Established Connection")
             self._conn = psycopg2.connect(self._dburl)
+            self._connection_users.append(1)
             self._active_connections.append(self._conn)
 
     def scur(self):
@@ -42,4 +45,7 @@ class DataBaseHandle:
         """
         if self._block:
             return
-        self._conn.close()
+        self._connection_users.pop()
+        
+        if not self._connection_users:
+            self._conn.close()
