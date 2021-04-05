@@ -7,6 +7,8 @@ import logging, os, shutil
 import asyncio as aio
 import requests
 import urllib.parse
+import math
+from multiprocessing import Pool
 from bs4 import BeautifulSoup
 from . import QBittorrentWrap
 from . import ariatools
@@ -275,6 +277,15 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             return dl_path
 
         elif msg.entities is not None:
+            link = r'https://www(\d{1,3}).zippyshare.com/v/(\w{8})/file.html'
+            regex_result = (
+                r'var a = (\d{6});\s+var b = (\d{6});\s+document\.getElementById'
+                r'\(\'dlbutton\'\).omg = "f";\s+if \(document.getElementById\(\''
+                r'dlbutton\'\).omg != \'f\'\) {\s+a = Math.ceil\(a/3\);\s+} else'
+                r' {\s+a = Math.floor\(a/3\);\s+}\s+document.getElementById\(\'d'
+                r'lbutton\'\).href = "/d/[a-zA-Z\d]{8}/\"\+\(a \+ \d{6}%b\)\+"/('
+                r'[\w%-.]+)";'
+            )
             urls = get_entities(msg)
             # currently discontinuing the depending on the entities as its eratic
             url = None
@@ -293,6 +304,45 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 url = info.get('href')
                 #torlog.info(dl_url)
                 #return url
+
+            elif  "zippyshare.com" in urls:
+                await rmsg.edit("`Generating Zippyshare Link`")
+                await aio.sleep(2)
+                session = requests.Session()
+                with session as ses:
+                    match = re.match(link, urls)
+                    if not match:
+                        await omess.reply("`Invalid URL:` " + str(urls))
+                server, id_ = match.group(1), match.group(2)
+                res = ses.get(urls)
+                res.raise_for_status()
+                match = re.search(regex_result, res.text, re.DOTALL)
+                if not match:
+                    await omess.reply("`Invalid Response!`")
+                val_1 = int(match.group(1))
+                val_2 = math.floor(val_1 / 3)
+                val_3 = int(match.group(2))
+                val = val_1 + val_2 % val_3
+                name = match.group(3)
+                url = "https://www{}.zippyshare.com/d/{}/{}/{}".format(server, id_, val, name)
+                #torlog.info(dl_url)
+                #return url
+
+            elif "yadi.sk" in urls:
+                await rmsg.edit("`Generating Yadisk Link`")
+                await aio.sleep(2)
+                try:
+                    link = re.findall(r'\bhttps?://.*yadi\.sk\S+', urls)[0]
+                except:
+                    await omess.reply("**No Yadisk link found**")
+                api = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}'
+                try:
+                    url = requests.get(api.format(link)).json()['href']
+                    #return url
+                except:
+                    await omess.reply("**404 File Not Found** or\n **Download limit reached.**")
+                    #torlog.info(dl_url)
+                    #return url
 
             else:
                 #return url
