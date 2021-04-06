@@ -106,7 +106,6 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
     #    f.write(json.dumps(data))
 
     if data is None:
-        await message.edit("Errored failed parsing.")
         return None, err
     else:
         unique_formats = dict()
@@ -172,6 +171,8 @@ async def handle_ytdl_command(e: MessageLike):
     msg1 = await e.reply(f"Processing the given link......\nChoose destination. Default destination will be chosen in {get_val('DEFAULT_TIMEOUT')}.", buttons=buts)
     
     choice = await get_ytdl_choice(e,tsp)
+    msg1 = await msg1.edit("Processing the given link.......",buttons=None)
+    await asyncio.sleep(1)
 
     if msg.text.find("http") != -1:
         res, err = await create_quality_menu(msg.text.strip(),msg1,msg, choice)
@@ -369,6 +370,8 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
     msg = await e.reply(f"Processing your Youtube Playlist download request.\nChoose destination. Default destination will be chosen in {get_val('DEFAULT_TIMEOUT')}.",buttons=buts)
 
     choice = await get_ytdl_choice(e,tsp) #blocking call
+    msg = await msg.edit("Processing your Youtube Playlist download request.",buttons=None)
+    await asyncio.sleep(1)
 
     # cancel the playlist if time exceed 5 mins
     try:
