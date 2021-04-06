@@ -283,6 +283,9 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             await aio.sleep(1)
             # Starting directlink generator... 
             
+            # A mention https://github.com/yash-dk/TorToolkit-Telegram/pull/42 [professor-21]
+            # For initial contibution of ZippyShare and Mediafire. 
+            
             #Mediafire
             if 'mediafire.com' in urls:
                 await rmsg.edit("`Generating mediafire link.`")
