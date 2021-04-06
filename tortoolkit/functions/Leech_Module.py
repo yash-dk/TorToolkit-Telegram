@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-import re,os,shutil,time, aiohttp, requests
+import re,os,shutil,time, aiohttp
 from telethon.tl import types
 import logging, shutil
 import math, json
