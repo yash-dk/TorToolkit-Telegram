@@ -341,17 +341,23 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                 url = "https://www{}.zippyshare.com/d/{}/{}/{}".format(server, id_, val, name)
                 
            #yadisk
-            elif 'yadi.sk' in urls:
+            elif 'yadi.sk' in urls or 'disk.yandex.com' in urls:
                 await rmsg.edit("`Generating yadisk link.`")
                 await aio.sleep(2)
                 try:
-                    link = re.findall(r'\bhttps?://.*yadi\.sk\S+', urls)[0]
+                    link = re.findall(r'\b(https?://.*(yadi|disk)\.(sk|yandex)*(|com)\S+)', urls)[0][0]
+                    print(link)
                 except:
                     await omess.reply("**No yadisk link found.**")
                 api = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}'
                 try:
-                    url = requests.get(api.format(link)).json()['href']
+                    async with aiohttp.ClientSession() as ttksess:
+                        resp = await ttksess.get(api.format(link))
+                        restext = await resp.json()
+                        url = restext['href']
+                    
                 except:
+                    torlog.exception("Ayee jooo")
                     await omess.reply("**404 File Not Found** or \n**Download limit reached.**")
 
             # End directlink generator.
