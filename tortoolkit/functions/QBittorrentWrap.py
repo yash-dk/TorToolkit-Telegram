@@ -67,7 +67,7 @@ async def add_torrent_magnet(magnet,message):
         ctor = len(await get_torrent_info(client))
         
         ext_hash = Hash_Fetch.get_hash_magnet(magnet)
-        ext_res = get_torrent_info(client, ext_hash)
+        ext_res = await get_torrent_info(client, ext_hash)
 
         if len(ext_res) > 0:
             torlog.info(f"This torrent is in list {ext_res} {magnet} {ext_hash}")
@@ -130,7 +130,7 @@ async def add_torrent_file(path,message):
         ctor = len(await get_torrent_info(client))
 
         ext_hash = Hash_Fetch.get_hash_file(path)
-        ext_res = get_torrent_info(client, ext_hash)
+        ext_res = await get_torrent_info(client, ext_hash)
 
         if len(ext_res) > 0:
             torlog.info(f"This torrent is in list {ext_res} {path} {ext_hash}")
@@ -274,10 +274,10 @@ async def update_progress(client,message,torrent,task,except_retry=0,sleepsec=No
 
 async def pause_all(message):
     client = await get_client()
-    client.torrents_pause(torrent_hashes='all')
+    await aloop.run_in_executor(None,partial(client.torrents_pause,torrent_hashes='all'))
     await aio.sleep(1)
     msg = ""
-    tors = client.torrents_info(status_filter="paused|stalled")
+    tors = await aloop.run_in_executor(None,partial(client.torrents_info,status_filter="paused|stalled"))
     msg += "⏸️ Paused total <b>{}</b> torrents ⏸️\n".format(len(tors))
 
     for i in tors:
@@ -290,11 +290,12 @@ async def pause_all(message):
 
 async def resume_all(message):
     client = await get_client()
-    client.torrents_resume(torrent_hashes='all')
+
+    await aloop.run_in_executor(None,partial(client.torrents_resume, torrent_hashes='all'))
 
     await aio.sleep(1)
     msg = ""
-    tors = client.torrents_info(status_filter="stalled|downloading|stalled_downloading")
+    tors = await aloop.run_in_executor(None,partial(client.torrents_info,status_filter="stalled|downloading|stalled_downloading"))
     
     msg += "▶️Resumed {} torrents check the status for more...▶️".format(len(tors))
 
@@ -308,7 +309,7 @@ async def resume_all(message):
 
 async def delete_all(message):
     client = await get_client()
-    tors = client.torrents_info()
+    tors = await get_torrent_info(client)
     msg = "☠️ Deleted <b>{}</b> torrents.☠️".format(len(tors))
     client.torrents_delete(delete_files=True,torrent_hashes="all")
 
@@ -317,12 +318,12 @@ async def delete_all(message):
     
 async def delete_this(ext_hash):
     client = await get_client()
-    client.torrents_delete(delete_files=True,torrent_hashes=ext_hash)
+    await aloop.run_in_executor(None,partial(client.torrents_delete,delete_files=True,torrent_hashes=ext_hash))
     return True
 
 async def get_status(message,all=False):
     client = await get_client()
-    tors = client.torrents_info()
+    tors = await get_torrent_info(client)
     olen = 0
 
     if len(tors) > 0:
@@ -374,7 +375,7 @@ def progress_bar(percentage):
 
 async def deregister_torrent(hashid):
     client = await get_client()
-    client.torrents_delete(torrent_hashes=hashid,delete_files=True)
+    await aloop.run_in_executor(None,partial(client.torrents_delete, torrent_hashes=hashid,delete_files=True))
 
 async def register_torrent(entity,message,user_msg=None,magnet=False,file=False):
     client = await get_client()
@@ -516,7 +517,7 @@ async def get_confirm_callback(e,lis):
 async def get_torrent_info(client, ehash=None):
 
     if ehash is None:
-        await aloop.run_in_executor(None,client.torrents_info)
+        return await aloop.run_in_executor(None,client.torrents_info)
     else:
-        await aloop.run_in_executor(None,partial(client.torrents_info,torrent_hashes=ehash))
+        return await aloop.run_in_executor(None,partial(client.torrents_info,torrent_hashes=ehash))
 
