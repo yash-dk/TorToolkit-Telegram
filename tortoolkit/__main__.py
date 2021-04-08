@@ -25,12 +25,18 @@ if __name__ == "__main__":
     
     # parallel connections limiter
     queue = asyncio.Queue()
+    exqueue = asyncio.Queue()
+    
     for i in range(1,4):
         queue.put_nowait(i)
 
+    for i in range(1,4):
+        exqueue.put_nowait(i)
+    
     # Telethon client creation
     ttkbot = TortkClient("TorToolkitBot",get_val("API_ID"),get_val("API_HASH"))
     ttkbot.queue = queue
+    ttkbot.exqueue = queue
     ttkbot.start(bot_token=get_val("BOT_TOKEN"))
     logging.info("Telethon Client created.")
 

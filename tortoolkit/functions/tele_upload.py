@@ -422,6 +422,8 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     if not os.path.exists(path):
         return None
     
+    queue = message.client.exqueue
+
     file_name = os.path.basename(path)
     caption_str = ""
     caption_str += "<code>"
@@ -475,6 +477,12 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                 "📤 **Starting upload of** `{}`".format(os.path.basename(path)),
                 reply_markup=markup
             )
+
+            if queue is not None:
+                torlog.info(f"Waiting for the worker here for {file_name}")
+                msg = await msg.edit(f"{msg.text}\n⌛ Waiting for a uploaders to get free... ")
+                uploader_id = await queue.get()
+                torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
         
         if ftype == "video" and not force_docs:
             metadata = extractMetadata(createParser(path))
@@ -644,6 +652,10 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     else:
         if message.message_id != message_for_progress_display.message_id:
             await message_for_progress_display.delete()
+    finally:
+        if queue is not None:
+            await queue.put(uploader_id)
+            torlog.info(f"Freed uploader with id {uploader_id}")
     #os.remove(path)
     if sent_message is None:
         return None
