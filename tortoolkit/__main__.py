@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # Telethon client creation
     ttkbot = TortkClient("TorToolkitBot",get_val("API_ID"),get_val("API_HASH"))
     ttkbot.queue = queue
-    ttkbot.exqueue = queue
+    ttkbot.exqueue = exqueue
     ttkbot.start(bot_token=get_val("BOT_TOKEN"))
     logging.info("Telethon Client created.")
 
