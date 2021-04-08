@@ -468,6 +468,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
             if not thumb_image_path:
                 thumb_image_path = None
     #
+    uploader_id = None
     try:
         message_for_progress_display = message
         if not force_edit:
@@ -480,7 +481,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
 
             if queue is not None:
                 torlog.info(f"Waiting for the worker here for {file_name}")
-                msg = await msg.edit(f"{msg.text}\n⌛ Waiting for a uploaders to get free... ")
+                message_for_progress_display = await message_for_progress_display.edit(f"{message_for_progress_display.text}\n⌛ Waiting for a uploaders to get free... ")
                 uploader_id = await queue.get()
                 torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
         
@@ -653,7 +654,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
         if message.message_id != message_for_progress_display.message_id:
             await message_for_progress_display.delete()
     finally:
-        if queue is not None:
+        if queue is not None and uploader_id is not None:
             await queue.put(uploader_id)
             torlog.info(f"Freed uploader with id {uploader_id}")
     #os.remove(path)
