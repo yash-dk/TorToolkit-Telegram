@@ -56,7 +56,7 @@ async def progress_for_pyrogram(
             ''.join([get_val("REMAINING_STR") for _ in range(20 - math.floor(percentage / 5))]),
             round(percentage, 2))
 
-        tmp = progress + "{0} of {1}\nSpeed: {2}/s\nETA: {3}\n".format(
+        tmp = progress + "{0} of {1}\nSpeed: {2}/s\nETA: {3}\nUsing engine: `Pyrogram`".format(
             humanbytes(current),
             humanbytes(total),
             humanbytes(speed),
@@ -65,7 +65,7 @@ async def progress_for_pyrogram(
         try:
             if not message.photo:
                 await message.edit_text(
-                    text="{}\n {}".format(
+                    text="`{}`\n {}".format(
                         ud_type,
                         tmp
                     ),
@@ -73,7 +73,7 @@ async def progress_for_pyrogram(
                 )
             else:
                 await message.edit_caption(
-                    caption="{}\n {}".format(
+                    caption="`{}`\n {}".format(
                         ud_type,
                         tmp
                     ),
@@ -103,10 +103,10 @@ def time_formatter(seconds: int) -> str:
     v_m = 0
     remainder = seconds
     r_ange_s = {
-        "days": (24 * 60 * 60),
-        "hours": (60 * 60),
-        "minutes": 60,
-        "seconds": 1
+        "d": (24 * 60 * 60),
+        "h": (60 * 60),
+        "m": 60,
+        "s": 1
     }
     for age in r_ange_s:
         divisor = r_ange_s[age]
