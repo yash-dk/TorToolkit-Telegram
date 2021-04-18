@@ -256,7 +256,7 @@ async def update_progress(client,message,torrent,task,except_retry=0,sleepsec=No
 
                     await task.set_path(savepath)
                     await task.set_done()
-                    await message.edit("Download completed ```{}```. To path ```{}```".format(tor_info.name,tor_info.save_path),buttons=None)
+                    await message.edit(f"Download completed: `{}`\nTo path: `{}`\nSize: {}".format(tor_info.name,tor_info.save_path,human_readable_bytes(tor_info.total_size)),buttons=None)
                     return [savepath, task]
                 else:
                     #return await update_progress(client,message,torrent)
