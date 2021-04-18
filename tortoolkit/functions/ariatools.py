@@ -195,17 +195,17 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdept
                 aria2, gid, event, previous_message,task,user_msg=user_msg
             )
         else:
-            await event.edit(f"Download completed: <code>{file.name}</code> to path <code>{file.name}</code>",parse_mode="html", buttons=None)
+            await event.edit(f"Download completed: <code>{file.name}</code>\nSize: {file.total_length_string()}",parse_mode="html", buttons=None)
             return True, "Download Complete"
     except aria2p.client.ClientException as e:
         if " not found" in str(e) or "'file'" in str(e):
             fname = "N/A"
             try:
-                fname = file.name
+                fname = str(file.name)
             except:pass
             task.cancel = True
             await task.set_inactive()
-            return False, f"The Download was canceled. {fname}"
+            return False, f"The Download was canceled. `{str(fname)}`"
         else:
             torlog.warning("Errored due to ta client error.")
         pass
