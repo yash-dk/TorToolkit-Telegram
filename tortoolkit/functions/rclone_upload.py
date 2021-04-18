@@ -4,6 +4,7 @@
 import os,subprocess,logging,re,time,json,traceback
 from telethon.tl.types import KeyboardButtonUrl
 from tortoolkit import SessionVars
+from .Human_Format import human_readable_bytes,human_readable_timedelta
 import asyncio as aio
 import aiohttp
 from requests.utils import requote_uri
@@ -97,7 +98,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
             )
 
 
-        txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FOLDER :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,os.path.basename(path))
+        txtmsg = "<a href='tg://user?id={}'>Done</a>\nUPLOADED FOLDER: <code>{}</code>\nSize: {}\n#uploads To Drive.".format(omsg.sender_id,os.path.basename(path),human_readable_bytes(os.path.getsize(path)))
         
         await omsg.reply(txtmsg,buttons=buttons,parse_mode="html")
         await msg.delete()
@@ -145,7 +146,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
                 [KeyboardButtonUrl("Index URL",index_link)]
             )
 
-        txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,os.path.basename(path))
+        txtmsg = "<a href='tg://user?id={}'>Done</a>\nUPLOADED FILE: <code>{}</code>\nSize: {}\n#uploads To Drive.".format(omsg.sender_id,os.path.basename(path),human_readable_bytes(os.path.getsize(path)))
 
         
         await omsg.reply(txtmsg,buttons=buttons,parse_mode="html")
