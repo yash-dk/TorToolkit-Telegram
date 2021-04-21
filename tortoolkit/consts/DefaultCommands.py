@@ -13,3 +13,8 @@ class Commands:
     GETLOGS = "getlogs"
     SERVER = "server"
     USERSETTINGS = "usetting"
+    INSTADL = "instadl"
+    START = "start"
+    USTATUS = "ustatus"
+    SETTHUMB = "setthumb"
+    CLRTHUMB = "clearthumb"

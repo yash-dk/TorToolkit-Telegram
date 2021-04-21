@@ -9,7 +9,13 @@ torlog = logging.getLogger(__name__)
 
 #todo add alpha admin if needed
 
-async def is_admin(client,user_id,chat_id):
+async def is_admin(client,user_id,chat_id, force_owner=False):
+    if force_owner:
+        if user_id == get_val("OWNER_ID"):
+            return True
+        else:
+            return False
+        
     try:
         res = await client(GetParticipantRequest(
             channel=chat_id,
@@ -26,10 +32,10 @@ async def is_admin(client,user_id,chat_id):
                 else:
                     return False
         except:
-            torlog.error("Error in admin check {}".format(traceback.format_exc()))
+            torlog.info("Bot Accessed in Private {}".format(traceback.format_exc()))
             return False
     except Exception as e:
-        torlog.error("Error in admin check {}".format(e))
+        torlog.info("Bot Accessed in Private {}".format(e))
         if user_id in get_val("ALD_USR"):
             return True
         else:

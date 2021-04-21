@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-__version__ = "0.1.4"
+__version__ = "0.2.4"
 __author__ = "YashDK Github@yash-dk"
 
 import logging
@@ -22,5 +22,5 @@ tor_db = TtkTorrents()
 user_db = UserDB()
 
 uptime = time.time()
-
+to_del = []
 SessionVars = VarHolder(var_db)

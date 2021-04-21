@@ -6,14 +6,16 @@ from telethon.tl.types import KeyboardButtonUrl
 from tortoolkit import SessionVars
 import asyncio as aio
 import aiohttp
+from requests.utils import requote_uri
 from ..core.getVars import get_val
 from .. import upload_db, var_db
 from telethon.tl.types import KeyboardButtonCallback
+from ..core.status.upload import RCUploadTask 
 
 torlog = logging.getLogger(__name__)
 
 
-async def rclone_driver(path,message, user_msg):
+async def rclone_driver(path,message, user_msg, dl_task):
     # this driver will need to do this
     # get the default drive
     conf_path = await get_config()
@@ -25,29 +27,31 @@ async def rclone_driver(path,message, user_msg):
         rem_base = get_val("RCLONE_BASE_DIR")
         edtime = get_val("EDIT_SLEEP_SECS")
 
-        return await rclone_upload(path,message,user_msg,drive_name,rem_base,edtime,conf_path)
-    
+        
+        ul_task = RCUploadTask(dl_task)
+        try:
+            return await rclone_upload(path,message,user_msg,drive_name,rem_base,edtime,conf_path, ul_task)
+        except:
+            await ul_task.set_inactive()
+            torlog.exception("Stuff gone wrong in here")
+            return 
 
 # add user prompt here
-async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,conf_path):
+async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,conf_path, task):
     # this function will need a driver for him :o
     if not os.path.exists(path):
         torlog.info(f"Returning none cuz the path {path} not found")
+        await task.set_inactive(f"Returning none cuz the path {path} not found")
         return None
     omsg = user_msg
+    await task.set_original_message(omsg)
     upload_db.register_upload(omsg.chat_id, omsg.id)
     data = "upcancel {} {} {}".format(omsg.chat_id,omsg.id,omsg.sender_id)
     buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
-    tm = [84 , 
-    73 , 77 , 69 , 
-    95 , 83 , 
-    84 , 65 , 84]
-    strfg=""
-    for i in tm:
-        strfg += chr(i)
-    if os.environ.get(strfg, False):
-        return
+    
     msg = await message.reply("<b>Uploading to configured drive.... will be updated soon.",parse_mode="html", buttons=buts)
+    await task.set_message(msg)
+
     if os.path.isdir(path):
         # handle dirs
         new_dest_base = os.path.join(dest_base,os.path.basename(path))
@@ -62,23 +66,40 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
             rclone_copy_cmd,
             stdout=subprocess.PIPE
         )
-        rcres = await rclone_process_display(rclone_pr,edit_time,msg, message, omsg)
+        rcres = await rclone_process_display(rclone_pr,edit_time,msg, message, omsg, task)
         
         if rcres is False:
             await message.edit(message.text + "\nCanceled Rclone Upload")
             await msg.delete()
             rclone_pr.kill()
-            return True
+            task.cancel = True
+            await task.set_inactive("Canceled Rclone Upload")
+            return task
             
 
         torlog.info("Upload complete")
         gid = await get_glink(dest_drive,dest_base,os.path.basename(path),conf_path)
         torlog.info(f"Upload folder id :- {gid}")
         
-        folder_link = f"https://drive.google.com/folderview?id={gid}"
+        folder_link = f"https://drive.google.com/folderview?id={gid[0]}"
+
+        buttons = []
+        buttons.append(
+            [KeyboardButtonUrl("Drive URL",folder_link)]
+        )
+        gd_index = get_val("GD_INDEX_URL")
+        if gd_index:
+            index_link = "{}/{}/".format(gd_index.strip("/"), gid[1])
+            index_link = requote_uri(index_link)
+            torlog.info("index link "+str(index_link))
+            buttons.append(
+                [KeyboardButtonUrl("Index URL",index_link)]
+            )
+
+
         txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FOLDER :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,os.path.basename(path))
         
-        await omsg.reply(txtmsg,buttons=[[KeyboardButtonUrl("Drive URL",folder_link)]],parse_mode="html")
+        await omsg.reply(txtmsg,buttons=buttons,parse_mode="html")
         await msg.delete()
 
 
@@ -95,53 +116,48 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
             rclone_copy_cmd,
             stdout=subprocess.PIPE
         )
-        rcres = await rclone_process_display(rclone_pr,edit_time,msg, message, omsg)
+        rcres = await rclone_process_display(rclone_pr,edit_time,msg, message, omsg, task)
         
         if rcres is False:
             await message.edit(message.text + "\nCanceled Rclone Upload")
             await msg.delete()
             rclone_pr.kill()
-            return True
+            task.cancel = True
+            await task.set_inactive("Canceled Rclone Upload")
+            return task
 
         torlog.info("Upload complete")
         gid = await get_glink(dest_drive,dest_base,os.path.basename(path),conf_path,False)
         torlog.info(f"Upload folder id :- {gid}")
 
-        file_link = f"https://drive.google.com/file/d/{gid}/view"
-        
+        buttons = []
+
+        file_link = f"https://drive.google.com/file/d/{gid[0]}/view"
+        buttons.append(
+            [KeyboardButtonUrl("Drive URL",file_link)]
+        )
+        gd_index = get_val("GD_INDEX_URL")
+        if gd_index:
+            index_link = "{}/{}".format(gd_index.strip("/"), gid[1])
+            index_link = requote_uri(index_link)
+            torlog.info("index link "+str(index_link))
+            buttons.append(
+                [KeyboardButtonUrl("Index URL",index_link)]
+            )
+
         txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,os.path.basename(path))
 
         
-        await omsg.reply(txtmsg,buttons=[[KeyboardButtonUrl("Drive URL",file_link)]],parse_mode="html")
+        await omsg.reply(txtmsg,buttons=buttons,parse_mode="html")
         await msg.delete()
 
     upload_db.deregister_upload(message.chat_id, message.id)
-    return True
+    await task.set_inactive()
+    return task
 
-def progress_bar(percentage):
-    """Returns a progress bar for download
-    """
-    #percentage is on the scale of 0-1
-    comp = "▰"
-    ncomp = "▱"
-    pr = ""
-
-    try:
-        percentage=int(percentage)
-    except:
-        percentage = 0
-
-    for i in range(1,11):
-        if i <= int(percentage/10):
-            pr += comp
-        else:
-            pr += ncomp
-    return pr
-
-async def rclone_process_display(process,edit_time,msg, omessage, cancelmsg):
+async def rclone_process_display(process,edit_time,msg, omessage, cancelmsg, task):
     blank=0
     sleeps = False
-    prev_cont = None
     start = time.time()
     while True:
         
@@ -155,23 +171,9 @@ async def rclone_process_display(process,edit_time,msg, omessage, cancelmsg):
                 if time.time() - start > edit_time:
                     start = time.time()
                     
-                    nstr = mat[0].replace("Transferred:","")
-                    nstr = nstr.strip()
-                    nstr = nstr.split(",")
-                    prg = nstr[1].strip("% ")
-                    prg = "Progress:- {} - {}%".format(progress_bar(prg),prg)
-                    progress = "<b>Uploaded:- {} \n{} \nSpeed:- {} \nETA:- {}</b> \n<b>Using Engine:- </b><code>RCLONE</code>".format(nstr[0],prg,nstr[2],nstr[3].replace("ETA",""))
-                    if not prev_cont == progress:
-                        #kept just in case
-                        prev_cont = progress
-                        try:
-                            await msg.edit(progress,parse_mode="html")
-                        except Exception as e:
-                            torlog.error(e)
+                    await task.refresh_info(data)
+                    await task.update_message()
 
-                    
-                    torlog.debug(progress)
-    
         if data == "":
             blank += 1
             if blank == 20:
@@ -189,6 +191,7 @@ async def rclone_process_display(process,edit_time,msg, omessage, cancelmsg):
 
 
 async def get_glink(drive_name,drive_base,ent_name,conf_path,isdir=True):
+    print("Ent - ",ent_name)
     ent_name = re.escape(ent_name)
     filter_path = os.path.join(os.getcwd(),str(time.time()).replace(".","")+".txt")
     with open(filter_path,"w",encoding="UTF-8") as file:
@@ -224,9 +227,10 @@ async def get_glink(drive_name,drive_base,ent_name,conf_path,isdir=True):
     try:
         data = json.loads(stdout)
         id = data[0]["ID"]
-        return id
+        name = data[0]["Name"]
+        return (id, name)
     except Exception:
-        torlog.error("Error Occured while getting id ::- {}".format(traceback.format_exc()))
+        torlog.error("Error Occured while getting id ::- {} {}".format(traceback.format_exc(), stdout))
 
 async def get_config():
     # this car requires to access the blob

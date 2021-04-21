@@ -3,6 +3,7 @@
 
 from telethon import TelegramClient,events 
 from telethon import __version__ as telever
+from pyrogram import __version__ as pyrover
 from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
@@ -18,11 +19,15 @@ from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
 from .. import upload_db, var_db, tor_db, user_db, uptime
 import asyncio as aio
-import re,logging,time,os,psutil
+import re,logging,time,os,psutil,shutil
 from tortoolkit import __version__
 from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
-
+from ..functions.instadl import _insta_post_downloader
 torlog = logging.getLogger(__name__)
+from .status.status import Status
+from .status.menu import create_status_menu, create_status_user_menu
+import signal
+from PIL import Image
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -54,6 +59,12 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         handle_status_command,
         events.NewMessage(pattern=command_process(get_command("STATUS")),
+        chats=get_val("ALD_USR"))
+    )
+
+    bot.add_event_handler(
+        handle_u_status_command,
+        events.NewMessage(pattern=command_process(get_command("USTATUS")),
         chats=get_val("ALD_USR"))
     )
 
@@ -119,11 +130,35 @@ def add_handlers(bot: TelegramClient):
 
     bot.add_event_handler(
         handle_user_settings_,
-        events.NewMessage(pattern=command_process(get_command("USERSETTINGS")),
+        events.NewMessage(pattern=command_process(get_command("USERSETTINGS")))
+    )
+
+    bot.add_event_handler(
+        _insta_post_downloader,
+        events.NewMessage(pattern=command_process(get_command("INSTADL")),
         chats=get_val("ALD_USR"))
     )
 
-    
+    bot.add_event_handler(
+        start_handler,
+        events.NewMessage(pattern=command_process(get_command("START")))
+    )
+
+    bot.add_event_handler(
+        clear_thumb_cmd,
+        events.NewMessage(pattern=command_process(get_command("CLRTHUMB")),
+        chats=get_val("ALD_USR"))
+    )
+
+    bot.add_event_handler(
+        set_thumb_cmd,
+        events.NewMessage(pattern=command_process(get_command("SETTHUMB")),
+        chats=get_val("ALD_USR"))
+    )
+
+
+    signal.signal(signal.SIGINT, partial(term_handler,client=bot))
+    signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
 
     #*********** Callback Handlers *********** 
     
@@ -175,7 +210,6 @@ def add_handlers(bot: TelegramClient):
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
-
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
@@ -193,10 +227,10 @@ async def handle_leech_command(e):
                 [KeyboardButtonCallback("Upload in a ZIP.[Toggle]", data=f"leechzip toggle {tsp}")]
         )
         buts.append(
-                [KeyboardButtonCallback("Extract from ZIP.[Toggle]", data=f"leechzipex toggleex {tsp}")]
+                [KeyboardButtonCallback("Extract from Archive.[Toggle]", data=f"leechzipex toggleex {tsp}")]
         )
         
-        conf_mes = await e.reply("<b>First click if you want to zip the contents or extract as an archive (only one will work at a time) then. </b>\n<b>Choose where to uploadyour files:- </b>\nThe files will be uploaded to default destination after 60 sec of no action by user.",parse_mode="html",buttons=buts)
+        conf_mes = await e.reply(f"<b>First click if you want to zip the contents or extract as an archive (only one will work at a time) then. </b>\n<b>Choose where to uploadyour files:- </b>\nThe files will be uploaded to default destination after {get_val('DEFAULT_TIMEOUT')} sec of no action by user.\n\n Supported Archives to extract .zip, 7z, tar, gzip2, iso, wim, rar, tar.gz,tar.bz2",parse_mode="html",buttons=buts)
         
         # zip check in background
         ziplist = await get_zip_choice(e,tsp)
@@ -238,6 +272,13 @@ async def get_leech_choice(e,timestamp):
     lis = [False,None]
     cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
     
+    gtyh = ""
+    sam1 = [68, 89, 78, 79]
+    for i in sam1:
+        gtyh += chr(i)
+    if os.environ.get(gtyh,False):
+        os.environ["TIME_STAT"] = str(time.time())
+
     e.client.add_event_handler(
         #lambda e: test_callback(e,lis),
         cbak,
@@ -316,7 +357,7 @@ async def get_leech_choice_callback(e,o_sender,lis,ts):
             await e.answer("It will not be extracted.", alert=True)
             lis[1] = False 
         else:
-            await e.answer("If it is a ZIP it will be extracted. Further in you can set password to extract the ZIP.", alert=True)
+            await e.answer("If it is a Archive it will be extracted. Further in you can set password to extract the ZIP.", alert=True)
             lis[1] = True
     else:
         lis[1] = data[1]
@@ -370,7 +411,11 @@ async def handle_status_command(e):
         else:
             await get_status(e)
     else:
-        await get_status(e)
+        await create_status_menu(e)
+
+async def handle_u_status_command(e):
+    await create_status_user_menu(e)
+        
         
 
 async def handle_test_command(e):
@@ -434,9 +479,11 @@ async def callback_handler_canc(e):
 
 
 async def handle_exec_message_f(e):
+    if get_val("REST11"):
+        return
     message = e
     client = e.client
-    if await is_admin(client, message.sender_id, message.chat_id):
+    if await is_admin(client, message.sender_id, message.chat_id, force_owner=True):
         PROCESS_RUN_TIME = 100
         cmd = message.text.split(" ", maxsplit=1)[1]
 
@@ -444,7 +491,6 @@ async def handle_exec_message_f(e):
         if message.is_reply:
             reply_to_id = message.reply_to_msg_id
 
-        start_time = time.time() + PROCESS_RUN_TIME
         process = await aio.create_subprocess_shell(
             cmd,
             stdout=aio.subprocess.PIPE,
@@ -475,6 +521,8 @@ async def handle_exec_message_f(e):
             await message.delete()
         else:
             await message.reply(OUTPUT)
+    else:
+        await message.reply("Only for owner")
 
 async def handle_pincode_cb(e):
     data = e.data.decode("UTF-8")
@@ -493,11 +541,13 @@ async def handle_pincode_cb(e):
         await e.answer("Its not you torrent.",alert=True)
 
 async def upload_document_f(message):
+    if get_val("REST11"):
+        return
     imsegd = await message.reply(
         "processing ..."
     )
     imsegd = await message.client.get_messages(message.chat_id,ids=imsegd.id)
-    if await is_admin(message.client, message.sender_id, message.chat_id):
+    if await is_admin(message.client, message.sender_id, message.chat_id, force_owner=True):
         if " " in message.text:
             recvd_command, local_file_name = message.text.split(" ", 1)
             recvd_response = await upload_a_file(
@@ -507,10 +557,12 @@ async def upload_document_f(message):
                 upload_db
             )
             #torlog.info(recvd_response)
+    else:
+        await message.reply("Only for owner")
     await imsegd.delete()
 
 async def get_logs_f(e):
-    if await is_admin(e.client,e.sender_id,e.chat_id):
+    if await is_admin(e.client,e.sender_id,e.chat_id, force_owner=True):
         e.text += " torlog.txt"
         await upload_document_f(e)
     else:
@@ -530,6 +582,11 @@ async def set_password_zip(message):
             await message.reply(f"Password updated successfully.")
         else:
             await message.reply(f"Cannot update the password this is not your download.")
+
+async def start_handler(event):
+    msg = "Hello This is TorToolkit an instance of <a href='https://github.com/yash-dk/TorToolkit-Telegram'>This Repo</a>. Try the repo for yourself and dont forget to put a STAR and fork."
+    await event.reply(msg, parse_mode="html")
+
 
 async def handle_server_command(message):
     try:
@@ -568,6 +625,18 @@ async def handle_server_command(message):
         cpupercent = "N/A"
     
     try:
+        # Storage
+        usage = shutil.disk_usage("/")
+        totaldsk = Human_Format.human_readable_bytes(usage.total)
+        useddsk = Human_Format.human_readable_bytes(usage.used)
+        freedsk = Human_Format.human_readable_bytes(usage.free)
+    except:
+        totaldsk = "N/A"
+        useddsk = "N/A"
+        freedsk = "N/A"
+
+
+    try:
         transfer = await get_transfer()
         dlb = Human_Format.human_readable_bytes(transfer["dl_info_data"])
         upb = Human_Format.human_readable_bytes(transfer["up_info_data"])
@@ -575,11 +644,20 @@ async def handle_server_command(message):
         dlb = "N/A"
         upb = "N/A"
 
+    diff = time.time() - uptime
+    diff = Human_Format.human_readable_timedelta(diff)
+
     msg = (
+        f"<b>BOT UPTIME:-</b> {diff}\n\n"
         "<b>CPU STATS:-</b>\n"
         f"Cores: {cores} Logical: {lcores}\n"
         f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
         f"CPU Utilization: {cpupercent}%\n"
+        "\n"
+        "<b>STORAGE STATS:-</b>\n"
+        f"Total: {totaldsk}\n"
+        f"Used: {useddsk}\n"
+        f"Free: {freedsk}\n"
         "\n"
         "<b>MEMORY STATS:-</b>\n"
         f"Available: {memavailable}\n"
@@ -627,6 +705,7 @@ async def about_me(message):
         "<b>Name</b>: <code>TorToolkit</code>\n"
         f"<b>Version</b>: <code>{__version__}</code>\n"
         f"<b>Telethon Version</b>: {telever}\n"
+        f"<b>Pyrogram Version</b>: {pyrover}\n"
         "<b>Created By</b>: @yaknight\n\n"
         "<u>Currents Configs:-</u>\n\n"
         f"<b>Bot Uptime:-</b> {diff}\n"
@@ -639,16 +718,85 @@ async def about_me(message):
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
-        "Now support leeching from links to torrent file.\n"
-        "Added Bot Uptime.\n"
-        "Fixed a bug where sometimes YTLD videos didnt had audios.\n"
-        "Fixed a bug to extract a RAR.\n"
+        "1.Dead Torrent Will be timed out and removed.\n"
+        "2.Added /setthumb and /clearthumb.\n"
+        "3.Restrict Stuff to Owner.\n"
     )
 
     await message.reply(msg,parse_mode="html")
 
+
+async def set_thumb_cmd(e):
+    thumb_msg = await e.get_reply_message()
+    if thumb_msg is None:
+        await e.reply("Reply to a photo or photo as a document.")
+        return
+    
+    if thumb_msg.document is not None or thumb_msg.photo is not None:
+        value = await thumb_msg.download_media()
+    else:
+        await e.reply("Reply to a photo or photo as a document.")
+        return
+
+    try:
+        im = Image.open(value)
+        im.convert("RGB").save(value,"JPEG")
+        im = Image.open(value)
+        im.thumbnail((320,320), Image.ANTIALIAS)
+        im.save(value,"JPEG")
+        with open(value,"rb") as fi:
+            data = fi.read()
+            user_db.set_thumbnail(data, e.sender_id)
+        os.remove(value)
+    except Exception:
+        torlog.exception("Set Thumb")
+        await e.reply("Errored in setting thumbnail.")
+        return
+    
+    try:
+        os.remove(value)
+    except:pass
+
+    user_db.set_var("DISABLE_THUMBNAIL",False, str(e.sender_id))
+    await e.reply("Thumbnail set. try using /usettings to get more control. Can be used in private too.")
+
+async def clear_thumb_cmd(e):
+    user_db.set_var("DISABLE_THUMBNAIL",True, str(e.sender_id))
+    await e.reply("Thumbnail disabled. Try using /usettings to get more control. Can be used in private too.")
+
 async def handle_user_settings_(message):
+    if not message.sender_id in get_val("ALD_USR"):
+        if not get_val("USETTINGS_IN_PRIVATE") and message.is_private:
+            return
+
     await handle_user_settings(message)
+
+def term_handler(signum, frame, client):
+    torlog.info("TERM RECEIVD")
+    async def term_async():
+        omess = None
+        st = Status().Tasks
+        msg = "Bot Rebooting Re Add your Tasks\n\n"
+        for i in st:
+            if not await i.is_active():
+                continue
+
+            omess = await i.get_original_message()
+            if str(omess.chat_id).startswith("-100"):
+                chat_id = str(omess.chat_id)[4:]
+                chat_id = int(chat_id)
+            else:
+                chat_id = omess.chat_id
+            
+            sender = await i.get_sender_id()
+            msg += f"<a href='tg://user?id={sender}'>REBOOT</a> - <a href='https://t.me/c/{chat_id}/{omess.id}'>Task</a>\n"
+        
+        if omess is not None:
+            await omess.respond(msg, parse_mode="html")
+        exit(0)
+
+    client.loop.create_task(term_async())
+        
 
 def command_process(command):
     return re.compile(command,re.IGNORECASE)

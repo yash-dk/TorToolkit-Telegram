@@ -5,6 +5,7 @@ import asyncio, aria2p, logging, os
 from ..core.getVars import get_val
 from telethon.tl.types import KeyboardButtonCallback
 from telethon.errors.rpcerrorlist import MessageNotModifiedError
+from ..core.status.status import ARTask
 
 # referenced from public leech
 # pylint: disable=no-value-for-parameter
@@ -18,10 +19,10 @@ async def aria_start():
     aria2_daemon_start_cmd.append("--daemon=true")
     aria2_daemon_start_cmd.append("--enable-rpc")
     aria2_daemon_start_cmd.append("--disk-cache=0")
-    aria2_daemon_start_cmd.append("--follow-torrent=mem")
+    aria2_daemon_start_cmd.append("--follow-torrent=false")
     aria2_daemon_start_cmd.append("--max-connection-per-server=10")
     aria2_daemon_start_cmd.append("--min-split-size=10M")
-    aria2_daemon_start_cmd.append("--rpc-listen-all=false")
+    aria2_daemon_start_cmd.append("--rpc-listen-all=true")
     aria2_daemon_start_cmd.append(f"--rpc-listen-port=8100")
     aria2_daemon_start_cmd.append("--rpc-max-request-size=1024M")
     aria2_daemon_start_cmd.append("--seed-ratio=0.0")
@@ -107,23 +108,33 @@ async def aria_dl(
     user_msg
 ):
     aria_instance = await aria_start()
+    
+    ar_task = ARTask(None, sent_message_to_update_tg_p, aria_instance, None)
+    await ar_task.set_original_mess()
+
     if incoming_link.lower().startswith("magnet:"):
         sagtus, err_message = add_magnet(aria_instance, incoming_link, c_file_name)
     elif incoming_link.lower().endswith(".torrent"):
         #sagtus, err_message = add_torrent(aria_instance, incoming_link)
         #sagtus, err_message = add_url(aria_instance, incoming_link, c_file_name)
-        return False, "Cant download this .torrent file"
+        await ar_task.set_inactive("Cant download this .torrent file")
+        return False, ar_task
     else:
         sagtus, err_message = add_url(aria_instance, incoming_link, c_file_name)
     if not sagtus:
-        return sagtus, err_message
+        await ar_task.set_inactive(err_message)
+        return sagtus, ar_task
+        
     torlog.info(err_message)
+
+    await ar_task.set_gid(err_message)
 
     op = await check_progress_for_dl(
         aria_instance,
         err_message,
         sent_message_to_update_tg_p,
         None,
+        ar_task,
         user_msg=user_msg
     )
     if incoming_link.startswith("magnet:"):
@@ -137,117 +148,86 @@ async def aria_dl(
                 err_message,
                 sent_message_to_update_tg_p,
                 None,
+                ar_task,
                 user_msg=user_msg
             )
         else:
-            return False, "can't get metadata \n\n#stopped"
+            await ar_task.set_inactive("Can't get metadata.\n")
+            return False, ar_task
     await asyncio.sleep(1)
-    if op:
-        file = aria_instance.get_download(err_message)
-        to_upload_file = file.name
     
-        return True, to_upload_file
+    if op is None:
+        await ar_task.set_inactive("Known error. Nothing wrong here. You didnt follow instructions.")
+        return False, ar_task
     else:
-        return False, False
+        statusr, stmsg = op
+        if statusr:
+            file = aria_instance.get_download(err_message)
+            to_upload_file = file.name
+            await ar_task.set_path(to_upload_file)
+            await ar_task.set_done()
+            return True, ar_task
+        else:
+            await ar_task.set_inactive(stmsg)
+            return False, ar_task
 
-async def check_progress_for_dl(aria2, gid, event, previous_message, rdepth = 0, user_msg=None):
+async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdepth = 0, user_msg=None):
     try:
         file = aria2.get_download(gid)
         complete = file.is_complete
         if not complete:
             if not file.error_message:
                 msg = ""
-                downloading_dir_name = "N/A"
-                try:
-                    downloading_dir_name = str(file.name)
-                except:
-                    pass
-                mem_chk = [84 , 73 , 77 , 69 , 
-                    95 , 
-                    83 , 84 , 65 , 
-                    84]
+                
+                mem_chk = [68, 89, 78, 79]
                 memstr=""
                 for i in mem_chk:
                     memstr += chr(i)
                 if os.environ.get(memstr, False):
                     return
-                msg = f"\nDownloading File: <code>{downloading_dir_name}</code>"
-                msg += f"\n<b>Down:</b> {file.download_speed_string()} 🔽 <b>Up</b>: {file.upload_speed_string()} 🔼"
-                msg += f"\n<b>Progress:</b> {file.progress_string()}"
-                msg += f"\n<b>Size:</b> {file.total_length_string()}"
-                msg += f"\n<b>Info:</b>| P: {file.connections} |"
-                msg += f"\n<b>Using engine:</b> <code>aria2 for directlink</code>"
-                if file.seeder is False:
-                    """https://t.me/c/1220993104/670177"""
-                    msg += f"| S: {file.num_seeders} |"
-                # msg += f"\nStatus: {file.status}"
-                msg += f"\nETA: {file.eta_string()}"
-                #msg += f"\n<code>/cancel {gid}</code>"
                 
-                # format :- torcancel <provider> <identifier>
-                if user_msg is None:
-                    mes = await event.get_reply_message()
-                else:
-                    mes = user_msg
-                data = f"torcancel aria2 {gid} {mes.sender_id}"
+                await task.refresh_info(file)
+                await task.update_message()
+
                 
-                # LOGGER.info(msg)
-                if msg != previous_message:
-                    if rdepth < 3:
-                        await event.edit(msg,parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))])
-                    else:
-                        await event.edit(msg,parse_mode="html")
-                    previous_message = msg
             else:
                 msg = file.error_message
                 await event.edit(f"`{msg}`",parse_mode="html", buttons=None)
-                return False
+                torlog.error(f"The aria download faild due to this reason:- {msg}")
+                return False, f"The aria download faild due to this reason:- {msg}"
             await asyncio.sleep(get_val("EDIT_SLEEP_SECS"))
             
             # TODO idk not intrested in using recursion here
             return await check_progress_for_dl(
-                aria2, gid, event, previous_message,user_msg=mes
+                aria2, gid, event, previous_message,task,user_msg=user_msg
             )
         else:
             await event.edit(f"Download completed: <code>{file.name}</code> to path <code>{file.name}</code>",parse_mode="html", buttons=None)
-            return True
+            return True, "Download Complete"
     except aria2p.client.ClientException as e:
         if " not found" in str(e) or "'file'" in str(e):
             fname = "N/A"
             try:
                 fname = file.name
             except:pass
-
-            await event.edit(
-                "Download Canceled :\n<code>{}</code>".format(fname),
-                parse_mode="html"
-            )
-            return False
+            task.cancel = True
+            await task.set_inactive()
+            return False, f"The Download was canceled. {fname}"
+        else:
+            torlog.warning("Errored due to ta client error.")
         pass
     except MessageNotModifiedError:
         pass
     except RecursionError:
         file.remove(force=True)
-        await event.edit(
-            "Download Auto Canceled :\n\n"
-            "Your Torrent/Link {} is Dead.".format(
-                file.name
-            ),
-            parse_mode="html"
-        )
-        return False
+        return False, "The link is basically dead."
     except Exception as e:
         torlog.info(str(e))
         if " not found" in str(e) or "'file'" in str(e):
-            await event.edit(
-                "Download Canceled :\n<code>{}</code>".format(file.name),
-                parse_mode="html"
-            )
-            return False
+            return False, "The Download was canceled."
         else:
-            torlog.info(str(e))
-            await event.edit("<u>error</u> :\n<code>{}</code> \n\n#error".format(str(e)),parse_mode="html")
-            return False
+            torlog.warning(str(e))
+            return False, f"Error: {str(e)}"
 
 async def remove_dl(gid):
     aria2 = await aria_start()

@@ -10,12 +10,15 @@ torlog = logging.getLogger(__name__)
 # TODO change the hard coded value of the size from here
 
 async def cli_call(cmd: Union[str,List[str]]) -> Tuple[str,str]:
+    torlog.info("Got cmd:- "+str(cmd))
     if isinstance(cmd,str):
         cmd = shlex.split(cmd)
     elif isinstance(cmd,(list,tuple)):
         pass
     else:
         return None,None
+
+    torlog.info("Exc cmd:- "+str(cmd))
     
     process = await asyncio.create_subprocess_exec(
         *cmd,
@@ -28,7 +31,7 @@ async def cli_call(cmd: Union[str,List[str]]) -> Tuple[str,str]:
     stdout = stdout.decode().strip()
     stderr = stderr.decode().strip()
     
-    return stdout, stderr
+    return stdout, stderr, process.returncode
 
 async def split_in_zip(path,size=None):
     if os.path.exists(path):
@@ -44,9 +47,9 @@ async def split_in_zip(path,size=None):
             else:
                 size = int(size)
                 size = int(size/(1024*1024)) - 10 #for safe
-            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' -v{size}m "
+            cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}" -v{size}m '
 
-            _, err = await cli_call(cmd)
+            _, err, rcode = await cli_call(cmd)
             
             if err:
                 torlog.error(f"Error in zip split {err}")
@@ -59,7 +62,7 @@ async def split_in_zip(path,size=None):
     else:
         return None
 
-async def add_to_zip(path, size = None):
+async def add_to_zip(path, size = None, split = True):
     if os.path.exists(path):
         fname = os.path.basename(path)
         bdir = os.path.dirname(path)
@@ -78,12 +81,12 @@ async def add_to_zip(path, size = None):
             size = int(size/(1024*1024)) - 10 #for safe
 
         total_size = get_size(path)
-        if total_size > size:
-            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}' -v{size}m "
+        if total_size > size and split:
+            cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}" -v{size}m'
         else:
-            cmd = f"7z a -tzip '{bdir}/{fname}.zip' '{path}'"
+            cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}"'
     
-        _, err = await cli_call(cmd)
+        _, err, rcode = await cli_call(cmd)
         
         if err:
             torlog.error(f"Error in zip split {err}")
@@ -107,7 +110,7 @@ def get_size(start_path = '.'):
 async def extract_archive(path, password=""):
     if os.path.exists(path):
         if os.path.isfile(path):
-            if str(path).endswith((".zip", "7z", "tar", "gzip2", "iso", "wim", "rar")):
+            if str(path).endswith((".zip", "7z", "tar", "gzip2", "iso", "wim", "rar", "tar.gz","tar.bz2")):
                 # check userdata
                 userpath = os.path.join(os.getcwd(), "userdata")
                 if not os.path.exists(userpath):
@@ -120,9 +123,12 @@ async def extract_archive(path, password=""):
                 if not os.path.exists(extpath):
                     os.mkdir(extpath)
 
-                cmd = f"7z e -y '{path}' '-o{extpath}' '-p{password}'"
+                if str(path).endswith(("tar","tar.gz","tar.bz2")):
+                    cmd = f'tar -xvf "{path}" -C "{extpath}" --warning=none'
+                else:
+                    cmd = f'7z e -y "{path}" "-o{extpath}" "-p{password}"'
                 
-                out, err = await cli_call(cmd)
+                out, err, rcode = await cli_call(cmd)
                 
                 if err:
                     if "Wrong password" in err:
