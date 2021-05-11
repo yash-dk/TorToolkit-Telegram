@@ -482,8 +482,8 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
             if metadata.has("duration"):
                 duration = metadata.get('duration').seconds
             #
-            width = 0
-            height = 0
+            width = 1280
+            height = 720
             if thumb_image_path is None:
                 thumb_image_path = await thumb_manage.get_thumbnail(path)
                 # get the correct width, height, and duration for videos greater than 10MB
