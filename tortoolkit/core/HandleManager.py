@@ -158,7 +158,7 @@ def add_handlers(bot: TelegramClient):
     )
     
     bot.add_event_handler(
-        handle_speedtest,
+        speed_handler,
         events.NewMessage(pattern=command_process(get_command("SPEEDTEST")),
         chats=get_val("ALD_USR"))
     )
