@@ -14,6 +14,7 @@ from tortoolkit.core.wserver import start_server
 from .core.database_handle import TtkUpload,TorToolkitDB,TtkTorrents, UserDB
 from .core.varholdern import VarHolder
 import time
+from datetime import datetime
 
 logging.info("Database created")
 upload_db = TtkUpload()
@@ -22,5 +23,6 @@ tor_db = TtkTorrents()
 user_db = UserDB()
 
 uptime = time.time()
+botstart = datetime.now().strftime("%Y/%m/%d %I:%M%P")
 to_del = []
 SessionVars = VarHolder(var_db)
