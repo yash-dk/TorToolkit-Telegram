@@ -31,6 +31,7 @@ async def aria_start():
     aria2_daemon_start_cmd.append("--seed-time=1")
     aria2_daemon_start_cmd.append("--split=10")
     aria2_daemon_start_cmd.append(f"--bt-stop-timeout=100")
+    aria2_daemon_start_cmd.append("--continue=true")
     #
     torlog.debug(aria2_daemon_start_cmd)
     #
@@ -51,7 +52,7 @@ async def add_magnet(aria_instance, magnetic_link, c_file_name):
     try:
         download = await aloop.run_in_executor(None, aria_instance.add_magnet, magnetic_link)
     except Exception as e:
-        return False, "**FAILED** \n" + str(e) + " \nPlease do not send SLOW links. Read /help"
+        return False, "**FAILED** \n" + str(e) + " \nPlease do not send SLOW links."
     else:
         return True, "" + download.gid + ""
 
@@ -66,7 +67,7 @@ async def add_torrent(aria_instance, torrent_file_path):
             download = await aloop.run_in_executor(None, partial(aria_instance.add_torrent, torrent_file_path, uris=None, options=None, position=None))
 
         except Exception as e:
-            return False, "**FAILED** \n" + str(e) + " \nPlease do not send SLOW links. Read /help"
+            return False, "**FAILED** \n" + str(e) + " \nPlease do not send SLOW links."
         else:
             return True, "" + download.gid + ""
     else:
@@ -81,7 +82,7 @@ async def add_url(aria_instance, text_url, c_file_name):
         download = await aloop.run_in_executor(None, aria_instance.add_uris, uris)
 
     except Exception as e:
-        return False, "**FAILED** \n" + str(e) + " \nPlease do not send SLOW links. Read /help"
+        return False, "**FAILED** \n" + str(e) + " \nPlease do not send SLOW links."
     else:
         return True, "" + download.gid + ""
 
@@ -150,7 +151,7 @@ async def aria_dl(
     await asyncio.sleep(1)
     
     if op is None:
-        await ar_task.set_inactive("Known error. Nothing wrong here. You didnt follow instructions.")
+        await ar_task.set_inactive("Known error. Nothing wrong here. You didnt follow instructions. LOL!")
         return False, ar_task
     else:
         statusr, stmsg = op
@@ -185,7 +186,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdept
                 
             else:
                 msg = file.error_message
-                await event.edit(f"`{msg}`",parse_mode="html", buttons=None)
+                await event.edit(f"{msg}",parse_mode="html", buttons=None)
                 torlog.error(f"The aria download faild due to this reason:- {msg}")
                 return False, f"The aria download faild due to this reason:- {msg}"
             await asyncio.sleep(get_val("EDIT_SLEEP_SECS"))
@@ -195,7 +196,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdept
                 aria2, gid, event, previous_message,task,user_msg=user_msg
             )
         else:
-            await event.edit(f"Download completed: <code>{file.name}</code> to path <code>{file.name}</code>",parse_mode="html", buttons=None)
+            await event.edit(f"Download completed: `{file.name}` (`{file.total_length_string()}`)", buttons=None)
             return True, "Download Complete"
     except aria2p.client.ClientException as e:
         if " not found" in str(e) or "'file'" in str(e):
@@ -205,7 +206,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdept
             except:pass
             task.cancel = True
             await task.set_inactive()
-            return False, f"The Download was canceled. {fname}"
+            return False, f"The Download was canceled: `{fname}`"
         else:
             torlog.warning("Errored due to ta client error.")
         pass
@@ -217,7 +218,11 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdept
     except Exception as e:
         torlog.info(str(e))
         if " not found" in str(e) or "'file'" in str(e):
-            return False, "The Download was canceled."
+            fname = "N/A"
+            try:
+                fname = file.name
+            except:pass
+            return False, f"The Download was canceled: `{fname~"
         else:
             torlog.warning(str(e))
             return False, f"Error: {str(e)}"
