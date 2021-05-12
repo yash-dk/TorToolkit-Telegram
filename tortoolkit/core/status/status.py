@@ -124,6 +124,9 @@ class QBTask(Status):
             torlog.debug("{}".format(e))
         except FloodWaitError as e:
             torlog.error("{}".format(e))
+        except Exception as e:
+            torlog.info("Not expected {}".format(e))
+
 
     async def set_done(self):
         self._done = True
@@ -265,6 +268,8 @@ class ARTask(Status):
             torlog.debug("{}".format(e))
         except FloodWaitError as e:
             torlog.error("{}".format(e))
+        except Exception as e:
+            torlog.info("Not expected {}".format(e))
 
     async def set_done(self):
         self._done = True

@@ -178,6 +178,8 @@ class RCUploadTask(Status):
                 torlog.debug("{}".format(e))
             except FloodWaitError as e:
                 torlog.error("{}".format(e))
+            except Exception as e:
+                torlog.info("Not expected {}".format(e))
 
     async def is_active(self):
         return self._active

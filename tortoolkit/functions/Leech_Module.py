@@ -59,7 +59,7 @@ def get_entities(msg):
     else:
         return None
 
-async def check_link(msg,rclone=False,is_zip=False, extract=False):
+async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None):
     # here moslty rmess = Reply message which the bot uses to update
     # omess = original message from the sender user 
     omess = msg
