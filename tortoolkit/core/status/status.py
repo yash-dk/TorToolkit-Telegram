@@ -120,7 +120,9 @@ class QBTask(Status):
             
             await self._message.edit(msg,parse_mode="html",buttons=self._message.reply_markup) 
 
-        except (MessageNotModifiedError,FloodWaitError) as e:
+        except MessageNotModifiedError as e:
+            torlog.debug("{}".format(e))
+        except FloodWaitError as e:
             torlog.error("{}".format(e))
 
     async def set_done(self):
@@ -259,7 +261,9 @@ class ARTask(Status):
             )
             await self._message.edit(msg,parse_mode="html",buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))]) 
 
-        except (MessageNotModifiedError,FloodWaitError) as e:
+        except MessageNotModifiedError as e:
+            torlog.debug("{}".format(e))
+        except FloodWaitError as e:
             torlog.error("{}".format(e))
 
     async def set_done(self):

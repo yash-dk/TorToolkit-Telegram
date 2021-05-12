@@ -4,6 +4,7 @@
 from .status import Status, QBTask
 from ..getVars import get_val
 import os, re, logging
+from telethon.errors.rpcerrorlist import MessageNotModifiedError, FloodWaitError
 
 torlog = logging.getLogger(__name__)
 
@@ -173,8 +174,10 @@ class RCUploadTask(Status):
             self._prev_cont = progress
             try:
                 await self._message.edit(progress,parse_mode="html")
-            except Exception as e:
-                torlog.error(e)
+            except MessageNotModifiedError as e:
+                torlog.debug("{}".format(e))
+            except FloodWaitError as e:
+                torlog.error("{}".format(e))
 
     async def is_active(self):
         return self._active
