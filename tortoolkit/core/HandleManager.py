@@ -206,6 +206,10 @@ def add_handlers(bot: TelegramClient):
         handle_user_setting_callback,
         events.CallbackQuery(pattern="usetting")
     )
+    bot.add_event_handler(
+        handle_server_command,
+        events.CallbackQuery(pattern="fullserver")
+    )
     test()
 #*********** Handlers Below ***********
 
@@ -587,8 +591,36 @@ async def start_handler(event):
     msg = "Hello This is TorToolkit an instance of <a href='https://github.com/yash-dk/TorToolkit-Telegram'>This Repo</a>. Try the repo for yourself and dont forget to put a STAR and fork."
     await event.reply(msg, parse_mode="html")
 
+def progress_bar(percentage):
+    """Returns a progress bar for download
+    """
+    #percentage is on the scale of 0-1
+    comp = get_val("COMPLETED_STR")
+    ncomp = get_val("REMAINING_STR")
+    pr = ""
+
+    if isinstance(percentage, str):
+        return "NaN"
+
+    try:
+        percentage=int(percentage)
+    except:
+        percentage = 0
+
+    for i in range(1,11):
+        if i <= int(percentage/10):
+            pr += comp
+        else:
+            pr += ncomp
+    return pr
 
 async def handle_server_command(message):
+    print(type(message))
+    if isinstance(message, events.CallbackQuery.Event):
+        callbk = True
+    else:
+        callbk = False
+
     try:
         # Memory
         mem = psutil.virtual_memory()
@@ -647,29 +679,49 @@ async def handle_server_command(message):
     diff = time.time() - uptime
     diff = Human_Format.human_readable_timedelta(diff)
 
-    msg = (
-        f"<b>BOT UPTIME:-</b> {diff}\n\n"
-        "<b>CPU STATS:-</b>\n"
-        f"Cores: {cores} Logical: {lcores}\n"
-        f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
-        f"CPU Utilization: {cpupercent}%\n"
-        "\n"
-        "<b>STORAGE STATS:-</b>\n"
-        f"Total: {totaldsk}\n"
-        f"Used: {useddsk}\n"
-        f"Free: {freedsk}\n"
-        "\n"
-        "<b>MEMORY STATS:-</b>\n"
-        f"Available: {memavailable}\n"
-        f"Total: {memtotal}\n"
-        f"Usage: {mempercent}%\n"
-        f"Free: {memfree}\n"
-        "\n"
-        "<b>TRANSFER INFO:</b>\n"
-        f"Download: {dlb}\n"
-        f"Upload: {upb}\n"
-    )
-    await message.reply(msg, parse_mode="html")
+    if callbk:
+        msg = (
+            f"<b>BOT UPTIME:-</b> {diff}\n\n"
+            "<b>CPU STATS:-</b>\n"
+            f"Cores: {cores} Logical: {lcores}\n"
+            f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
+            f"CPU Utilization: {cpupercent}%\n"
+            "\n"
+            "<b>STORAGE STATS:-</b>\n"
+            f"Total: {totaldsk}\n"
+            f"Used: {useddsk}\n"
+            f"Free: {freedsk}\n"
+            "\n"
+            "<b>MEMORY STATS:-</b>\n"
+            f"Available: {memavailable}\n"
+            f"Total: {memtotal}\n"
+            f"Usage: {mempercent}%\n"
+            f"Free: {memfree}\n"
+            "\n"
+            "<b>TRANSFER INFO:</b>\n"
+            f"Download: {dlb}\n"
+            f"Upload: {upb}\n"
+        )
+        await message.edit(msg, parse_mode="html", buttons=None)
+    else:
+        try:
+            storage_percent = round((usage.used/usage.total)*100,2)
+        except:
+            storage_percent = 0
+
+        
+        msg = (
+            f"<b>BOT UPTIME:-</b> {diff}\nWill Reboot in 24 hours.\n\n"
+            f"CPU Utilization: {progress_bar(cpupercent)} - {cpupercent}%\n\n"
+            f"Storage used:- {progress_bar(storage_percent)} - {storage_percent}%\n"
+            f"Total: {totaldsk} Free: {freedsk}\n\n"
+            f"Memory used:- {progress_bar(mempercent)} - {mempercent}%\n"
+            f"Total: {memtotal} Free: {memfree}\n\n"
+            f"Transfer Download:- {dlb}\n"
+            f"Transfer Upload:- {upb}\n"
+        )
+        await message.reply(msg, parse_mode="html", buttons=[[KeyboardButtonCallback("Get detailed stats.","fullserver")]])
+
 
 async def about_me(message):
     db = var_db
