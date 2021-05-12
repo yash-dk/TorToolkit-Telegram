@@ -47,14 +47,14 @@ async def progress(current,total,message,file_name,start,time_out,cancel_msg=Non
         try:
             if not message.photo:
                 await message.edit(
-                    text="{}\n {}".format(
+                    text="`{}`\n{}".format(
                         file_name,
                         tmp
                     )
                 )
             else:
                 await message.edit(
-                    caption="{}\n {}".format(
+                    caption="`{}`\n{}".format(
                         file_name,
                         tmp
                     )
