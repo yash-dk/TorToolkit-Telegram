@@ -28,6 +28,7 @@ from .status.status import Status
 from .status.menu import create_status_menu, create_status_user_menu
 import signal
 from PIL import Image
+from speedtest import Speedtest
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -153,6 +154,12 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         set_thumb_cmd,
         events.NewMessage(pattern=command_process(get_command("SETTHUMB")),
+        chats=get_val("ALD_USR"))
+    )
+    
+    bot.add_event_handler(
+        handle_speedtest,
+        events.NewMessage(pattern=command_process(get_command("SPEEDTEST")),
         chats=get_val("ALD_USR"))
     )
 
@@ -483,8 +490,6 @@ async def callback_handler_canc(e):
 
 
 async def handle_exec_message_f(e):
-    if get_val("REST11"):
-        return
     message = e
     client = e.client
     if await is_admin(client, message.sender_id, message.chat_id, force_owner=True):
@@ -538,17 +543,15 @@ async def handle_pincode_cb(e):
         if isinstance(passw,bool):
             await e.answer("torrent expired download has been started now.")
         else:
-            await e.answer(f"Your Pincode if \"{passw}\"",alert=True)
+            await e.answer(f"Your Pincode is: {passw}",alert=True)
 
         
     else:
         await e.answer("Its not you torrent.",alert=True)
 
 async def upload_document_f(message):
-    if get_val("REST11"):
-        return
     imsegd = await message.reply(
-        "processing ..."
+        "Processing logs..."
     )
     imsegd = await message.client.get_messages(message.chat_id,ids=imsegd.id)
     if await is_admin(message.client, message.sender_id, message.chat_id, force_owner=True):
@@ -589,8 +592,40 @@ async def set_password_zip(message):
 
 async def start_handler(event):
     msg = "Hello This is TorToolkit an instance of <a href='https://github.com/yash-dk/TorToolkit-Telegram'>This Repo</a>. Try the repo for yourself and dont forget to put a STAR and fork."
-    await event.reply(msg, parse_mode="html")
-
+    await event.reply(msg, parse_mode="html"
+                      
+async def speed_handler(message):
+    imspd = await message.reply("`Testing Speedtest...`")
+    test = Speedtest()
+    test.get_best_server()
+    test.download()
+    test.upload()
+    test.results.share()
+    result = test.results.dict()
+    path = (result['share'])
+    string_speed = f'
+Speedtest Result:-
+**Server:** `{result["server"]["name"]}`
+**Country:** `{result["server"]["country"]}, {result["server"]["cc"]}`
+**Sponsor:** `{result["server"]["sponsor"]}`
+**Upload:** `{speed_convert(result["upload"] / 8)}`
+**Download:** `{speed_convert(result["download"] / 8)}`
+**Ping:** `{result["ping"]} ms`
+**ISP:** `{result["client"]["isp"]}
+'
+    await imspd.delete()
+    await message.reply(string_speed, parse_mode="markdown")
+                             
+def speed_convert(size):
+    """Hi human, you can't read bytes?"""
+    power = 2 ** 10
+    zero = 0
+    units = {0: "", 1: "KB/s", 2: "MB/s", 3: "GB/s", 4: "TB/s"}
+    while size > power:
+        size /= power
+        zero += 1
+    return f"{round(size, 2)} {units[zero]}"
+ 
 def progress_bar(percentage):
     """Returns a progress bar for download
     """
@@ -712,10 +747,10 @@ async def handle_server_command(message):
         
         msg = (
             f"<b>BOT UPTIME:-</b> {diff}\nWill Reboot in 24 hours.\n\n"
-            f"CPU Utilization: {progress_bar(cpupercent)} - {cpupercent}%\n\n"
-            f"Storage used:- {progress_bar(storage_percent)} - {storage_percent}%\n"
+            f"CPU Utilization:\n{progress_bar(cpupercent)} - {cpupercent}%\n\n"
+            f"Storage used:-\n{progress_bar(storage_percent)} - {storage_percent}%\n"
             f"Total: {totaldsk} Free: {freedsk}\n\n"
-            f"Memory used:- {progress_bar(mempercent)} - {mempercent}%\n"
+            f"Memory used:-\n{progress_bar(mempercent)} - {mempercent}%\n"
             f"Total: {memtotal} Free: {memfree}\n\n"
             f"Transfer Download:- {dlb}\n"
             f"Transfer Upload:- {upb}\n"
@@ -773,12 +808,12 @@ async def about_me(message):
         "1.DB Optimizations.\n"
         "2.Database handling on disconnections..\n"
         "3.Support for ARM devices.\n"
-        "4.Support for ARM devices.\n"
-        "5.Gdrive Support for PYTDL and YTDL\n"
-        "6.Upload YT Playlist even when some vids are errored.\n"
-        "7.Changed /server menu.\n"
-        "8.Minor fixes.\n"
-        "9.Deploy takes less then 2 mins now.\n"
+        "4.Gdrive Support for PYTDL and YTDL\n"
+        "5.Upload YT Playlist even when some vids are errored.\n"
+        "6.Changed /server menu.\n"
+        "7.Minor fixes.\n"
+        "8.Deploy takes less then 2 mins now.\n"
+        "9.Added /speedtest cmd."
     )
 
     await message.reply(msg,parse_mode="html")
