@@ -222,7 +222,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdept
             try:
                 fname = file.name
             except:pass
-            return False, f"The Download was canceled: `{fname~"
+            return False, f"The Download was canceled: `{fname}"
         else:
             torlog.warning(str(e))
             return False, f"Error: {str(e)}"
