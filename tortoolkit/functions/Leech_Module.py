@@ -278,8 +278,8 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             # currently discontinuing the depending on the entities as its eratic
             urls = msg.raw_text
             url = None
-            torlog.info("The aria2 Downloading:\n{}".format(urls))
-            rmsg = await omess.reply("**Processing the link...**")
+            torlog.info(f"The aria2 Downloading: {urls}")
+            rmsg = await omess.reply(f"**Processing link:** `{urls}`")
             await aio.sleep(1)
             # Starting directlink generator... 
             
@@ -300,47 +300,34 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     info = page.find('a', {'aria-label': 'Download file'})
                     url = info.get('href')
                 except:
-                    await omess.reply("**No mediafire link found.**")
+                    await omess.reply("**No mediafire link found.**")               
                 
-                
-            #Zippyshare
+            #Zippyshare based on https://github.com/LameLemon/ziggy //sync with aiohttp by @yourtulloh
             elif  'zippyshare.com' in urls:
                 await rmsg.edit("`Generating zippyshare link.`")
                 await aio.sleep(2)
-                #Zippyshare fix directlink generator for ttk by @yourtulloh based on:
-                #Zippyshare up-to-date plugin from https://github.com/UsergeTeam/Userge-Plugins/blob/master/plugins/zippyshare.py
-                #Thanks to all contributors @aryanvikash, rking32, @BianSepang
-                tulloh = r'https://www(\d{1,3}).zippyshare.com/v/(\w{8})/file.html'
-                regex_result = (
-                    r'var a = (\d{6});\s+var b = (\d{6});\s+document\.getElementById'
-                    r'\(\'dlbutton\'\).omg = "f";\s+if \(document.getElementById\(\''
-                    r'dlbutton\'\).omg != \'f\'\) {\s+a = Math.ceil\(a/3\);\s+} else'
-                    r' {\s+a = Math.floor\(a/3\);\s+}\s+document.getElementById\(\'d'
-                    r'lbutton\'\).href = "/d/[a-zA-Z\d]{8}/\"\+\(a \+ \d{6}%b\)\+"/('
-                    r'[\w%-.]+)";'
-                )
-                
-                match = re.match(tulloh, urls)
-                if not match:
-                    await omess.reply("**Invalid URL:**\n" + str(urls))
-                
-                server, id_ = match.group(1), match.group(2)
+                try:
+                    link = re.findall(r'\bhttps?://.*zippyshare\.com\S+', urls)[0]
+                except:
+                    await omess.reply("**No zippyshare link found.**")
                 async with aiohttp.ClientSession() as ttksess:
-                    resp = await ttksess.get(urls)
+                    resp = await ttksess.get(link)
                     restext = await resp.text()
-                    
-                match = re.search(regex_result, restext, re.DOTALL)
-                if not match:
-                    await omess.reply("**Invalid response, try again!**")
+                base_url = re.search('http.+.com', restext).group()
+                page_soup = BeautifulSoup(restext, 'lxml')
+                scripts = page_soup.find_all("script", {"type": "text/javascript"})
+                for script in scripts:
+                    if "getElementById('dlbutton')" in script.text:
+                        url_raw = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
+                                            script.text).group('url')
+                        math = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
+                           script.text).group('math')
+                        url = url_raw.replace(math, '"' + str(eval(math)) + '"')
+                        break
+                url = base_url + eval(url)
+                name = urllib.parse.unquote(url.split('/')[-1])
                 
-                val_1 = int(match.group(1))
-                val_2 = math.floor(val_1 / 3)
-                val_3 = int(match.group(2))
-                val = val_1 + val_2 % val_3
-                name = match.group(3)
-                url = "https://www{}.zippyshare.com/d/{}/{}/{}".format(server, id_, val, name)
-                
-           #yadisk
+            #yadisk
             elif 'yadi.sk' in urls or 'disk.yandex.com' in urls:
                 await rmsg.edit("`Generating yadisk link.`")
                 await aio.sleep(2)
@@ -360,6 +347,31 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
                     torlog.exception("Ayee jooo")
                     await omess.reply("**404 File Not Found** or \n**Download limit reached.**")
 
+            #Racaty
+            elif 'racaty.net' in urls:
+                await rmsg.edit("`Generating Racaty link.`")
+                await aio.sleep(2)
+                try:
+                    link = re.findall(r'\bhttps?://.*racaty\.net\S+', urls)[0]
+                except:
+                    await omess.reply("**No racaty link found.**")
+                async with aiohttp.ClientSession() as ttksess:
+                        resp = await ttksess.get(link)
+                        restext = await resp.text()                      
+                bss=BeautifulSoup(restext,'html.parser')
+                op=bss.find('input',{'name':'op'})['value']
+                id=bss.find('input',{'name':'id'})['value']
+                async with aiohttp.ClientSession() as ttksess:
+                        rep = await ttksess.post(link,data={'op':op,'id':id})
+                        reptext = await rep.text()
+                bss2=BeautifulSoup(reptext,'html.parser')
+                url = bss2.find('a',{'id':'uniqueExpirylink'})['href']
+                    
+            #blocklinks
+            elif 'mega.nz' or 'drive.google.com' or 'uptobox.com' or '1fiecher.com' in urls:
+                await rmsg.edit("`Unsupported URL!`")
+                await aio.sleep(2)
+                return
             # End directlink generator.
             re_name = None
             try:
@@ -451,22 +463,22 @@ async def handle_zips(path, is_zip, rmess, split=True):
     rmess = await rmess.client.get_messages(rmess.chat_id,ids=rmess.id)
     if is_zip:
         try:
-            await rmess.edit(rmess.text+"\n Starting to Zip the contents. Please wait.")
+            await rmess.edit(rmess.text+"\nStarting to Zip the contents. Please wait!")
             zip_path = await add_to_zip(path, get_val("TG_UP_LIMIT"), split)
             
             if zip_path is None:
-                await rmess.edit(rmess.text+"\n Zip failed. Falback to normal")
+                await rmess.edit(rmess.text+"\nZip failed. Fallback to normal!")
                 return False
             
             if os.path.isdir(path):
                 shutil.rmtree(path)
             if os.path.isfile(path):
                 os.remove(path)
-            await rmess.edit(rmess.text+"\n Zipping Done now uploading.")
+            await rmess.edit(rmess.text+"\nZipping Done now uploading.")
             await clear_stuff(path)
             return zip_path
         except:
-            await rmess.edit(rmess.text+"\n Zip failed. Falback to normal")
+            await rmess.edit(rmess.text+"\nZip failed. Fallback to normal!")
             return False
     else:
         return path
@@ -478,7 +490,7 @@ async def handle_ext_zip(path, rmess, omess):
     if password is not None:
         password = password[1]
     start = time.time()
-    await rmess.edit(f"{rmess.text} Trying to Extract the archive with password <code>{password}</code>.", parse_mode="html")
+    await rmess.edit(f"{rmess.text}\nTrying to Extract the archive with password: `{password}`")
     wrong_pwd = False
 
     while True:
@@ -486,7 +498,7 @@ async def handle_ext_zip(path, rmess, omess):
             ext_path = await extract_archive(path,password=password)
         else:
             if (time.time() - start) > 1200:
-                await rmess.edit(f"{rmess.text} Extract failed as no correct password was provided uploading as it is.")
+                await rmess.edit(f"{rmess.text}\nExtract failed as no correct password was provided uploading as it is.")
                 return False
 
             temppass = rmess.client.dl_passwords.get(omess.id)
