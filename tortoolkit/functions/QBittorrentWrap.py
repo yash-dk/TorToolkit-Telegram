@@ -199,7 +199,7 @@ async def update_progress(client,message,torrent,task,except_retry=0,sleepsec=No
         else:
             task.cancel = True
             await task.set_inactive()
-            await message.edit("Torrent canceled ```{}``` ".format(torrent.name),buttons=None)
+            await message.edit("Torrent canceled: `{}` ".format(torrent.name),buttons=None)
             return True
         
         if tor_info.size > (get_val("MAX_TORRENT_SIZE") * 1024 * 1024 * 1024):
@@ -256,7 +256,7 @@ async def update_progress(client,message,torrent,task,except_retry=0,sleepsec=No
 
                     await task.set_path(savepath)
                     await task.set_done()
-                    await message.edit("Download completed ```{}```. To path ```{}```".format(tor_info.name,tor_info.save_path),buttons=None)
+                    await message.edit("Download completed: `{}` (`{}`)\nTo path: `{}`".format(tor_info.name,human_readable_bytes(tor_info.total_size),tor_info.save_path),buttons=None)
                     return [savepath, task]
                 else:
                     #return await update_progress(client,message,torrent)
