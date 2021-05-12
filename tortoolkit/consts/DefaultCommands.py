@@ -18,3 +18,4 @@ class Commands:
     USTATUS = "ustatus"
     SETTHUMB = "setthumb"
     CLRTHUMB = "clearthumb"
+    SPEEDTEST = "speedtest"
