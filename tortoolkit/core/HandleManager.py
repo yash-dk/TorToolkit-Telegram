@@ -770,9 +770,14 @@ async def about_me(message):
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
-        "1.Dead Torrent Will be timed out and removed.\n"
-        "2.Added /setthumb and /clearthumb.\n"
-        "3.Restrict Stuff to Owner.\n"
+        "1.DB Optimizations.\n"
+        "2.Database handling on disconnections..\n"
+        "3.Support for ARM devices.\n"
+        "4.Support for ARM devices.\n"
+        "5.Gdrive Support for PYTDL and YTDL\n"
+        "6.Upload YT Playlist even when some vids are errored.\n"
+        "7.Changed /server menu.\n"
+        "8.Minor fixes.\n"
     )
 
     await message.reply(msg,parse_mode="html")
