@@ -10,7 +10,8 @@ from requests.utils import requote_uri
 from ..core.getVars import get_val
 from .. import upload_db, var_db
 from telethon.tl.types import KeyboardButtonCallback
-from ..core.status.upload import RCUploadTask 
+from ..core.status.upload import RCUploadTask
+from .Human_Format import human_readable_bytes
 
 torlog = logging.getLogger(__name__)
 
@@ -145,7 +146,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
                 [KeyboardButtonUrl("Index URL",index_link)]
             )
 
-        txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,os.path.basename(path))
+        txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FILE :-<code>{}</code> (<code>{}</code>)\nTo Drive.".format(omsg.sender_id,os.path.basename(path),human_readable_bytes(os.path.getsize(path)))
 
         
         await omsg.reply(txtmsg,buttons=buttons,parse_mode="html")
