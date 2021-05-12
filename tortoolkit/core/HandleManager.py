@@ -603,7 +603,7 @@ async def speed_handler(message):
     test.results.share()
     result = test.results.dict()
     path = (result['share'])
-    string_speed = f'
+    string_speed = f'''
 Speedtest Result:-
 **Server:** `{result["server"]["name"]}`
 **Country:** `{result["server"]["country"]}, {result["server"]["cc"]}`
@@ -612,7 +612,7 @@ Speedtest Result:-
 **Download:** `{speed_convert(result["download"] / 8)}`
 **Ping:** `{result["ping"]} ms`
 **ISP:** `{result["client"]["isp"]}
-'
+'''
     await imspd.delete()
     await message.reply(string_speed, parse_mode="markdown")
                              
