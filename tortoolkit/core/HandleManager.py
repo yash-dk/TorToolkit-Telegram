@@ -778,6 +778,7 @@ async def about_me(message):
         "6.Upload YT Playlist even when some vids are errored.\n"
         "7.Changed /server menu.\n"
         "8.Minor fixes.\n"
+        "9.Deploy takes less then 2 mins now.\n"
     )
 
     await message.reply(msg,parse_mode="html")
