@@ -592,7 +592,7 @@ async def set_password_zip(message):
 
 async def start_handler(event):
     msg = "Hello This is TorToolkit an instance of <a href='https://github.com/yash-dk/TorToolkit-Telegram'>This Repo</a>. Try the repo for yourself and dont forget to put a STAR and fork."
-    await event.reply(msg, parse_mode="html"
+    await event.reply(msg, parse_mode="html")
                       
 async def speed_handler(message):
     imspd = await message.reply("`Testing Speedtest...`")
