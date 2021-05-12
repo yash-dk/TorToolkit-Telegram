@@ -65,7 +65,7 @@ async def progress_for_pyrogram(
         try:
             if not message.photo:
                 await message.edit_text(
-                    text="{}\n {}".format(
+                    text="`{}`\n{}".format(
                         ud_type,
                         tmp
                     ),
@@ -73,7 +73,7 @@ async def progress_for_pyrogram(
                 )
             else:
                 await message.edit_caption(
-                    caption="{}\n {}".format(
+                    caption="`{}`\n{}".format(
                         ud_type,
                         tmp
                     ),
