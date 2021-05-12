@@ -17,7 +17,7 @@ from .user_settings import handle_user_settings, handle_user_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
-from .. import upload_db, var_db, tor_db, user_db, uptime
+from .. import upload_db, var_db, tor_db, user_db, uptime, botstart
 import asyncio as aio
 import re,logging,time,os,psutil,shutil
 from tortoolkit import __version__
@@ -713,10 +713,11 @@ async def handle_server_command(message):
 
     diff = time.time() - uptime
     diff = Human_Format.human_readable_timedelta(diff)
+    starttime = botstart
 
     if callbk:
         msg = (
-            f"<b>BOT UPTIME:-</b> {diff}\n\n"
+            f"<b>BOT UPTIME:-</b> {diff}\n<b>BOT START TIME:-</b> {starttime}\n\n"
             "<b>CPU STATS:-</b>\n"
             f"Cores: {cores} Logical: {lcores}\n"
             f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
@@ -746,7 +747,7 @@ async def handle_server_command(message):
 
         
         msg = (
-            f"<b>BOT UPTIME:-</b> {diff}\nWill Reboot in 24 hours.\n\n"
+            f"<b>BOT UPTIME:-</b> {diff}\n<b>BOT START TIME:-</b> {starttime}\nWill Reboot in 24 hours.\n\n"
             f"CPU Utilization:\n{progress_bar(cpupercent)} - {cpupercent}%\n\n"
             f"Storage used:-\n{progress_bar(storage_percent)} - {storage_percent}%\n"
             f"Total: {totaldsk} Free: {freedsk}\n\n"
