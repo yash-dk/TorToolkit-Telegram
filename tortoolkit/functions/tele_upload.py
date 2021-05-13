@@ -55,7 +55,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 await task.set_original_message(sup_mes)
             
             data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
-            buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
+            buts = [KeyboardButtonCallback("Cancel upload",data.encode("UTF-8"))]
             message = await message.edit(buttons=buts)
 
 
@@ -261,7 +261,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
 
     if not force_edit:        
         data = "upcancel {} {} {}".format(message.chat_id,message.id,user_msg.sender_id)
-        buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
+        buts = [KeyboardButtonCallback("Cancel upload",data.encode("UTF-8"))]
         msg = await message.reply("`{}`".format(file_name),buttons=buts)
 
     else:
