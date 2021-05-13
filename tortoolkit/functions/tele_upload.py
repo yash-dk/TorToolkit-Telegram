@@ -28,7 +28,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
     #logging.info("Uploading Now:- {}".format(path))
 
     if os.path.isdir(path):
-        logging.info("Uplaoding the directory:- {}".format(path))
+        logging.info("Uploading the directory:- {}".format(path))
 
         directory_contents = os.listdir(path)
         directory_contents.sort()
@@ -134,7 +134,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                     await task.set_original_message(sup_mes)
 
                 data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
-                buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
+                buts = [KeyboardButtonCallback("Cancel upload",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
 
             for file in dircon:
@@ -186,7 +186,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                     await task.set_original_message(sup_mes)
 
                 data = "upcancel {} {} {}".format(message.chat_id,message.id,sup_mes.sender_id)
-                buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
+                buts = [KeyboardButtonCallback("Cancel upload",data.encode("UTF-8"))]
                 await message.edit(buttons=buts)
             #print(updb)
             if black_list_exts(path):
@@ -262,7 +262,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     if not force_edit:        
         data = "upcancel {} {} {}".format(message.chat_id,message.id,user_msg.sender_id)
         buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
-        msg = await message.reply("**Uploading:** `{}`".format(file_name),buttons=buts)
+        msg = await message.reply("`{}`".format(file_name),buttons=buts)
 
     else:
         msg = message
@@ -270,7 +270,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     uploader_id = None
     if queue is not None:
         torlog.info(f"Waiting for the worker here for {file_name}")
-        msg = await msg.edit(f"{msg.text}\nWaiting for a uploaders to get free...")
+        msg = await msg.edit(f"<u>Trying upload file</u> <code>{msg.text}</code>\nWaiting for a uploaders to get free...", parse_mode="html")
         uploader_id = await queue.get()
         torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
 
@@ -475,13 +475,13 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
             data = "upcancel {} {} {}".format(message.chat.id,message.message_id,user_msg.sender_id)
             markup = InlineKeyboardMarkup([[InlineKeyboardButton("Cancel Upload", callback_data=data.encode("UTF-8"))]])
             message_for_progress_display = await message.reply_text(
-                "**Starting upload of** `{}`".format(os.path.basename(path)),
+                "`{}`".format(os.path.basename(path)),
                 reply_markup=markup
             )
 
             if queue is not None:
                 torlog.info(f"Waiting for the worker here for {file_name}")
-                message_for_progress_display = await message_for_progress_display.edit(f"{message_for_progress_display.text}\nWaiting for a uploaders to get free...")
+                message_for_progress_display = await message_for_progress_display.edit(f"<u>Trying upload file</u> <code>{message_for_progress_display.text}</code>\nWaiting for a uploaders to get free...", parse_mode="html")
                 uploader_id = await queue.get()
                 torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
         
