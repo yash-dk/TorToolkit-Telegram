@@ -69,8 +69,9 @@ async def generate_directs(url):
             return ourl
         except:
             return "**ERROR: No racaty link found.**"
-        
-    elif 'yadi.sk' in url or 'disk.yandex.com' in url:
+     
+    #disk.yandex.com
+    elif 'yadi.sk' or 'disk.yandex.com' in url:
         try:
             link = re.findall(r'\b(https?://.*(yadi|disk)\.(sk|yandex)*(|com)\S+)', url)[0][0]
             print(link)
