@@ -490,7 +490,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
             duration = 0
             if metadata.has("duration"):
                 duration = metadata.get('duration').seconds
-            #Fixed Video Square problem in tele desktop by github.com/WebTime
+
             width = 1280
             height = 720
             if thumb_image_path is None:

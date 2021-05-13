@@ -17,6 +17,7 @@ from ..core.getVars import get_val
 from ..core.status.status import ARTask
 from ..core.status.upload import TGUploadTask
 from ..functions.Human_Format import human_readable_bytes
+from .dl_generator import generate_directs
 
 #logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("telethon").setLevel(logging.WARNING)
@@ -59,7 +60,7 @@ def get_entities(msg):
     else:
         return None
 
-async def check_link(msg,rclone=False,is_zip=False, extract=False):
+async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None):
     # here moslty rmess = Reply message which the bot uses to update
     # omess = original message from the sender user 
     omess = msg
@@ -274,105 +275,17 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             return dl_path
 
         else:
-            # url = get_entities(msg)
-            # currently discontinuing the depending on the entities as its eratic
-            urls = msg.raw_text
-            url = None
-            torlog.info(f"The aria2 Downloading: {urls}")
-            rmsg = await omess.reply(f"**Processing link:** `{urls}`")
+            url = msg.raw_text
+            torlog.info("The aria2 Downloading:\n{}".format(url))
+            rmsg = await omess.reply("**Processing the link...**")
             await aio.sleep(1)
-            # Starting directlink generator... 
+    
+            url = await generate_directs(url)
+            if url is not None:
+                if "**ERROR" in url:
+                    await omess.reply(url)
+                    return
             
-            # A mention https://github.com/yash-dk/TorToolkit-Telegram/pull/42 [professor-21]
-            # For initial contibution of ZippyShare and Mediafire. 
-            
-            #Mediafire
-            if 'mediafire.com' in urls:
-                await rmsg.edit("`Generating mediafire link.`")
-                await aio.sleep(2)
-                try:
-                    link = re.findall(r'\bhttps?://.*mediafire\.com\S+', urls)[0]
-                    async with aiohttp.ClientSession() as ttksess:
-                        resp = await ttksess.get(link)
-                        restext = await resp.text()
-                    
-                    page = BeautifulSoup(restext, 'lxml')
-                    info = page.find('a', {'aria-label': 'Download file'})
-                    url = info.get('href')
-                except:
-                    await omess.reply("**No mediafire link found.**")               
-                
-            #Zippyshare based on https://github.com/LameLemon/ziggy //sync with aiohttp by @yourtulloh
-            elif  'zippyshare.com' in urls:
-                await rmsg.edit("`Generating zippyshare link.`")
-                await aio.sleep(2)
-                try:
-                    link = re.findall(r'\bhttps?://.*zippyshare\.com\S+', urls)[0]
-                except:
-                    await omess.reply("**No zippyshare link found.**")
-                async with aiohttp.ClientSession() as ttksess:
-                    resp = await ttksess.get(link)
-                    restext = await resp.text()
-                base_url = re.search('http.+.com', restext).group()
-                page_soup = BeautifulSoup(restext, 'lxml')
-                scripts = page_soup.find_all("script", {"type": "text/javascript"})
-                for script in scripts:
-                    if "getElementById('dlbutton')" in script.text:
-                        url_raw = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
-                                            script.text).group('url')
-                        math = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
-                           script.text).group('math')
-                        url = url_raw.replace(math, '"' + str(eval(math)) + '"')
-                        break
-                url = base_url + eval(url)
-                name = urllib.parse.unquote(url.split('/')[-1])
-                
-            #yadisk
-            elif 'yadi.sk' in urls or 'disk.yandex.com' in urls:
-                await rmsg.edit("`Generating yadisk link.`")
-                await aio.sleep(2)
-                try:
-                    link = re.findall(r'\b(https?://.*(yadi|disk)\.(sk|yandex)*(|com)\S+)', urls)[0][0]
-                    print(link)
-                except:
-                    await omess.reply("**No yadisk link found.**")
-                api = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}'
-                try:
-                    async with aiohttp.ClientSession() as ttksess:
-                        resp = await ttksess.get(api.format(link))
-                        restext = await resp.json()
-                        url = restext['href']
-                    
-                except:
-                    torlog.exception("Ayee jooo")
-                    await omess.reply("**404 File Not Found** or \n**Download limit reached.**")
-
-            #Racaty
-            elif 'racaty.net' in urls:
-                await rmsg.edit("`Generating Racaty link.`")
-                await aio.sleep(2)
-                try:
-                    link = re.findall(r'\bhttps?://.*racaty\.net\S+', urls)[0]
-                except:
-                    await omess.reply("**No racaty link found.**")
-                async with aiohttp.ClientSession() as ttksess:
-                        resp = await ttksess.get(link)
-                        restext = await resp.text()                      
-                bss=BeautifulSoup(restext,'html.parser')
-                op=bss.find('input',{'name':'op'})['value']
-                id=bss.find('input',{'name':'id'})['value']
-                async with aiohttp.ClientSession() as ttksess:
-                        rep = await ttksess.post(link,data={'op':op,'id':id})
-                        reptext = await rep.text()
-                bss2=BeautifulSoup(reptext,'html.parser')
-                url = bss2.find('a',{'id':'uniqueExpirylink'})['href']
-                    
-            #blocklinks
-            elif 'mega.nz' or 'drive.google.com' or 'uptobox.com' or '1fiecher.com' in urls:
-                await rmsg.edit("`Unsupported URL!`")
-                await aio.sleep(2)
-                return
-            # End directlink generator.
             re_name = None
             try:
                 if " "  in omess.raw_text:
@@ -387,6 +300,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False):
             # weird stuff had to refect message
             path = None
             rmsg = await omess.client.get_messages(ids=rmsg.id, entity=rmsg.chat_id)
+
             if url is None:
                 stat, dl_task = await ariatools.aria_dl(msg.raw_text,"",rmsg,omess)
             else:
@@ -530,8 +444,7 @@ async def handle_ext_zip(path, rmess, omess):
         else:
             await clear_stuff(path)
             return ext_path
-    
-
+            
 async def errored_message(e, reason):
     msg = f"<a href='tg://user?id={e.sender_id}'>Done</a>\nYour Download Failed."
     if reason is not None:

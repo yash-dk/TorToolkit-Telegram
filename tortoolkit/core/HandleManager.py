@@ -267,12 +267,12 @@ async def handle_leech_command(e):
 
         if rclone:
             if get_val("RCLONE_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext)
+                await check_link(e,rclone, is_zip, is_ext, conf_mes)
             else:
                 await e.reply("<b>DRIVE IS DISABLED BY THE ADMIN</b>",parse_mode="html")
         else:
             if get_val("LEECH_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext)
+                await check_link(e,rclone, is_zip, is_ext, conf_mes)
             else:
                 await e.reply("<b>TG LEECH IS DISABLED BY THE ADMIN</b>",parse_mode="html")
 

@@ -30,7 +30,7 @@ if __name__ == "__main__":
     for i in range(1,4):
         queue.put_nowait(i)
 
-    for i in range(1,4):
+    for i in range(1,5):
         exqueue.put_nowait(i)
     
     # Telethon client creation
