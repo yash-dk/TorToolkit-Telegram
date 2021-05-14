@@ -595,7 +595,7 @@ async def start_handler(event):
     await event.reply(msg, parse_mode="html")
                       
 async def speed_handler(message):
-    imspd = await message.reply("`Testing Speedtest...`")
+    imspd = await message.reply("`dl_up.testing_speed()`")
     test = Speedtest()
     test.get_best_server()
     test.download()
@@ -611,7 +611,7 @@ Speedtest Result:-
 **Upload:** `{speed_convert(result["upload"] / 8)}`
 **Download:** `{speed_convert(result["download"] / 8)}`
 **Ping:** `{result["ping"]} ms`
-**ISP:** `{result["client"]["isp"]}
+**ISP:** `{result["client"]["isp"]}`
 '''
     await imspd.delete()
     await message.reply(string_speed, parse_mode="markdown")
@@ -717,7 +717,7 @@ async def handle_server_command(message):
 
     if callbk:
         msg = (
-            f"<b>BOT UPTIME:-</b> {diff}\n<b>BOT START TIME:-</b> {starttime}\n\n"
+            f"<b>BOT UPTIME:-</b> {diff}\n<b>BOT START TIME:-</b>\n{starttime}\n\n"
             "<b>CPU STATS:-</b>\n"
             f"Cores: {cores} Logical: {lcores}\n"
             f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
@@ -747,7 +747,7 @@ async def handle_server_command(message):
 
         
         msg = (
-            f"<b>BOT UPTIME:-</b> {diff}\n<b>BOT START TIME:-</b> {starttime}\nWill Reboot in 24 hours.\n\n"
+            f"<b>BOT UPTIME:-</b> {diff}\n<b>BOT START TIME:-</b>\n{starttime}\nWill Reboot in 24 hours.\n\n"
             f"CPU Utilization:\n{progress_bar(cpupercent)} - {cpupercent}%\n\n"
             f"Storage used:-\n{progress_bar(storage_percent)} - {storage_percent}%\n"
             f"Total: {totaldsk} Free: {freedsk}\n\n"
@@ -788,6 +788,7 @@ async def about_me(message):
 
     diff = time.time() - uptime
     diff = Human_Format.human_readable_timedelta(diff)
+    starttime = botstart
 
     msg = (
         "<b>Name</b>: <code>TorToolkit</code>\n"
@@ -797,6 +798,7 @@ async def about_me(message):
         "<b>Created By</b>: @yaknight\n\n"
         "<u>Currents Configs:-</u>\n\n"
         f"<b>Bot Uptime:-</b> {diff}\n"
+        f"<b>BOT Start Time:-</b>\n{starttime}\n"
         "<b>Torrent Download Engine:-</b> <code>qBittorrent [4.3.0 fix active]</code> \n"
         "<b>Direct Link Download Engine:-</b> <code>aria2</code> \n"
         "<b>Upload Engine:-</b> <code>RCLONE</code> \n"
