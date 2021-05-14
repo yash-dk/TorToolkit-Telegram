@@ -46,7 +46,7 @@ async def generate_directs(url):
             name = urllib.parse.unquote(url.split('/')[-1])
             return ourl
         except:
-            return "**ERROR: No zippyshare link found.**"
+            return "**ERROR No zippyshare link found.**"
         
     #racaty.net
     elif 'racaty.net' in url:
@@ -68,7 +68,7 @@ async def generate_directs(url):
             ourl = bss2.find('a',{'id':'uniqueExpirylink'})['href']
             return ourl
         except:
-            return "**ERROR: No racaty link found.**"
+            return "**ERROR No racaty link found.**"
      
     #disk.yandex.com
     elif 'yadi.sk' or 'disk.yandex.com' in url:
