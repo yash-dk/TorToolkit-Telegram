@@ -146,7 +146,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
 
     elif msg.raw_text is not None:
         if msg.raw_text.lower().startswith("magnet:"):
-            rmess = await omess.reply("Scanning....")
+            rmess = await omess.reply("`dl_task.get_magnet(link)`")
             
             mgt = get_magnets(msg.raw_text.strip())
             torrent_return = await QBittorrentWrap.register_torrent(mgt,rmess,omess,True)
@@ -276,15 +276,20 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
 
         else:
             url = msg.raw_text
-            torlog.info("The aria2 Downloading:\n{}".format(url))
-            rmsg = await omess.reply("**Processing the link...**")
+            torlog.info(f"The aria2 downloading:- {url}")
+            rmsg = await omess.reply(f"**dl_task.get_link():** `{url}`")
             await aio.sleep(1)
-    
+            
             url = await generate_directs(url)
             if url is not None:
                 if "**ERROR" in url:
-                    await omess.reply(url)
+                    await rmsg.edit(url)
+                    await aio.sleep(2)
+                    await errored_message(omess, rmsg)
                     return
+                else:
+                    await rmsg.edit(f"**dl_task.get_directs():** `{url}`")
+                    await aio.sleep(3)
             
             re_name = None
             try:
@@ -345,7 +350,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
                         await msg.reply("<b>UPLOAD TO DRIVE FAILED CHECK LOGS</b>",parse_mode="html")
             elif stat is False:
                 reason = await dl_task.get_error()
-                await rmsg.edit("Failed to download this file.\n"+str(reason))
+                await rmsg.edit("**dl_task.get_error():**\n"+str(reason))
                 await errored_message(omess, rmsg)
             
             await clear_stuff(path)    
@@ -446,7 +451,7 @@ async def handle_ext_zip(path, rmess, omess):
             return ext_path
             
 async def errored_message(e, reason):
-    msg = f"<a href='tg://user?id={e.sender_id}'>Done</a>\nYour Download Failed."
+    msg = f"<b><a href='tg://user?id={e.sender_id}'>your</a>_leech.get_stopped()</b>"
     if reason is not None:
         await reason.reply(msg, parse_mode="html")
     else:
