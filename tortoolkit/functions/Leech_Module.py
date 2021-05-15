@@ -276,11 +276,11 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
 
         else:
             url = msg.raw_text
-            torlog.info("The aria2 Downloading:\n{}".format(urls))
+            torlog.info("The aria2 Downloading:\n{}".format(url))
             rmsg = await omess.reply("**Processing the link...**")
             await aio.sleep(1)
             
-            url = await generate_directs(urls)
+            url = await generate_directs(url)
             if url is not None:
                 if "**ERROR" in url:
                     await omess.reply(url)
