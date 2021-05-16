@@ -284,6 +284,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
             if url is not None:
                 if "**ERROR" in url:
                     await omess.reply(url)
+                    await rmsg.edit("Errored you have been notified the error.")
                     return
 
             re_name = None
