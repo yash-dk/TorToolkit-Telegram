@@ -18,7 +18,7 @@ pyasn1==0.4.8
 pycparser==2.20
 qbittorrent-api==2020.7.7
 requests==2.24.0
-rsa==4.6
+rsa==4.7
 six==1.15.0
 Telethon==1.20
 TgCrypto==1.2.2
