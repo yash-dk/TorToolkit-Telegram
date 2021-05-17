@@ -443,7 +443,7 @@ async def handle_upcancel_cb(e):
     if str(e.sender_id) == data[3]:
         db.cancel_download(data[1],data[2])
         await e.answer("CANCELED UPLOAD")
-    elif str(e.sender_id) in get_val("ALD_USR") == data[3]:
+    elif e.sender_id in get_val("ALD_USR"):
         db.cancel_download(data[1],data[2])
         await e.answer("UPLOAD CANCELED IN ADMIN MODE XD ;)",alert=True)
     else:
