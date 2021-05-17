@@ -234,8 +234,8 @@ async def handle_leech_command(e):
                 [KeyboardButtonCallback("Extract from Archive.[Toggle]", data=f"leechzipex toggleex {tsp}")]
         )
         
-        conf_mes = await e.reply(f"<b>First click if you want to zip the contents or extract as an archive (only one will work at a time) then. </b>\n<b>Choose where to uploadyour files:- </b>\nThe files will be uploaded to default destination after {get_val('DEFAULT_TIMEOUT')} sec of no action by user.\n\n Supported Archives to extract .zip, 7z, tar, gzip2, iso, wim, rar, tar.gz,tar.bz2",parse_mode="html",buttons=buts)
-        
+        conf_mes = await e.reply(f"First click if you want to zip the contents or extract as an archive (only one will work at a time) then...\n\n<b>Choose where to upload your files:-</b>\nThe files will be uploaded to default destination: <b>{get_val('DEFAULT_TIMEOUT')}</b> after 60 sec of no action by user.</u>\n\n<b>Supported archives to extract:</b>\nzip, 7z, tar, gzip2, iso, wim, rar, tar.gz, tar.bz2",parse_mode="html",buttons=buts)
+
         # zip check in background
         ziplist = await get_zip_choice(e,tsp)
         zipext = await get_zip_choice(e,tsp,ext=True)
@@ -442,7 +442,10 @@ async def handle_upcancel_cb(e):
 
     if str(e.sender_id) == data[3]:
         db.cancel_download(data[1],data[2])
-        await e.answer("CANCLED UPLOAD")
+        await e.answer("CANCELED UPLOAD")
+    elif e.sender_id in get_val("ALD_USR"):
+        db.cancel_download(data[1],data[2])
+        await e.answer("UPLOAD CANCELED IN ADMIN MODE XD ;)",alert=True)
     else:
         await e.answer("Cant Cancel others upload 😡",alert=True)
 
@@ -477,7 +480,7 @@ async def callback_handler_canc(e):
         torlog.info(f"Hashid :- {hashid}")
         
         await cancel_torrent(hashid, is_aria)
-        await e.answer("The torrent has been cancled in ADMIN MODE XD ;)",alert=True)
+        await e.answer("The torrent has been canceled in ADMIN MODE XD ;)",alert=True)
     else:
         await e.answer("You can cancel only your torrents ;)", alert=True)
 
