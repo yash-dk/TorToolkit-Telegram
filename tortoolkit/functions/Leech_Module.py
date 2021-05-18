@@ -4,10 +4,7 @@
 import re,os,shutil,time, aiohttp
 from telethon.tl import types
 import logging, shutil
-import math, json
-import urllib.parse
 import asyncio as aio
-from bs4 import BeautifulSoup
 from . import QBittorrentWrap
 from . import ariatools
 from .tele_upload import upload_handel
@@ -282,10 +279,14 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
             
             url = await generate_directs(url)
             if url is not None:
-                if "**ERROR" in url:
-                    await omess.reply(url)
-                    await rmsg.edit("Errored you have been notified the error.")
+                if "**ERROR:" in url:
+                    await rmsg.edit(url)
+                    await aio.sleep(2)
+                    await errored_message(omess, rmsg)
                     return
+                else:
+                    await rmsg.edit(f"**Found directs:** `{url}`")
+                    await aio.sleep(2)
 
             re_name = None
             try:
@@ -378,22 +379,22 @@ async def handle_zips(path, is_zip, rmess, split=True):
     rmess = await rmess.client.get_messages(rmess.chat_id,ids=rmess.id)
     if is_zip:
         try:
-            await rmess.edit(rmess.text+"\n Starting to Zip the contents. Please wait.")
+            await rmess.edit(rmess.text+"\nStarting to Zip the contents. Please wait.")
             zip_path = await add_to_zip(path, get_val("TG_UP_LIMIT"), split)
             
             if zip_path is None:
-                await rmess.edit(rmess.text+"\n Zip failed. Falback to normal")
+                await rmess.edit(rmess.text+"\nZip failed. Falback to normal.")
                 return False
             
             if os.path.isdir(path):
                 shutil.rmtree(path)
             if os.path.isfile(path):
                 os.remove(path)
-            await rmess.edit(rmess.text+"\n Zipping Done now uploading.")
+            await rmess.edit(rmess.text+"\nZipping done. Now uploading.")
             await clear_stuff(path)
             return zip_path
         except:
-            await rmess.edit(rmess.text+"\n Zip failed. Falback to normal")
+            await rmess.edit(rmess.text+"\nZip failed. Falback to normal.")
             return False
     else:
         return path
@@ -405,7 +406,7 @@ async def handle_ext_zip(path, rmess, omess):
     if password is not None:
         password = password[1]
     start = time.time()
-    await rmess.edit(f"{rmess.text} Trying to Extract the archive with password <code>{password}</code>.", parse_mode="html")
+    await rmess.edit(f"{rmess.text}\nTrying to Extract the archive with password: `{password}`")
     wrong_pwd = False
 
     while True:
@@ -413,7 +414,7 @@ async def handle_ext_zip(path, rmess, omess):
             ext_path = await extract_archive(path,password=password)
         else:
             if (time.time() - start) > 1200:
-                await rmess.edit(f"{rmess.text} Extract failed as no correct password was provided uploading as it is.")
+                await rmess.edit(f"{rmess.text}\nExtract failed as no correct password was provided uploading as it is.")
                 return False
 
             temppass = rmess.client.dl_passwords.get(omess.id)
