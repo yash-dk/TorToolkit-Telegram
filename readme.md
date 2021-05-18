@@ -260,6 +260,7 @@ Steps:-
     instadl - Instagram Post/Reel/IGTV download
     setthumb - Set the thumbnail
     clearthumb - Clear the thumbnail
+    speedtest - Testing internet speed host
     settings - Settings of the bot ⚠️ Admin Only
     pauseall - Pause all torrents⚠️ Admin Only
     resumeall - Resume all torrents⚠️ Admin Only
