@@ -427,8 +427,9 @@ async def handle_status_command(e):
 async def handle_u_status_command(e):
     await create_status_user_menu(e)
         
-async def speed_handler(message):
-    await get_speed(message)       
+async def speed_handler(e):
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        await get_speed(e)
 
     
 async def handle_test_command(e):
