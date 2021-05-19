@@ -56,7 +56,7 @@ async def progress_for_pyrogram(
             ''.join([get_val("REMAINING_STR") for _ in range(10 - math.floor(percentage / 10))]),
             round(percentage, 2))
 
-        tmp = progress + "{0} of {1}\nSpeed: {2}/s\nETA: {3}\n".format(
+        tmp = progress + "{0} of {1}\nSpeed: {2}/s\nETA: {3}\nUsing engine: Pyrogram".format(
             human_readable_bytes(current),
             human_readable_bytes(total),
             human_readable_bytes(speed),
@@ -65,7 +65,7 @@ async def progress_for_pyrogram(
         try:
             if not message.photo:
                 await message.edit_text(
-                    text="{}\n {}".format(
+                    text="**Uploading:** `{}`\n{}".format(
                         ud_type,
                         tmp
                     ),
@@ -73,7 +73,7 @@ async def progress_for_pyrogram(
                 )
             else:
                 await message.edit_caption(
-                    caption="{}\n {}".format(
+                    caption="**Uploading:** `{}`\n{}".format(
                         ud_type,
                         tmp
                     ),
