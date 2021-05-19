@@ -12,7 +12,7 @@ class Commands:
     ABOUT = "about"
     GETLOGS = "getlogs"
     SERVER = "server"
-    USERSETTINGS = "usetting"
+    USERSETTINGS = "usettings"
     INSTADL = "instadl"
     START = "start"
     USTATUS = "ustatus"
