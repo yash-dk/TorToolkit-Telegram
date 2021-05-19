@@ -8,6 +8,7 @@ from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
 from ..core.getVars import get_val
+from ..core.speedtest import get_speed
 from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files, get_transfer
 from ..functions.tele_upload import upload_a_file,upload_handel
 from ..functions import Human_Format
@@ -153,6 +154,12 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         set_thumb_cmd,
         events.NewMessage(pattern=command_process(get_command("SETTHUMB")),
+        chats=get_val("ALD_USR"))
+    )
+    
+    bot.add_event_handler(
+        speed_handler,
+        events.NewMessage(pattern=command_process(get_command("SPEEDTEST")),
         chats=get_val("ALD_USR"))
     )
 
@@ -420,8 +427,10 @@ async def handle_status_command(e):
 async def handle_u_status_command(e):
     await create_status_user_menu(e)
         
-        
+async def speed_handler(message):
+    await get_speed(message)       
 
+    
 async def handle_test_command(e):
     pass
     
@@ -442,12 +451,12 @@ async def handle_upcancel_cb(e):
 
     if str(e.sender_id) == data[3]:
         db.cancel_download(data[1],data[2])
-        await e.answer("CANCELED UPLOAD")
+        await e.answer("Upload has been canceled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
         db.cancel_download(data[1],data[2])
         await e.answer("UPLOAD CANCELED IN ADMIN MODE XD ;)",alert=True)
     else:
-        await e.answer("Cant Cancel others upload 😡",alert=True)
+        await e.answer("Can't Cancel others upload 😡",alert=True)
 
 
 async def callback_handler_canc(e):
@@ -470,9 +479,9 @@ async def callback_handler_canc(e):
         hashid = data[1]
         hashid = hashid.strip("'")
         torlog.info(f"Hashid :- {hashid}")
-
+        #affected to aria2 too, soo
         await cancel_torrent(hashid, is_aria)
-        await e.answer("The torrent has been cancled ;)",alert=True)
+        await e.answer("Leech has been canceled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
         hashid = data[1]
         hashid = hashid.strip("'")
@@ -480,9 +489,9 @@ async def callback_handler_canc(e):
         torlog.info(f"Hashid :- {hashid}")
         
         await cancel_torrent(hashid, is_aria)
-        await e.answer("The torrent has been canceled in ADMIN MODE XD ;)",alert=True)
+        await e.answer("Leech has been canceled in ADMIN MODE XD ;)",alert=True)
     else:
-        await e.answer("You can cancel only your torrents ;)", alert=True)
+        await e.answer("Can't Cancel others leech 😡", alert=True)
 
 
 async def handle_exec_message_f(e):
@@ -541,11 +550,11 @@ async def handle_pincode_cb(e):
         if isinstance(passw,bool):
             await e.answer("torrent expired download has been started now.")
         else:
-            await e.answer(f"Your Pincode if \"{passw}\"",alert=True)
+            await e.answer(f"Your Pincode is {passw}",alert=True)
 
         
     else:
-        await e.answer("Its not you torrent.",alert=True)
+        await e.answer("It's not your torrent.",alert=True)
 
 async def upload_document_f(message):
     if get_val("REST11"):
@@ -779,7 +788,7 @@ async def about_me(message):
         "4.Support for ARM devices.\n"
         "5.Gdrive Support for PYTDL and YTDL\n"
         "6.Upload YT Playlist even when some vids are errored.\n"
-        "7.Changed /server menu.\n"
+        "7.Changed /server menu. Add /speedtest\n"
         "8.Minor fixes.\n"
         "9.Deploy takes less then 2 mins now.\n"
     )
