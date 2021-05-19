@@ -34,7 +34,7 @@ if __name__ == "__main__":
         exqueue.put_nowait(i)
     
     # Telethon client creation
-    ttkbot = TortkClient("TorToolkitBot",get_val("API_ID"),get_val("API_HASH"))
+    ttkbot = TortkClient("TorToolkitBot",get_val("API_ID"),get_val("API_HASH"), timeout=20, retry_delay=3, request_retries=10, connection_retries=10)
     ttkbot.queue = queue
     ttkbot.exqueue = exqueue
     ttkbot.start(bot_token=get_val("BOT_TOKEN"))
