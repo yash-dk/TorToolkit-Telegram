@@ -26,7 +26,7 @@ async def generate_directs(url):
             ourl = info.get('href')
             return ourl
         except:
-            return "**ERROR:** Can't find download buttons, double check your mediafire link!"
+            return "**ERROR:** Cant't download, double check your mediafire link!"
           
     #disk.yandex.com    
     elif 'yadi.sk' in url or 'disk.yandex.com' in url:
@@ -34,7 +34,7 @@ async def generate_directs(url):
             link = re.findall(r'\b(https?://.*(yadi|disk)\.(sk|yandex)*(|com)\S+)', url)[0][0]
             print(link)
         except:
-            return "**ERROR:** Can't find download buttons, double check your yadisk link!"
+            return "**ERROR:** Cant't download, double check your yadisk link!"
 
         api = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}'
         try:
@@ -45,7 +45,7 @@ async def generate_directs(url):
                 return ourl
         except:
             torlog.exception("Ayee jooo")
-            return "**ERROR:** Can't find download buttons, the yadisk file not found or dowmload limit reached!" 
+            return "**ERROR:** Cant't download, the yadisk file not found or dowmload limit reached!" 
 
     #zippyshare.com
     elif 'zippyshare.com' in url:
@@ -69,7 +69,7 @@ async def generate_directs(url):
             name = urllib.parse.unquote(url.split('/')[-1])
             return ourl
         except:
-            return "**ERROR:** Can't find download buttons, double check your zippyshare link!"
+            return "**ERROR:** Cant't download, double check your zippyshare link!"
        
     #racaty.net
     elif 'racaty.net' in url:
@@ -89,5 +89,5 @@ async def generate_directs(url):
             ourl = bss2.find('a',{'id':'uniqueExpirylink'})['href']
             return ourl
         except:
-            return "**ERROR:** Can't find download buttons, double check your racaty link!"
+            return "**ERROR:** Cant't download, double check your racaty link!"
        
