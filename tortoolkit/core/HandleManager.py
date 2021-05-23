@@ -724,7 +724,7 @@ async def handle_server_command(message):
 
         
         msg = (
-            f"<b>BOT UPTIME:-</b> {diff}\nWill Reboot in 24 hours.\n\n"
+            f"<b>BOT UPTIME:-</b> {diff}\n\n"
             f"CPU Utilization: {progress_bar(cpupercent)} - {cpupercent}%\n\n"
             f"Storage used:- {progress_bar(storage_percent)} - {storage_percent}%\n"
             f"Total: {totaldsk} Free: {freedsk}\n\n"
