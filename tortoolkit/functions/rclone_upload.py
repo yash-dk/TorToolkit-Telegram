@@ -2,6 +2,7 @@
 # (c) YashDK [yash-dk@github]
 
 import os,subprocess,logging,re,time,json,traceback
+from . import Human_Format
 from telethon.tl.types import KeyboardButtonUrl
 from tortoolkit import SessionVars
 import asyncio as aio
@@ -10,7 +11,8 @@ from requests.utils import requote_uri
 from ..core.getVars import get_val
 from .. import upload_db, var_db
 from telethon.tl.types import KeyboardButtonCallback
-from ..core.status.upload import RCUploadTask 
+from ..core.status.upload import RCUploadTask
+from .. import transfer
 
 torlog = logging.getLogger(__name__)
 
@@ -96,8 +98,10 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
                 [KeyboardButtonUrl("Index URL",index_link)]
             )
 
-
-        txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FOLDER :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,os.path.basename(path))
+        ul_size = calculate_size(path)
+        transfer[0] += ul_size
+        ul_size = Human_Format.human_readable_bytes(ul_size)
+        txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUploaded Size:- {}\nUPLOADED FOLDER :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,ul_size,os.path.basename(path))
         
         await omsg.reply(txtmsg,buttons=buttons,parse_mode="html")
         await msg.delete()
@@ -145,7 +149,10 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
                 [KeyboardButtonUrl("Index URL",index_link)]
             )
 
-        txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,os.path.basename(path))
+        ul_size = calculate_size(path)
+        transfer[0] += ul_size
+        ul_size = Human_Format.human_readable_bytes(ul_size)
+        txtmsg = "<a href='tg://user?id={}'>Done</a>\n#uploads\nUploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(omsg.sender_id,ul_size,os.path.basename(path))
 
         
         await omsg.reply(txtmsg,buttons=buttons,parse_mode="html")
@@ -251,5 +258,18 @@ async def get_config():
         return fpath
     
     return None
+
+def calculate_size(path):
+    if path is not None:
+        try:
+            if os.path.isdir(path):
+                return get_size_fl(path)
+            else:
+                return os.path.getsize(path)
+        except:
+            torlog.warning("Size Calculation Failed.")
+            return 0
+    else:
+        return 0   
 
 # probably hotfix for rclone ban

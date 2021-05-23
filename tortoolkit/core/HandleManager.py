@@ -682,9 +682,9 @@ async def handle_server_command(message):
 
 
     try:
-        transfer = await get_transfer()
-        dlb = Human_Format.human_readable_bytes(transfer["dl_info_data"])
-        upb = Human_Format.human_readable_bytes(transfer["up_info_data"])
+        upb, dlb = await get_transfer()
+        dlb = Human_Format.human_readable_bytes(dlb)
+        upb = Human_Format.human_readable_bytes(upb)
     except:
         dlb = "N/A"
         upb = "N/A"
