@@ -872,7 +872,9 @@ def term_handler(signum, frame, client):
 async def booted(client):
     chats = get_val("ALD_USR")
     for i in chats:
-        await client.send_message(i, "The bot is booted and is ready to use.")
-
+        try:
+            await client.send_message(i, "The bot is booted and is ready to use.")
+        except Exception as e:
+            torlog.info(f"Not found the entity {i}")
 def command_process(command):
     return re.compile(command,re.IGNORECASE)
