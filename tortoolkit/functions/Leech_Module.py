@@ -565,8 +565,8 @@ def calculate_size(path):
 async def get_transfer():
     client = await QBittorrentWrap.get_client()
     data = client.transfer_info()
-    dlbytes = transfer["dl_info_data"] + transfer[1]
-    upbytes = transfer["up_info_data"] + transfer[0]
+    dlbytes = data["dl_info_data"] + transfer[1]
+    upbytes = data["up_info_data"] + transfer[0]
     return upbytes, dlbytes
 
 async def clear_stuff(path):
