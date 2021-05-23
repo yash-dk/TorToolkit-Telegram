@@ -91,3 +91,18 @@ async def generate_directs(url):
         except:
             return "**ERROR:** Cant't download, double check your racaty link!"
        
+    elif 'pixeldrain.com' in url:
+        url = url.strip("/ ")
+        file_id = url.split("/")[-1]
+        
+        info_link = f"https://pixeldrain.com/api/file/{file_id}/info"
+        dl_link = f"https://pixeldrain.com/api/file/{file_id}"
+
+        async with aiohttp.ClientSession() as ttksess:
+            resp = await ttksess.get(info_link)
+            restext = await resp.json()
+
+        if restext["success"]:
+            return dl_link
+        else:
+            return "**ERROR:** Cant't download, {}.".format(restext["value"])
