@@ -11,10 +11,11 @@ from .tele_upload import upload_handel
 from .rclone_upload import rclone_driver
 from .zip7_utils import add_to_zip, extract_archive
 from ..core.getVars import get_val
-from ..core.status.status import ARTask
+from ..core.status.status import ARTask, MegaDl
 from ..core.status.upload import TGUploadTask
 from ..functions.Human_Format import human_readable_bytes
 from .dl_generator import generate_directs
+from .megatools import megadl
 from .. import transfer
 
 #logging.basicConfig(level=logging.DEBUG)
@@ -22,6 +23,8 @@ logging.getLogger("telethon").setLevel(logging.WARNING)
 torlog = logging.getLogger(__name__)
 
 #this files main task is to keep the ability to switch to a new engine if needed ;)
+
+#TODO major clean up in leech module.
 
 #TODO implement multiple magnets from same message if needed
 #this function is to ensure that only one magnet is passed at a time
@@ -274,44 +277,52 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
             await clear_stuff(path)
             await clear_stuff(dl_path)
             return dl_path
-
+        
         else:
             url = msg.raw_text
-            torlog.info("The aria2 Downloading:\n{}".format(url))
             rmsg = await omess.reply("**Processing the link...**")
-            await aio.sleep(1)
             
-            url = await generate_directs(url)
-            if url is not None:
-                if "**ERROR:" in url:
-                    await rmsg.edit(url)
-                    await aio.sleep(2)
-                    await errored_message(omess, rmsg)
-                    return
-                else:
-                    await rmsg.edit(f"**Found directs:** `{url}`")
-                    await aio.sleep(2)
-
-            re_name = None
-            try:
-                if " "  in omess.raw_text:
-                    cmd = omess.raw_text.split(" ", 1)[-1]
-                    if len(cmd) > 0:
-                        re_name = cmd
-                    else:
-                        torlog.info(f"This is not a valid name for renaming:= {omess.raw_text}")
-            except:
-                torlog.exception("Wronged in rename detect")
-            
-            # weird stuff had to refect message
-            path = None
-            rmsg = await omess.client.get_messages(ids=rmsg.id, entity=rmsg.chat_id)
-
-            if url is None:
-                stat, dl_task = await ariatools.aria_dl(msg.raw_text,"",rmsg,omess)
+            if "mega.nz" in url:
+                torlog.info("Megadl Downloading:\n{}".format(url))
+                dl_task = await megadl(url,rmsg,omess)
+                stat = True
+                re_name = None
             else:
-                stat, dl_task = await ariatools.aria_dl(url,"",rmsg,omess)
-            if isinstance(dl_task,ARTask) and stat:
+                torlog.info("The aria2 Downloading:\n{}".format(url))
+                await aio.sleep(1)
+                
+                url = await generate_directs(url)
+                if url is not None:
+                    if "**ERROR:" in url:
+                        await rmsg.edit(url)
+                        await aio.sleep(2)
+                        await errored_message(omess, rmsg)
+                        return
+                    else:
+                        await rmsg.edit(f"**Found directs:** `{url}`")
+                        await aio.sleep(2)
+
+                re_name = None
+                try:
+                    if " "  in omess.raw_text:
+                        cmd = omess.raw_text.split(" ", 1)[-1]
+                        if len(cmd) > 0:
+                            re_name = cmd
+                        else:
+                            torlog.info(f"This is not a valid name for renaming:= {omess.raw_text}")
+                except:
+                    torlog.exception("Wronged in rename detect")
+                
+                # weird stuff had to refect message
+                path = None
+                rmsg = await omess.client.get_messages(ids=rmsg.id, entity=rmsg.chat_id)
+
+                if url is None:
+                    stat, dl_task = await ariatools.aria_dl(msg.raw_text,"",rmsg,omess)
+                else:
+                    stat, dl_task = await ariatools.aria_dl(url,"",rmsg,omess)
+            
+            if isinstance(dl_task,(ARTask, MegaDl)) and stat:
                 path = await dl_task.get_path()
                 if re_name:
                     try:

@@ -309,3 +309,139 @@ class ARTask(Status):
             else:
                 pr += ncomp
         return pr
+
+class MegaDl(Status):
+    
+    def __init__(self, add_info, dl_info, message, mega_client):
+        super().__init__()
+        self.Tasks.append(self)
+        self._gid = add_info["gid"]
+        self._dl_info = dl_info
+        self._message = message
+        self._mega_client = mega_client
+        self._active = True
+        self._error = ""
+        self._done = False
+        self.cancel = False
+        self._omess = None
+        self._path = add_info["dir"] 
+        self._prevmsg = ""
+    # Setters
+
+    async def set_original_mess(self, omess=None):
+        if omess is None:
+            omess = await self._message.get_reply_message()
+
+        self._omess = omess
+
+    async def get_original_message(self):
+        return self._omess
+
+    async def get_gid(self):
+        return self._gid
+
+    async def set_gid(self, gid):
+        self._gid = gid
+    
+    async def get_sender_id(self):
+        return self._omess.sender_id
+
+    async def refresh_info(self, dl_info = None):
+        if dl_info is None:
+            try:
+                self._dl_info = self._aria2.get_download(self._gid)
+            except:
+                torlog.exception("Errored in fetching the direct DL.")
+        else:
+            self._dl_info = dl_info
+
+    async def create_message(self):
+        # Getting the vars pre handed
+        
+
+        msg = "<b>Downloading:</b> <code>{}</code>\n".format(
+            self._dl_info["name"]
+            )
+        msg += "<b>Speed:</b> {}\n".format(
+            self._dl_info["speed"]
+            )
+        msg += "<b>Progress:</b> {} - {}%\n".format(
+            self.progress_bar((self._dl_info["completed_length"]/self._dl_info["total_length"])*100),
+            round((self._dl_info["completed_length"]/self._dl_info["total_length"])*100, 2)
+            )
+        msg += "<b>Downloaded:</b> {} of {}\n".format(
+            human_readable_bytes(self._dl_info["completed_length"]),
+            human_readable_bytes(self._dl_info["total_length"])
+            )
+        msg += "<b>ETA:</b> <b>N/A</b>\n"
+        
+        msg += "<b>Using engine:</b> <code>Mega DL</code>"
+
+        return msg
+
+    async def get_state(self):
+        # No states for aria2
+        pass
+
+    async def central_message(self):
+        return await self.create_message()
+
+    async def update_message(self):
+        msg = await self.create_message()
+        if self._prevmsg == msg:
+            return
+        
+        self._prevmsg = msg
+        
+        try:
+            data = "torcancel megadl {} {}".format(
+                self._gid,
+                self._omess.sender_id
+            )
+            await self._message.edit(msg,parse_mode="html",buttons=[KeyboardButtonCallback("Cancel Mega DL",data=data.encode("UTF-8"))]) 
+
+        except MessageNotModifiedError as e:
+            torlog.debug("{}".format(e))
+        except FloodWaitError as e:
+            torlog.error("{}".format(e))
+        except Exception as e:
+            torlog.info("Not expected {}".format(e))
+
+    async def set_done(self):
+        self._done = True
+        await self.set_inactive()
+
+    def is_done(self):
+        return self._done
+
+    async def set_inactive(self, error=None):
+        self._active = False
+        if error is not None:
+            self._error = error
+
+    async def is_active(self):
+        return self._active
+
+    async def get_error(self):
+        return self._error
+
+    async def set_path(self, path):
+        self._path = path
+
+    async def get_path(self):
+        return self._path
+
+    def progress_bar(self, percentage):
+        """Returns a progress bar for download
+        """
+        #percentage is on the scale of 0-1
+        comp = get_val("COMPLETED_STR")
+        ncomp = get_val("REMAINING_STR")
+        pr = ""
+
+        for i in range(1,11):
+            if i <= int(percentage*10):
+                pr += comp
+            else:
+                pr += ncomp
+        return pr
