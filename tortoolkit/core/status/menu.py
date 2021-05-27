@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-from .status import MegaDl, Status, QBTask, ARTask, Megadl
+from .status import MegaDl, Status, QBTask, ARTask
 from .upload import TGUploadTask, RCUploadTask
 from telethon.tl.types import KeyboardButtonCallback
 from ... import to_del
