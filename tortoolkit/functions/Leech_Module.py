@@ -288,7 +288,9 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
             if "mega.nz" in url:
                 torlog.info("Megadl Downloading:\n{}".format(url))
                 dl_task = await megadl(url,rmsg,omess)
-                if await dl_task.get_error() is not None:
+                errstr = await dl_task.get_error()
+
+                if errstr is not None and errstr != "":
                     stat = False
                 else:
                     stat = True
