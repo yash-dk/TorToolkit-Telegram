@@ -472,17 +472,25 @@ async def callback_handler_canc(e):
 
     data = e.data.decode("utf-8").split(" ")
     torlog.debug("data is {}".format(data))
+    
     is_aria = False
+    is_mega = False
+
     if data[1] == "aria2":
         is_aria = True
         data.remove("aria2")
+    
+    if data[1] == "megadl":
+        is_mega = True
+        data.remove("megadl")
+    
 
     if data[2] == str(e.sender_id):
         hashid = data[1]
         hashid = hashid.strip("'")
         torlog.info(f"Hashid :- {hashid}")
         #affected to aria2 too, soo
-        await cancel_torrent(hashid, is_aria)
+        await cancel_torrent(hashid, is_aria, is_mega)
         await e.answer("Leech has been canceled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
         hashid = data[1]
@@ -490,7 +498,7 @@ async def callback_handler_canc(e):
         
         torlog.info(f"Hashid :- {hashid}")
         
-        await cancel_torrent(hashid, is_aria)
+        await cancel_torrent(hashid, is_aria, is_mega)
         await e.answer("Leech has been canceled in ADMIN MODE XD ;)",alert=True)
     else:
         await e.answer("Can't Cancel others leech 😡", alert=True)

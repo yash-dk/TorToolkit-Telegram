@@ -6,7 +6,7 @@ from telethon.tl import types
 import logging, shutil
 import asyncio as aio
 from . import QBittorrentWrap
-from . import ariatools
+from . import ariatools,megatools
 from .tele_upload import upload_handel
 from .rclone_upload import rclone_driver
 from .zip7_utils import add_to_zip, extract_archive
@@ -282,11 +282,16 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
             url = msg.raw_text
             rmsg = await omess.reply("**Processing the link...**")
             
+            path = None
+            re_name = None
+            
             if "mega.nz" in url:
                 torlog.info("Megadl Downloading:\n{}".format(url))
                 dl_task = await megadl(url,rmsg,omess)
-                stat = True
-                re_name = None
+                if await dl_task.get_error() is not None:
+                    stat = False
+                else:
+                    stat = True
             else:
                 torlog.info("The aria2 Downloading:\n{}".format(url))
                 await aio.sleep(1)
@@ -302,7 +307,6 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
                         await rmsg.edit(f"**Found directs:** `{url}`")
                         await aio.sleep(2)
 
-                re_name = None
                 try:
                     if " "  in omess.raw_text:
                         cmd = omess.raw_text.split(" ", 1)[-1]
@@ -313,8 +317,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
                 except:
                     torlog.exception("Wronged in rename detect")
                 
-                # weird stuff had to refect message
-                path = None
+                # weird stuff had to refetch message
                 rmsg = await omess.client.get_messages(ids=rmsg.id, entity=rmsg.chat_id)
 
                 if url is None:
@@ -590,11 +593,13 @@ async def clear_stuff(path):
     except:pass
 
 
-async def cancel_torrent(hashid, is_aria = False):
-    if not is_aria:
-        await QBittorrentWrap.deregister_torrent(hashid)
-    else:
+async def cancel_torrent(hashid, is_aria = False, is_mega = False):
+    if is_aria:
         await ariatools.remove_dl(hashid)
+    elif is_mega:
+        await megatools.remove_mega_dl(hashid)
+    else:
+        await QBittorrentWrap.deregister_torrent(hashid)
 
 def get_size_fl(start_path = '.'):
     total_size = 0

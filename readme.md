@@ -5,6 +5,13 @@ The bot gets started with minimum variables and others can be set as and when ne
 ## The Repo will be updated for sure... The repo is not DEAD.
 ## [Join Tortoolkit Group for DEMO](https://t.me/TorToolKit)
 ## For any help join this:- [TTKDISC](https://t.me/ttkdisc)
+
+## Whats new
+- MegaDL added
+- Overall download and upload progress.
+- Pixeldrain DL support.
+- Alert on when the bot boots up.
+
 Table of Content
 - [FEATURES](#features)
 - [TEST THE BOT (DEMO)](https://t.me/TorToolKit)

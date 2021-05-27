@@ -363,10 +363,10 @@ class MegaDl(Status):
             self._dl_info["name"]
             )
         msg += "<b>Speed:</b> {}\n".format(
-            self._dl_info["speed"]
+            human_readable_bytes(self._dl_info["speed"])
             )
         msg += "<b>Progress:</b> {} - {}%\n".format(
-            self.progress_bar((self._dl_info["completed_length"]/self._dl_info["total_length"])*100),
+            self.progress_bar((self._dl_info["completed_length"]/self._dl_info["total_length"])),
             round((self._dl_info["completed_length"]/self._dl_info["total_length"])*100, 2)
             )
         msg += "<b>Downloaded:</b> {} of {}\n".format(
