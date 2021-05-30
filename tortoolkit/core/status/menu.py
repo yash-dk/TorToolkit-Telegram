@@ -117,6 +117,14 @@ async def create_status_user_menu(event):
                         i.hash, 
                         omsg.sender_id
                     )
+                if isinstance(i, MegaDl):
+                    if not (event.sender_id == await i.get_sender_id()):
+                        continue
+                    data = "torcancel megadl {} {}".format(
+                        await i.get_gid(),
+                        await i.get_sender_id()
+                    )
+                
                 if isinstance(i, ARTask):
                     if not (event.sender_id == await i.get_sender_id()):
                         continue
