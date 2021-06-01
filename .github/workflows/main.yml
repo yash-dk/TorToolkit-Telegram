@@ -1,36 +1,57 @@
-# This is a basic workflow to help you get started with Actions
+ name: Manually Deploy to heroku
 
-name: heroku deploy
+on: workflow_dispatch
 
-# Controls when the action will run. 
-on:
-  # Triggers the workflow on push or pull request events but only for the master branch
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+
+  deploy:
+
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - uses: akhileshns/heroku-deploy@v3.12.12
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+        with:
+
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+
+          heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+
+          usedocker: true
+
+          docker_heroku_process_type: worker
+
+          stack: "container"
+
+          region: "eu"
+
+        env:
+
+          HD_APP_ID: ${{secrets.APP_ID}}
+
+          HD_API_HASH: ${{secrets.API_HASH}}
+
+          HD_TG_BOT_TOKEN: ${{secrets.TG_BOT_TOKEN}}
+
+          HD_AUTH_CHANNEL: ${{secrets.AUTH_CHANNEL}}
+
+          HD_OWNER_ID: ${{secrets.OWNER_ID}}
+
+          HD_CHUNK_SIZE: ${{secrets.CHUNK_SIZE}}
+
+          HD_EDIT_SLEEP_TIME_OUT: ${{secrets.EDIT_SLEEP_TIME_OUT}} 
+
+          HD_MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START: ${{secrets.MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START}}
+
+          HD_TG_MAX_FILE_SIZE: ${{secrets.TG_MAX_FILE_SIZE}}
+
+          HD_MAX_TG_SPLIT_FILE_SIZE: ${{secrets.MAX_TG_SPLIT_FILE_SIZE}}
+
+          HD_ARIA_TWO_STARTED_PORT: ${{secrets.ARIA_TWO_STARTED_PORT}}
+
+          HD_UPLOAD_AS_DOC: ${{secrets.UPLOAD_AS_DOC}}
