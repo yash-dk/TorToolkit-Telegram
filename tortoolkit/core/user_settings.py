@@ -24,7 +24,7 @@ no = "❌"
 yes = "✅"
 # Central object is not used its Acknowledged 
 tordb = TorToolkitDB()
-header =  '<b>**TorToolKit** by <a href="https://github.com/yash-dk">YashDK</a></b>\n<u>USER SETTINGS MENU - v1</u>'
+header =  '<b>**TorToolKit** by <a href="https://github.com/yash-dk">YashDK</a></b>\n<u>User Settings Menu - v1</u>'
 async def handle_user_setting_callback(e):
     db = tordb
     sender_id = str(e.sender_id)
@@ -45,7 +45,7 @@ async def handle_user_setting_callback(e):
     elif cmd[1] == "rclonemenu":
         # this is menu
         mmes = await e.get_message()
-        await handle_user_settings(mmes,True,"\nWelcome to Rclone Config Menu. TD= Team Drive, ND= Normal Drive",submenu="rclonemenu",sender_id=sender_id)
+        await handle_user_settings(mmes,True,"\nWelcome to Rclone Config Menu. TD = Team Drive, ND = Normal Drive",submenu="rclonemenu",sender_id=sender_id)
     elif cmd[1] == "thumbmenu":
         # this is menu
         mmes = await e.get_message()
@@ -112,7 +112,7 @@ async def handle_user_settings(e,edit=False,msg="",submenu=None,sender_id=None):
         await get_bool_variable("FORCE_DOCUMENTS","FORCE_DOCUMENTS",menu,"fdocs",sender_id)#
         #await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
         await get_sub_menu("☁️ Open Rclone Menu ☁️","rclonemenu",sender_id,menu)#
-        await get_sub_menu("🖼 Open Thumbnail Menu 🖼","thumbmenu",sender_id,menu)#
+        await get_sub_menu("🎑 Open Thumbnail Menu 🎑","thumbmenu",sender_id,menu)#
         # thumbnail
         menu.append(
             [KeyboardButtonCallback("Close Menu",f"usettings selfdest {sender_id}".encode("UTF-8"))]
