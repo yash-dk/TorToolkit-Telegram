@@ -526,6 +526,8 @@ async def get_string_variable(var_name,menu,callback_name,session_id):
         _, val1 = db.get_variable(var_name)
         if val1 is not None:
             val = "Custom file is loaded."
+        else:
+            val = "Click here to load RCLONE config."
         
     msg = var_name + " " + str(val)
     menu.append(
