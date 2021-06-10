@@ -10,6 +10,7 @@ from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 from telethon.errors import VideoContentTypeInvalidError
 from ..core.database_handle import TtkUpload
+from ..core.status.upload import TGUploadTask
 from .. import user_db
 from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio
 from telethon.utils import get_attributes
@@ -19,7 +20,7 @@ from .progress_for_pyrogram import progress_for_pyrogram
 torlog = logging.getLogger(__name__)
 
 #thanks @SpEcHiDe for this concept of recursion
-async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None, user_msg=None, task=None):
+async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None, user_msg=None, task=TGUploadTask(None)):
     # creting here so connections are kept low
     if updb is None:
         # Central object is not used its Acknowledged 
@@ -388,10 +389,10 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     except Exception as e:
         if str(e).find("cancel") != -1:
             torlog.info("Canceled an upload lol")
-            await msg.edit(f"Failed to upload {e}")
+            await msg.edit(f"Failed to upload {e}", buttons=None)
         else:
             torlog.exception("In Tele Upload")
-            await msg.edit(f"Failed to upload {e}")
+            await msg.edit(f"Failed to upload {e}",  buttons=None)
     finally:
         if queue is not None:
             await queue.put(uploader_id)
