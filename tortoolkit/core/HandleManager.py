@@ -801,6 +801,10 @@ async def about_me(message):
         "7.Changed /server menu. Add /speedtest\n"
         "8.Minor fixes.\n"
         "9.Deploy takes less then 2 mins now.\n"
+        "10.MegaDL added.\n"
+        "11.Overall download and upload progress.\n"
+        "12.Pixeldrain DL support.\n"
+        "13.Alert on when the bot boots up.\n"
     )
 
     await message.reply(msg,parse_mode="html")
