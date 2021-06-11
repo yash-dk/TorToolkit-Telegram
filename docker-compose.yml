@@ -7,11 +7,15 @@ services:
       - POSTGRES_DB=tortk
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=your-pass
+    restart: on-failure
   tortk:
     build: .
     command: bash start.sh
+    restart: on-failure
     ports:
       - "80:80"
     depends_on: 
+      - db
+    links:
       - db
 

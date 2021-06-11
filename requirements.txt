@@ -31,3 +31,5 @@ natsort==7.1.0
 Pyrogram==1.1.13
 lxml
 beautifulsoup4>=4.8.2,<4.8.10
+speedtest-cli
+megasdkrestclient

@@ -240,7 +240,7 @@ async def handle_ytdl_callbacks(e: MessageLike):
         if os.path.exists(path):
             with open(path,encoding="UTF-8") as file:
                 ytdata = json.loads(file.read())
-                await create_quality_menu("",await e.get_message(),e,ytdata,data[2])
+                await create_quality_menu("",await e.get_message(),e,data[3],ytdata,data[2])
 
         else:
             await e.answer("Try again something went wrong.",alert=True)

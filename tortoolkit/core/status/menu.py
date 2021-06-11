@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-from .status import Status, QBTask, ARTask
+from .status import MegaDl, Status, QBTask, ARTask
 from .upload import TGUploadTask, RCUploadTask
 from telethon.tl.types import KeyboardButtonCallback
 from ... import to_del
@@ -43,6 +43,11 @@ async def create_status_menu(event):
                     )
                 if isinstance(i, ARTask):
                     data = "torcancel aria2 {} {}".format(
+                        await i.get_gid(),
+                        await i.get_sender_id()
+                    )
+                if isinstance(i, MegaDl):
+                    data = "torcancel megadl {} {}".format(
                         await i.get_gid(),
                         await i.get_sender_id()
                     )
@@ -112,6 +117,14 @@ async def create_status_user_menu(event):
                         i.hash, 
                         omsg.sender_id
                     )
+                if isinstance(i, MegaDl):
+                    if not (event.sender_id == await i.get_sender_id()):
+                        continue
+                    data = "torcancel megadl {} {}".format(
+                        await i.get_gid(),
+                        await i.get_sender_id()
+                    )
+                
                 if isinstance(i, ARTask):
                     if not (event.sender_id == await i.get_sender_id()):
                         continue

@@ -8,6 +8,7 @@ from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
 from ..core.getVars import get_val
+from ..core.speedtest import get_speed
 from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files, get_transfer
 from ..functions.tele_upload import upload_a_file,upload_handel
 from ..functions import Human_Format
@@ -155,10 +156,17 @@ def add_handlers(bot: TelegramClient):
         events.NewMessage(pattern=command_process(get_command("SETTHUMB")),
         chats=get_val("ALD_USR"))
     )
+    
+    bot.add_event_handler(
+        speed_handler,
+        events.NewMessage(pattern=command_process(get_command("SPEEDTEST")),
+        chats=get_val("ALD_USR"))
+    )
 
 
     signal.signal(signal.SIGINT, partial(term_handler,client=bot))
     signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
+    bot.loop.run_until_complete(booted(bot))
 
     #*********** Callback Handlers *********** 
     
@@ -206,6 +214,10 @@ def add_handlers(bot: TelegramClient):
         handle_user_setting_callback,
         events.CallbackQuery(pattern="usetting")
     )
+    bot.add_event_handler(
+        handle_server_command,
+        events.CallbackQuery(pattern="fullserver")
+    )
     test()
 #*********** Handlers Below ***********
 
@@ -230,8 +242,8 @@ async def handle_leech_command(e):
                 [KeyboardButtonCallback("Extract from Archive.[Toggle]", data=f"leechzipex toggleex {tsp}")]
         )
         
-        conf_mes = await e.reply(f"<b>First click if you want to zip the contents or extract as an archive (only one will work at a time) then. </b>\n<b>Choose where to uploadyour files:- </b>\nThe files will be uploaded to default destination after {get_val('DEFAULT_TIMEOUT')} sec of no action by user.\n\n Supported Archives to extract .zip, 7z, tar, gzip2, iso, wim, rar, tar.gz,tar.bz2",parse_mode="html",buttons=buts)
-        
+        conf_mes = await e.reply(f"First click if you want to zip the contents or extract as an archive (only one will work at a time) then...\n\n<b>Choose where to upload your files:-</b>\nThe files will be uploaded to default destination: <b>{get_val('DEFAULT_TIMEOUT')}</b> after 60 sec of no action by user.</u>\n\n<b>Supported archives to extract:</b>\nzip, 7z, tar, gzip2, iso, wim, rar, tar.gz, tar.bz2",parse_mode="html",buttons=buts)
+
         # zip check in background
         ziplist = await get_zip_choice(e,tsp)
         zipext = await get_zip_choice(e,tsp,ext=True)
@@ -256,12 +268,12 @@ async def handle_leech_command(e):
 
         if rclone:
             if get_val("RCLONE_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext)
+                await check_link(e,rclone, is_zip, is_ext, conf_mes)
             else:
                 await e.reply("<b>DRIVE IS DISABLED BY THE ADMIN</b>",parse_mode="html")
         else:
             if get_val("LEECH_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext)
+                await check_link(e,rclone, is_zip, is_ext, conf_mes)
             else:
                 await e.reply("<b>TG LEECH IS DISABLED BY THE ADMIN</b>",parse_mode="html")
 
@@ -416,8 +428,11 @@ async def handle_status_command(e):
 async def handle_u_status_command(e):
     await create_status_user_menu(e)
         
-        
+async def speed_handler(e):
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        await get_speed(e)
 
+    
 async def handle_test_command(e):
     pass
     
@@ -438,9 +453,12 @@ async def handle_upcancel_cb(e):
 
     if str(e.sender_id) == data[3]:
         db.cancel_download(data[1],data[2])
-        await e.answer("CANCLED UPLOAD")
+        await e.answer("Upload has been canceled ;)",alert=True)
+    elif e.sender_id in get_val("ALD_USR"):
+        db.cancel_download(data[1],data[2])
+        await e.answer("UPLOAD CANCELED IN ADMIN MODE XD ;)",alert=True)
     else:
-        await e.answer("Cant Cancel others upload 😡",alert=True)
+        await e.answer("Can't Cancel others upload 😡",alert=True)
 
 
 async def callback_handler_canc(e):
@@ -454,28 +472,36 @@ async def callback_handler_canc(e):
 
     data = e.data.decode("utf-8").split(" ")
     torlog.debug("data is {}".format(data))
+    
     is_aria = False
+    is_mega = False
+
     if data[1] == "aria2":
         is_aria = True
         data.remove("aria2")
+    
+    if data[1] == "megadl":
+        is_mega = True
+        data.remove("megadl")
+    
 
     if data[2] == str(e.sender_id):
         hashid = data[1]
         hashid = hashid.strip("'")
         torlog.info(f"Hashid :- {hashid}")
-
-        await cancel_torrent(hashid, is_aria)
-        await e.answer("The torrent has been cancled ;)",alert=True)
+        #affected to aria2 too, soo
+        await cancel_torrent(hashid, is_aria, is_mega)
+        await e.answer("Leech has been canceled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
         hashid = data[1]
         hashid = hashid.strip("'")
         
         torlog.info(f"Hashid :- {hashid}")
         
-        await cancel_torrent(hashid, is_aria)
-        await e.answer("The torrent has been cancled in ADMIN MODE XD ;)",alert=True)
+        await cancel_torrent(hashid, is_aria, is_mega)
+        await e.answer("Leech has been canceled in ADMIN MODE XD ;)",alert=True)
     else:
-        await e.answer("You can cancel only your torrents ;)", alert=True)
+        await e.answer("Can't Cancel others leech 😡", alert=True)
 
 
 async def handle_exec_message_f(e):
@@ -534,11 +560,11 @@ async def handle_pincode_cb(e):
         if isinstance(passw,bool):
             await e.answer("torrent expired download has been started now.")
         else:
-            await e.answer(f"Your Pincode if \"{passw}\"",alert=True)
+            await e.answer(f"Your Pincode is {passw}",alert=True)
 
         
     else:
-        await e.answer("Its not you torrent.",alert=True)
+        await e.answer("It's not your torrent.",alert=True)
 
 async def upload_document_f(message):
     if get_val("REST11"):
@@ -587,8 +613,36 @@ async def start_handler(event):
     msg = "Hello This is TorToolkit an instance of <a href='https://github.com/yash-dk/TorToolkit-Telegram'>This Repo</a>. Try the repo for yourself and dont forget to put a STAR and fork."
     await event.reply(msg, parse_mode="html")
 
+def progress_bar(percentage):
+    """Returns a progress bar for download
+    """
+    #percentage is on the scale of 0-1
+    comp = get_val("COMPLETED_STR")
+    ncomp = get_val("REMAINING_STR")
+    pr = ""
+
+    if isinstance(percentage, str):
+        return "NaN"
+
+    try:
+        percentage=int(percentage)
+    except:
+        percentage = 0
+
+    for i in range(1,11):
+        if i <= int(percentage/10):
+            pr += comp
+        else:
+            pr += ncomp
+    return pr
 
 async def handle_server_command(message):
+    print(type(message))
+    if isinstance(message, events.CallbackQuery.Event):
+        callbk = True
+    else:
+        callbk = False
+
     try:
         # Memory
         mem = psutil.virtual_memory()
@@ -637,9 +691,9 @@ async def handle_server_command(message):
 
 
     try:
-        transfer = await get_transfer()
-        dlb = Human_Format.human_readable_bytes(transfer["dl_info_data"])
-        upb = Human_Format.human_readable_bytes(transfer["up_info_data"])
+        upb, dlb = await get_transfer()
+        dlb = Human_Format.human_readable_bytes(dlb)
+        upb = Human_Format.human_readable_bytes(upb)
     except:
         dlb = "N/A"
         upb = "N/A"
@@ -647,29 +701,49 @@ async def handle_server_command(message):
     diff = time.time() - uptime
     diff = Human_Format.human_readable_timedelta(diff)
 
-    msg = (
-        f"<b>BOT UPTIME:-</b> {diff}\n\n"
-        "<b>CPU STATS:-</b>\n"
-        f"Cores: {cores} Logical: {lcores}\n"
-        f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
-        f"CPU Utilization: {cpupercent}%\n"
-        "\n"
-        "<b>STORAGE STATS:-</b>\n"
-        f"Total: {totaldsk}\n"
-        f"Used: {useddsk}\n"
-        f"Free: {freedsk}\n"
-        "\n"
-        "<b>MEMORY STATS:-</b>\n"
-        f"Available: {memavailable}\n"
-        f"Total: {memtotal}\n"
-        f"Usage: {mempercent}%\n"
-        f"Free: {memfree}\n"
-        "\n"
-        "<b>TRANSFER INFO:</b>\n"
-        f"Download: {dlb}\n"
-        f"Upload: {upb}\n"
-    )
-    await message.reply(msg, parse_mode="html")
+    if callbk:
+        msg = (
+            f"<b>BOT UPTIME:-</b> {diff}\n\n"
+            "<b>CPU STATS:-</b>\n"
+            f"Cores: {cores} Logical: {lcores}\n"
+            f"CPU Frequency: {freqcurrent}  Mhz Max: {freqmax}\n"
+            f"CPU Utilization: {cpupercent}%\n"
+            "\n"
+            "<b>STORAGE STATS:-</b>\n"
+            f"Total: {totaldsk}\n"
+            f"Used: {useddsk}\n"
+            f"Free: {freedsk}\n"
+            "\n"
+            "<b>MEMORY STATS:-</b>\n"
+            f"Available: {memavailable}\n"
+            f"Total: {memtotal}\n"
+            f"Usage: {mempercent}%\n"
+            f"Free: {memfree}\n"
+            "\n"
+            "<b>TRANSFER INFO:</b>\n"
+            f"Download: {dlb}\n"
+            f"Upload: {upb}\n"
+        )
+        await message.edit(msg, parse_mode="html", buttons=None)
+    else:
+        try:
+            storage_percent = round((usage.used/usage.total)*100,2)
+        except:
+            storage_percent = 0
+
+        
+        msg = (
+            f"<b>BOT UPTIME:-</b> {diff}\n\n"
+            f"CPU Utilization: {progress_bar(cpupercent)} - {cpupercent}%\n\n"
+            f"Storage used:- {progress_bar(storage_percent)} - {storage_percent}%\n"
+            f"Total: {totaldsk} Free: {freedsk}\n\n"
+            f"Memory used:- {progress_bar(mempercent)} - {mempercent}%\n"
+            f"Total: {memtotal} Free: {memfree}\n\n"
+            f"Transfer Download:- {dlb}\n"
+            f"Transfer Upload:- {upb}\n"
+        )
+        await message.reply(msg, parse_mode="html", buttons=[[KeyboardButtonCallback("Get detailed stats.","fullserver")]])
+
 
 async def about_me(message):
     db = var_db
@@ -718,9 +792,19 @@ async def about_me(message):
         f"<b>Rclone:- </b> <code>{rclone}</code>\n"
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
-        "1.Dead Torrent Will be timed out and removed.\n"
-        "2.Added /setthumb and /clearthumb.\n"
-        "3.Restrict Stuff to Owner.\n"
+        "1.DB Optimizations.\n"
+        "2.Database handling on disconnections..\n"
+        "3.Support for ARM devices.\n"
+        "4.Support for ARM devices.\n"
+        "5.Gdrive Support for PYTDL and YTDL\n"
+        "6.Upload YT Playlist even when some vids are errored.\n"
+        "7.Changed /server menu. Add /speedtest\n"
+        "8.Minor fixes.\n"
+        "9.Deploy takes less then 2 mins now.\n"
+        "10.MegaDL added.\n"
+        "11.Overall download and upload progress.\n"
+        "12.Pixeldrain DL support.\n"
+        "13.Alert on when the bot boots up.\n"
     )
 
     await message.reply(msg,parse_mode="html")
@@ -795,8 +879,14 @@ def term_handler(signum, frame, client):
             await omess.respond(msg, parse_mode="html")
         exit(0)
 
-    client.loop.create_task(term_async())
-        
+    client.loop.run_until_complete(term_async())
 
+async def booted(client):
+    chats = get_val("ALD_USR")
+    for i in chats:
+        try:
+            await client.send_message(i, "The bot is booted and is ready to use.")
+        except Exception as e:
+            torlog.info(f"Not found the entity {i}")
 def command_process(command):
     return re.compile(command,re.IGNORECASE)

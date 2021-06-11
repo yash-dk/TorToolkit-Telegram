@@ -1,8 +1,18 @@
 # [Join Tortoolkit Group for DEMO](https://t.me/TorToolKit)
-# [Use Beta Branch for Latest Updates.](https://github.com/yash-dk/TorToolkit-Telegram/tree/beta)
+
 # TorToolkit Telegram
 So basically Tortoolkit is aimed to be the most versatile torrent leecher and Youtube-DL bot for telegram. This bot is highly customizable and to customize this bot you don't need to restart the bot every time. 
 The bot gets started with minimum variables and others can be set as and when needed using the /settings.
+## Use master branch if you encounter some issues and report the same.
+## Use beta branch if you want to try latest features.
+
+## For any help join this:- [TTKDISC](https://t.me/ttkdisc)
+
+## Whats new
+- MegaDL added
+- Overall download and upload progress.
+- Pixeldrain DL support.
+- Alert on when the bot boots up.
 
 Table of Content
 - [FEATURES](#features)
@@ -259,6 +269,7 @@ Steps:-
     instadl - Instagram Post/Reel/IGTV download
     setthumb - Set the thumbnail
     clearthumb - Clear the thumbnail
+    speedtest - Testing internet speed host
     settings - Settings of the bot ⚠️ Admin Only
     pauseall - Pause all torrents⚠️ Admin Only
     resumeall - Resume all torrents⚠️ Admin Only

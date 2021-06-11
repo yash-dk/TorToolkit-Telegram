@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-__version__ = "0.2.4"
+__version__ = "0.2.6"
 __author__ = "YashDK Github@yash-dk"
 
 import logging
@@ -20,6 +20,7 @@ upload_db = TtkUpload()
 var_db = TorToolkitDB()
 tor_db = TtkTorrents()
 user_db = UserDB()
+transfer = [0,0] # UP,DOWN
 
 uptime = time.time()
 to_del = []

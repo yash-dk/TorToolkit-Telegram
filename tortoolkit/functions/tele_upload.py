@@ -10,6 +10,7 @@ from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 from telethon.errors import VideoContentTypeInvalidError
 from ..core.database_handle import TtkUpload
+from ..core.status.upload import TGUploadTask
 from .. import user_db
 from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio
 from telethon.utils import get_attributes
@@ -19,7 +20,7 @@ from .progress_for_pyrogram import progress_for_pyrogram
 torlog = logging.getLogger(__name__)
 
 #thanks @SpEcHiDe for this concept of recursion
-async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None, user_msg=None, task=None):
+async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None, user_msg=None, task=TGUploadTask(None)):
     # creting here so connections are kept low
     if updb is None:
         # Central object is not used its Acknowledged 
@@ -39,7 +40,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
         except:pass
 
         try:
-            message = await message.edit("{}\n📦 Found **{}** files for this download.".format(message.text,len(directory_contents)))
+            message = await message.edit("{}\nFound **{}** files for this download.".format(message.text,len(directory_contents)))
         except:
             torlog.warning("Too much folders will stop the editing of this message")
         
@@ -81,7 +82,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
             if updb.get_cancel_status(message.chat_id,message.id):
                 task.cancel = True
                 await task.set_inactive()
-                await message.edit("`{}` - Canceled By user.".format(message.text),buttons=None)
+                await message.edit("{} - Canceled By user.".format(message.text),buttons=None)
             else:
                 await message.edit(buttons=None)
             updb.deregister_upload(message.chat_id,message.id)
@@ -108,11 +109,11 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 ftype = "unknown"
             
             if ftype == "video":    
-                todel = await message.reply("⚠ **FILE LAGRE THEN THRESHOLD, SPLITTING NOW. **\n⌛ **Processing.....** ```Using Algo FFMPEG SPLIT```") 
+                todel = await message.reply("**FILE LAGRE THEN THRESHOLD, SPLITTING NOW...**\n`Using Algo FFMPEG VIDEO SPLIT`") 
                 split_dir = await vids_helpers.split_file(path,get_val("TG_UP_LIMIT"))
                 await todel.delete()
             else:
-                todel = await message.reply("⚠ **FILE LAGRE THEN THRESHOLD, SPLITTING NOW. **\n⌛ **Processing.....** ```Using Algo FFMPEG SPLIT```") 
+                todel = await message.reply("**FILE LAGRE THEN THRESHOLD, SPLITTING NOW...**\n`Using Algo FFMPEG ZIP SPLIT`") 
                 split_dir = await zip7_utils.split_in_zip(path,get_val("TG_UP_LIMIT"))
                 await todel.delete()
             
@@ -164,7 +165,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 if updb.get_cancel_status(message.chat_id,message.id):
                     task.cancel = True
                     await task.set_inactive()
-                    await message.edit("`{}` - Canceled By user.".format(message.text),buttons=None)
+                    await message.edit("{} - Canceled By user.".format(message.text),buttons=None)
                 else:
                     await message.edit(buttons=None)
                 updb.deregister_upload(message.chat_id,message.id)
@@ -207,7 +208,7 @@ async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=Fal
                 if updb.get_cancel_status(message.chat_id,message.id):
                     task.cancel = True
                     await task.set_inactive()
-                    await message.edit("`{}` - Canceled By user.".format(message.text),buttons=None)
+                    await message.edit("{} - Canceled By user.".format(message.text),buttons=None)
                 else:
                     await message.edit(buttons=None)
                 updb.deregister_upload(message.chat_id,message.id)
@@ -262,7 +263,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     if not force_edit:        
         data = "upcancel {} {} {}".format(message.chat_id,message.id,user_msg.sender_id)
         buts = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))]
-        msg = await message.reply("📤 **Uploading:** `{}`".format(file_name),buttons=buts)
+        msg = await message.reply("**Uploading:** `{}`".format(file_name),buttons=buts)
 
     else:
         msg = message
@@ -270,7 +271,7 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     uploader_id = None
     if queue is not None:
         torlog.info(f"Waiting for the worker here for {file_name}")
-        msg = await msg.edit(f"{msg.text}\n⌛ Waiting for a uploaders to get free... ")
+        msg = await msg.edit(f"{msg.text}\nWaiting for a uploaders to get free... ")
         uploader_id = await queue.get()
         torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
 
@@ -388,10 +389,10 @@ async def upload_a_file(path,message,force_edit,database=None,thumb_path=None,us
     except Exception as e:
         if str(e).find("cancel") != -1:
             torlog.info("Canceled an upload lol")
-            await msg.edit(f"Failed to upload {e}")
+            await msg.edit(f"Failed to upload {e}", buttons=None)
         else:
             torlog.exception("In Tele Upload")
-            await msg.edit(f"Failed to upload {e}")
+            await msg.edit(f"Failed to upload {e}",  buttons=None)
     finally:
         if queue is not None:
             await queue.put(uploader_id)
@@ -422,6 +423,8 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     if not os.path.exists(path):
         return None
     
+    queue = message.client.exqueue
+
     file_name = os.path.basename(path)
     caption_str = ""
     caption_str += "<code>"
@@ -431,12 +434,16 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     if user_msg is None:
         user_msg = await message.get_reply_message()
 
-    force_docs = get_val("FORCE_DOCUMENTS")
     if user_msg is not None:
-        force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)
+        force_docs = user_db.get_var("FORCE_DOCUMENTS",user_msg.sender_id)  
+    else:
+        force_docs = None
+        
+    if force_docs is None:
+        force_docs = get_val("FORCE_DOCUMENTS")
     
     # Avoid Flood in Express
-    await asyncio.sleep(int(get_val("EDIT_SLEEP_SECS"))+5)
+    await asyncio.sleep(5)
 
     metadata = extractMetadata(createParser(path))
     
@@ -466,15 +473,22 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
             if not thumb_image_path:
                 thumb_image_path = None
     #
+    uploader_id = None
     try:
         message_for_progress_display = message
         if not force_edit:
             data = "upcancel {} {} {}".format(message.chat.id,message.message_id,user_msg.sender_id)
             markup = InlineKeyboardMarkup([[InlineKeyboardButton("Cancel Upload", callback_data=data.encode("UTF-8"))]])
             message_for_progress_display = await message.reply_text(
-                "📤 **Starting upload of** `{}`".format(os.path.basename(path)),
+                "**Starting upload of** `{}`".format(os.path.basename(path)),
                 reply_markup=markup
             )
+
+            if queue is not None:
+                torlog.info(f"Waiting for the worker here for {file_name}")
+                message_for_progress_display = await message_for_progress_display.edit(f"{message_for_progress_display.text}\nWaiting for a uploaders to get free... ")
+                uploader_id = await queue.get()
+                torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
         
         if ftype == "video" and not force_docs:
             metadata = extractMetadata(createParser(path))
@@ -482,8 +496,8 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
             if metadata.has("duration"):
                 duration = metadata.get('duration').seconds
             #
-            width = 0
-            height = 0
+            width = 1280
+            height = 720
             if thumb_image_path is None:
                 thumb_image_path = await thumb_manage.get_thumbnail(path)
                 # get the correct width, height, and duration for videos greater than 10MB
@@ -522,7 +536,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     # reply_to_message_id=message.reply_to_message.message_id,
                     progress=progress_for_pyrogram,
                     progress_args=(
-                        f"💠 Uploading {os.path.basename(path)}",
+                        f"{os.path.basename(path)}",
                         message_for_progress_display,
                         start_time,
                         tout,
@@ -577,7 +591,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     # reply_to_message_id=message.reply_to_message.message_id,
                     progress=progress_for_pyrogram,
                     progress_args=(
-                        f"💠 Uploading {os.path.basename(path)}",
+                        f"{os.path.basename(path)}",
                         message_for_progress_display,
                         start_time,
                         tout,
@@ -618,7 +632,7 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
                     progress=progress_for_pyrogram,
                     caption=caption_str,
                     progress_args=(
-                        f"💠 Uploading {os.path.basename(path)}",
+                        f"{os.path.basename(path)}",
                         message_for_progress_display,
                         start_time,
                         tout,
@@ -644,6 +658,10 @@ async def upload_single_file(path, message, force_edit,database=None,thumb_image
     else:
         if message.message_id != message_for_progress_display.message_id:
             await message_for_progress_display.delete()
+    finally:
+        if queue is not None and uploader_id is not None:
+            await queue.put(uploader_id)
+            torlog.info(f"Freed uploader with id {uploader_id}")
     #os.remove(path)
     if sent_message is None:
         return None
