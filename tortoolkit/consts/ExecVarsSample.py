@@ -43,7 +43,7 @@ except:
         
         # MEGA CONFIG
         MEGA_ENABLE = False
-        MEGA_API = "BCJ1WQqS"
+        MEGA_API = ""
         MEGA_UNAME = None
         MEGA_PASS = None
 
