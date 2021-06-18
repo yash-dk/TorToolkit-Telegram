@@ -8,14 +8,14 @@ except:
         API_HASH = "848b1172d7434adbe1274c488d1d8ab9"
         API_ID = 6639137
         BOT_TOKEN = "1864435748:AAHQ5EVi-gNpxRCsZqopX34WQBUBbJzcs2A"
-        BASE_URL_OF_BOT = ""
+        BASE_URL_OF_BOT = "https://tortoolkittelegram.herokuapp.com"
 
         # Edit the server port if you want to keep it default though.
         SERVPORT = 80
 
         # ALLOWED USERS [ids of user or supergroup] seperate by commas
-        ALD_USR = []
-        OWNER_ID = 0
+        ALD_USR = [-533953732]
+        OWNER_ID = 888432893
         
         # Google Drive Index Link should include the base dir also See readme for more info
         GD_INDEX_URL = False
