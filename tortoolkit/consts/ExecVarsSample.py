@@ -8,7 +8,7 @@ except:
         API_HASH = "848b1172d7434adbe1274c488d1d8ab9"
         API_ID = 6639137
         BOT_TOKEN = "1864435748:AAHQ5EVi-gNpxRCsZqopX34WQBUBbJzcs2A"
-        BASE_URL_OF_BOT = "https://tortoolkittelegram.herokuapp.com:80"
+        BASE_URL_OF_BOT = "https://tortoolkitcommanderbot.herokuapp.com:80"
 
         # Edit the server port if you want to keep it default though.
         SERVPORT = 80
@@ -40,7 +40,7 @@ except:
         
         # UNCOMMENT THE BELOW LINE WHEN USING CONTAINER AND COMMENT THE UPPER LINE
         #DB_URI = "dbname=tortk user=postgres password=your-pass host=db port=5432"
-        DB_URI = "postgres://qufmsjfhyrhkxy:3dcbd2bed3486c3c4bbf4e4499296b152b95325d8002fc5c670c8bcedb0a0e32@ec2-63-33-239-176.eu-west-1.compute.amazonaws.com:5432/d5dh59io0fqn30"
+        DB_URI = "postgres://vciumozabbyfea:a95734835db571bb69dcb53e920b2cef2c05ee5985ce3ad7788e01b76a49c0f2@ec2-54-74-14-109.eu-west-1.compute.amazonaws.com:5432/dqst973kb36f6"
         
         # MEGA CONFIG
         MEGA_ENABLE = False
