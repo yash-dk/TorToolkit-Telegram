@@ -8,23 +8,23 @@ except:
         API_HASH = "848b1172d7434adbe1274c488d1d8ab9"
         API_ID = 6639137
         BOT_TOKEN = "1864435748:AAHQ5EVi-gNpxRCsZqopX34WQBUBbJzcs2A"
-        BASE_URL_OF_BOT = "https://tortoolkittelegram.herokuapp.com"
+        BASE_URL_OF_BOT = "https://tortoolkittelegram.herokuapp.com:80"
 
         # Edit the server port if you want to keep it default though.
         SERVPORT = 80
 
         # ALLOWED USERS [ids of user or supergroup] seperate by commas
-        ALD_USR = [-533953732]
+        ALD_USR = [-533953732,888432893]
         OWNER_ID = 888432893
         
         # Google Drive Index Link should include the base dir also See readme for more info
         GD_INDEX_URL = False
 
         # Time to wait before edit message
-        EDIT_SLEEP_SECS = 40
+        EDIT_SLEEP_SECS = 10
 
         # Telegram Upload Limit (in bytes)
-        TG_UP_LIMIT = 1700000000
+        TG_UP_LIMIT = 2147483648
 
         # Should force evething uploaded into Document
         FORCE_DOCUMENTS = False
@@ -69,14 +69,14 @@ except:
         DEF_RCLONE_DRIVE = ""
 
         # Max size of a playlist that is allowed (Number of videos)
-        MAX_YTPLAYLIST_SIZE = 20
+        MAX_YTPLAYLIST_SIZE = 999999
         
         # Max size of the torrent allowed
-        MAX_TORRENT_SIZE = 10
+        MAX_TORRENT_SIZE = 999999999999
 
         # Set this to your bot username if you want to add the username of your bot at the end of the commands like
         # /leech@TorToolkitBot so the value will be @TorToolkitBot
-        BOT_CMD_POSTFIX = "" 
+        BOT_CMD_POSTFIX = "@godin2bot" 
 
         # Time out for the status Delete.
         STATUS_DEL_TOUT = 20
@@ -85,7 +85,7 @@ except:
         USETTINGS_IN_PRIVATE = False
 
         # Torrent max time to collect metadata in seconds
-        TOR_MAX_TOUT = 180
+        TOR_MAX_TOUT = 9999999
 
         # This is to stop someone from abusing the system by imposing the limit
         # [<GBs of total torrent sapce>, <Number of youtube videos allowed to download>, <Number of youtube playlists allowed to download>]
