@@ -8,7 +8,7 @@ except:
         API_HASH = "848b1172d7434adbe1274c488d1d8ab9"
         API_ID = 6639137
         BOT_TOKEN = "1864435748:AAHQ5EVi-gNpxRCsZqopX34WQBUBbJzcs2A"
-        BASE_URL_OF_BOT = "https://tortoolkitcommanderbot.herokuapp.com:80"
+        BASE_URL_OF_BOT = "https://tortoolkitcommanderbot.herokuapp.com"
 
         # Edit the server port if you want to keep it default though.
         SERVPORT = 80
