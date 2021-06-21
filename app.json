@@ -1,0 +1,21 @@
+{
+    "name": "Telegram Leecher",
+    "description": "A Telegram Leecher based on Pyrogram",
+    "keywords": [
+      "telegram",
+      "pyrogram",
+      "torrent",
+      "3",
+      "leecher"
+    ],
+    "website": "https://github.com/indru-dudez/TorToolkit-Telegram/test",
+    "repository": "https://github.com/indru-dudez/TorToolkit-Telegram/test",
+    "stack": "container",
+    "formation": {
+      "worker": {
+        "quantity": 1,
+        "size": "free"
+      }
+    }
+  }
+  
