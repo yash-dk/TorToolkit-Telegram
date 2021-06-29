@@ -226,3 +226,52 @@ class UserDB(MongoDB):
             users.insert_one({"user_id":user_id, "thumbnail": thumbnail})
 
         return True
+
+class TtkTorrents(MongoDB):
+    def __init__(self,dburl=None):
+        if dburl is None:
+            dburl = os.environ.get("DB_URI",None)
+            if dburl is None:
+                dburl = ExecVars.DB_URI
+
+        super().__init__(dburl)
+        
+
+    def add_torrent(self,hash_id,passw):
+        db = self._db
+        tors = db.ttk_torrents
+
+        res = tors.find({"hash_id":hash_id})
+
+        if res.count() > 0:
+            tors.update({"hash_id":hash_id},{"$set":{"passw":passw}})
+        else:
+            tors.insert_one({"hash_id":hash_id, "passw":passw, "enab":True})
+        
+    def disable_torrent(self,hash_id):
+        db = self._db
+        tors = db.ttk_torrents
+
+        res = tors.find({"hash_id":hash_id})
+        
+        if res.count() > 0:
+            tors.update({"hash_id":hash_id},{"$set": {"enab": False}})
+        
+        
+    def get_password(self,hash_id):
+        db = self._db
+        tors = db.ttk_torrents
+
+        res = tors.find({"hash_id":hash_id})
+
+        if res.count() > 0:
+            row = res[0]
+            return row["passw"]
+        else:
+            return False
+
+    def purge_all_torrents(self):
+        db = self._db
+        tors = db.ttk_torrents
+
+        tors.delete_many({})
