@@ -4,7 +4,7 @@
 from aiohttp import web
 import qbittorrentapi as qba
 from . import nodes
-from .database_handle import TtkTorrents
+from ..database.dbhandler import TtkTorrents
 import asyncio,logging,os,traceback
 import os, time
 

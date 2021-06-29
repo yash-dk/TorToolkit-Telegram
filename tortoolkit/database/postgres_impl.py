@@ -283,7 +283,7 @@ class UserDB(PostgresDB):
         self.ccur(cur)
         return True
 
-class TtkTorrents(DataBaseHandle):
+class TtkTorrents(PostgresDB):
     def __init__(self,dburl=None):
         if dburl is None:
             dburl = os.environ.get("DB_URI",None)
