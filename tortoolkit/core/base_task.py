@@ -11,9 +11,10 @@ class BaseTask(ABC):
     # STATE : These are the abastract specs
     QUEUED = 1
     RUNNING = 2
+
     ERRORED = 3
     COMPLETED = 4
-
+    CANCELED = 5
 
     def __init__(self):
         self._task_id = len(self.ALL_TASKS) + 1
