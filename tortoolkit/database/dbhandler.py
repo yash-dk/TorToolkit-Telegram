@@ -1,11 +1,11 @@
-def get_ttk_db():
-    ...
+from ..consts.ExecVarsSample import ExecVars
+import os
 
-def get_user_db():
-    ...
+dburl = os.environ.get("DB_URI",None)
+if dburl is None:
+    dburl = ExecVars.DB_URI
 
-def get_torrents_db():
-    ...
-
-def get_upload_db():
-    ...
+if "mongo" in dburl:
+    from .mongo_impl import TorToolkitDB, UserDB
+else:
+    from .postgres_impl import TorToolkitDB, UserDB
