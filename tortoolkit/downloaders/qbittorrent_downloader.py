@@ -1,4 +1,8 @@
-from telethon.tl.types import Config
+from requests.api import get
+from telethon.tl.types import Config, Message, KeyboardButtonCallback, KeyboardButtonUrl
+from telethon.errors import FloodWaitError, MessageNotModifiedError
+from telethon import events
+from ..utils.human_format import human_readable_bytes
 from ..core.base_task import BaseTask
 import asyncio, logging, os, time
 import qbittorrentapi as qba
@@ -6,27 +10,37 @@ from functools import partial
 from ..utils import hash_utils
 from datetime import datetime
 from ..core.getVars import get_val
+from random import randint
+from ..database.dbhandler import TorToolkitDB
+
 torlog = logging.getLogger(__name__)
 
 
 class QbittorrentDownloader:
 
 
-    def __init__(self):
+    def __init__(self, torrent, message, is_file = False):
+        self._torrent = torrent
+        self._message = message 
+        self._is_file = is_file
         self._aloop = asyncio.get_event_loop()
         self._client = None
     
-    async def get_client(self, host=None,port=None,uname=None,passw=None,retry=2) -> qba.TorrentsAPIMixIn:
+    async def get_client(self, host=None,port=None,uname=None,passw=None, retry=None) -> qba.TorrentsAPIMixIn:
         """Creats and returns a client to communicate with qBittorrent server. Max Retries 2
         """
         if self._client is not None:
             return self._client
         
+        if retry is None:
+            retry = get_val("QBIT_MAX_RETRIES")
+
         # Getting the connection
-        host = host if host is not None else "localhost"
-        port = port if port is not None else "8090"
-        uname = uname if uname is not None else "admin"
-        passw = passw if passw is not None else "adminadmin"
+        host = host if host is not None else get_val("QBIT_HOST")
+        port = port if port is not None else get_val("QBIT_PORT")
+        uname = uname if uname is not None else get_val("QBIT_UNAME")
+        passw = passw if passw is not None else get_val("QBIT_PASS")
+
         torlog.info(f"Trying to login in qBittorrent using creds {host} {port} {uname} {passw}")
 
         client = qba.Client(host=host,port=port,username=uname,password=passw)
@@ -73,7 +87,11 @@ class QbittorrentDownloader:
             return await self._aloop.run_in_executor(None,partial(client.torrents_info,torrent_hashes=ehash))
 
 
-    async def add_torrent_magnet(self, magnet,message):
+    async def add_torrent_magnet(self):
+
+        magnet = self._torrent
+        message = self._message
+
         """Adds a torrent by its magnet link.
         """    
         client = await self.get_client()
@@ -137,7 +155,11 @@ class QbittorrentDownloader:
             await message.edit("Error occured check logs.")
             return False
 
-    async def add_torrent_file(self, path, message):
+    async def add_torrent_file(self):
+        
+        path = self._torrent
+        message = self._message
+
         if not os.path.exists(path):
             torlog.error("The path supplied to the torrent file was invalid.\n path:-{}".format(path))
             return False
@@ -200,7 +222,10 @@ class QbittorrentDownloader:
             await message.edit("Error occured check logs.")
             return False
 
-    async def pause_all(self, message):
+    async def pause_all(self):
+        
+        message = self._message
+
         client = await self.get_client()
         await self._aloop.run_in_executor(None,partial(client.torrents_pause,torrent_hashes='all'))
         await asyncio.sleep(1)
@@ -216,7 +241,10 @@ class QbittorrentDownloader:
         await message.reply(msg,parse_mode="html")
         await message.delete()
     
-    async def resume_all(self, message):
+    async def resume_all(self):
+
+        message = self._message
+
         client = await self.get_client()
 
         await self._aloop.run_in_executor(None,partial(client.torrents_resume, torrent_hashes='all'))
@@ -235,7 +263,10 @@ class QbittorrentDownloader:
         await message.reply(msg,parse_mode="html")
         await message.delete()
 
-    async def delete_all(self, message):
+    async def delete_all(self):
+
+        message = self._message
+
         client = await self.get_client()
         tors = await self.get_torrent_info(client)
         msg = "☠️ Deleted <b>{}</b> torrents.☠️".format(len(tors))
@@ -245,6 +276,8 @@ class QbittorrentDownloader:
         await message.delete()
 
     async def delete_this(self, ext_hash):
+        "Mostly not a class method will be used seperatly."
+        
         client = await self.get_client()
         await self._aloop.run_in_executor(None,partial(client.torrents_delete,delete_files=True,torrent_hashes=ext_hash))
         return True
@@ -265,5 +298,232 @@ class QbittorrentDownloader:
         return pr
 
     async def deregister_torrent(self, hashid):
+        "Mostly not a class method will be used seperatly."
         client = await self.get_client()
         await self._aloop.run_in_executor(None,partial(client.torrents_delete, torrent_hashes=hashid,delete_files=True))
+    
+    async def register_torrent(self, entity,message,user_msg=None,magnet=False,file=False):
+        client = await self.get_client()
+
+        #refresh message
+        message = await message.client.get_messages(message.chat_id,ids=message.id)
+        if user_msg is None:
+            omess = await message.get_reply_message()
+        else:
+            omess = user_msg
+
+        if magnet:
+            torlog.info(f"magnet :- {magnet}")
+            torrent = await self.add_torrent_magnet(entity,message)
+            if isinstance(torrent,bool):
+                return False
+            torlog.info(torrent)
+            if torrent.progress == 1 and torrent.completion_on > 1:
+                await message.edit("The provided torrent was already completly downloaded.")
+                return True
+            else:
+                
+                pincode = randint(1000,9999)
+                db = TorToolkitDB()
+                db.add_torrent(torrent.hash,pincode)
+                
+                pincodetxt = f"getpin {torrent.hash} {omess.sender_id}"
+
+                data = "torcancel {} {}".format(torrent.hash, omess.sender_id)
+                base = get_val("BASE_URL_OF_BOT")
+
+                urll = f"{base}/tortk/files/{torrent.hash}"
+
+                message = await message.edit("Download will be automatically started after 180s of no action.",buttons=[
+                    [
+                        KeyboardButtonUrl("Choose File from link",urll),
+                        KeyboardButtonCallback("Get Pincode",data=pincodetxt.encode("UTF-8"))
+                    ],
+                    [
+                        KeyboardButtonCallback("Done Selecting Files.",data=f"doneselection {omess.sender_id} {omess.id}".encode("UTF-8"))
+                    ]
+                ])
+
+                await self.get_confirm(omess)
+
+                message = await message.edit(buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
+
+                db.disable_torrent(torrent.hash)
+                
+
+                task = QBTask(torrent, message, client)
+                await task.set_original_mess(omess)
+                return await self.update_progress(client,message,torrent, task)
+        if file:
+            torrent = await self.add_torrent_file(entity,message)
+            if isinstance(torrent,bool):
+                return False
+            torlog.info(torrent)
+            
+            if torrent.progress == 1:
+                await message.edit("The provided torrent was already completly downloaded.")
+                return True
+            else:
+                pincode = randint(1000,9999)
+                db = TorToolkitDB()
+                db.add_torrent(torrent.hash,pincode)
+                
+                pincodetxt = f"getpin {torrent.hash} {omess.sender_id}"
+
+                data = "torcancel {} {}".format(torrent.hash, omess.sender_id)
+
+                base = get_val("BASE_URL_OF_BOT")
+
+                urll = f"{base}/tortk/files/{torrent.hash}"
+
+                message = await message.edit(buttons=[
+                    [
+                        KeyboardButtonUrl("Choose File from link",urll),
+                        KeyboardButtonCallback("Get Pincode",data=pincodetxt.encode("UTF-8"))
+                    ],
+                    [
+                        KeyboardButtonCallback("Done Selecting Files.",data=f"doneselection {omess.sender_id} {omess.id}".encode("UTF-8"))
+                    ]
+                ])
+
+                await self.get_confirm(omess)
+
+                message = await message.edit(buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
+
+                db.disable_torrent(torrent.hash)
+                
+                task = QBTask(torrent, message, client)
+                await task.set_original_mess(omess)
+                return await self.update_progress(client,message,torrent, task)
+    
+    async def update_progress(self, client,message,torrent,task,except_retry=0,sleepsec=None):
+        #task = QBTask(torrent, message, client)
+        if sleepsec is None:
+            sleepsec = get_val("EDIT_SLEEP_SECS")
+        #switch to iteration from recursion as python dosent have tailing optimization :O
+        #RecursionError: maximum recursion depth exceeded
+        is_meta = False
+        meta_time = time.time()
+
+        while True:
+            tor_info = await self.get_torrent_info(client, torrent.hash)
+            #update cancellation
+            if len(tor_info) > 0:
+                tor_info = tor_info[0]
+            else:
+                task.cancel = True
+                await task.set_inactive()
+                await message.edit("Torrent canceled ```{}``` ".format(torrent.name),buttons=None)
+                return True
+            
+            if tor_info.size > (get_val("MAX_TORRENT_SIZE") * 1024 * 1024 * 1024):
+                await message.edit("Torrent oversized max size is {}. Try adding again and choose less files to download.".format(get_val("MAX_TORRENT_SIZE")), buttons=None)
+                await self.delete_this(tor_info.hash)
+                return True
+            try:
+                await task.refresh_info(tor_info)
+                await task.update_message()
+
+                if  tor_info.state == "metaDL":
+                    is_meta = True
+                else:
+                    meta_time = time.time()
+                    is_meta = False
+
+                if (is_meta and (time.time() - meta_time) > get_val("TOR_MAX_TOUT")):
+                    
+                    await message.edit("Torrent <code>{}</code> is DEAD. [Metadata Failed]".format(tor_info.name),buttons=None,parse_mode="html")
+                    torlog.error("An torrent has no seeds clearing that torrent now. Torrent:- {} - {}".format(tor_info.hash,tor_info.name))
+                    await self.delete_this(tor_info.hash)
+                    await task.set_inactive("Torrent <code>{}</code> is DEAD. [Metadata Failed]".format(tor_info.name))
+                    
+                    return False
+
+                try:
+                    if tor_info.state == "error":
+
+                        await message.edit("Torrent <code>{}</code> errored out.".format(tor_info.name),buttons=None,parse_mode="html")
+                        torlog.error("An torrent has error clearing that torrent now. Torrent:- {} - {}".format(tor_info.hash,tor_info.name))
+                        await self.delete_this(tor_info.hash)
+                        await task.set_inactive("Torrent <code>{}</code> errored out.".format(tor_info.name))
+                        
+                        return False
+                    
+                    #aio timeout have to switch to global something
+                    await asyncio.sleep(sleepsec)
+
+                    #stop the download when download complete
+                    if tor_info.state == "uploading" or tor_info.state.lower().endswith("up"):
+                        # this is to address the situations where the name would cahnge abdruptly
+                        await self._aloop.run_in_executor(None,partial(client.torrents_pause,tor_info.hash))
+
+                        # TODO uncomment the below line when fixed https://github.com/qbittorrent/qBittorrent/issues/13572
+                        # savepath = os.path.join(tor_info.save_path,tor_info.name)
+                        # hot fix
+                        try:
+                            savepath = os.path.join(tor_info.save_path, os.listdir(tor_info.save_path)[-1])
+                        except:
+                            await message.edit("Download path location failed", buttons=None)
+                            await task.set_inactive("Download path location failed")
+                            await self.delete_this(tor_info.hash)
+                            return None
+
+                        await task.set_path(savepath)
+                        await task.set_done()
+                        await message.edit("Download completed: `{}` - (`{}`)\nTo path: `{}`".format(tor_info.name,human_readable_bytes(tor_info.total_size),tor_info.save_path),buttons=None)
+                        return [savepath, task]
+                    else:
+                        #return await update_progress(client,message,torrent)
+                        pass
+
+                except (MessageNotModifiedError,FloodWaitError) as e:
+                    torlog.error("{}".format(e))
+                
+            except Exception as e:
+                torlog.exception("Somethinf wrong is in update progress")
+                try:
+                    await message.edit("Error occure {}".format(e),buttons=None)
+                except:pass
+                return False
+
+    # Dodging general UserIN just for QBIT
+    async def get_confirm(self, e):
+        # abstract for getting the confirm in a context
+
+        lis = [False,None,e.id]
+        cbak = partial(self.get_confirm_callback,lis=lis)
+        
+        e.client.add_event_handler(
+            #lambda e: test_callback(e,lis),
+            cbak,
+            events.CallbackQuery(pattern="doneselection")
+        )
+
+        start = time.time()
+
+        while not lis[0]:
+            if (time.time() - start) >= 180:
+                break
+            await asyncio.sleep(1)
+
+        val = lis[1]
+        
+        e.client.remove_event_handler(cbak)
+
+        return val
+
+    async def get_confirm_callback(self, e,lis):
+        # handle the confirm callback
+        data = e.data.decode("UTF-8")
+        data = data.split(" ")
+        o_sender = data[1]
+        msgid = data[2]
+
+        if o_sender != str(e.sender_id):
+            await e.answer("Dont Touch it.......")
+            return
+        if str(lis[2]) != msgid:
+            return
+        await e.answer("Starting the download with the selected files.")
+        lis[0] = True
+        raise events.StopPropagation()
