@@ -19,12 +19,19 @@ torlog = logging.getLogger(__name__)
 class QbittorrentDownloader:
 
 
-    def __init__(self, torrent, message, is_file = False):
+    def __init__(self, torrent, message, cmd_message, is_file = False):
         self._torrent = torrent
+
+        # This message is the reply to the cmd message to edit
         self._message = message 
+        
+        # This message is the command mesasge
+        self._cmd_message = cmd_message
+
         self._is_file = is_file
         self._aloop = asyncio.get_event_loop()
-        self._client = None
+        # This is a TG client
+        self._client = message.client
     
     async def get_client(self, host=None,port=None,uname=None,passw=None, retry=None) -> qba.TorrentsAPIMixIn:
         """Creats and returns a client to communicate with qBittorrent server. Max Retries 2
@@ -43,6 +50,7 @@ class QbittorrentDownloader:
 
         torlog.info(f"Trying to login in qBittorrent using creds {host} {port} {uname} {passw}")
 
+        # Qbit client
         client = qba.Client(host=host,port=port,username=uname,password=passw)
         
         # Trying to connect to the server :)
@@ -79,12 +87,18 @@ class QbittorrentDownloader:
             _, _ = await subpr.communicate()
             return await self.get_client(host,port,uname,passw,retry=retry-1)
     
-    async def get_torrent_info(self, client, ehash=None):
-
-        if ehash is None:
+    async def get_torrent_info(self, client=None, ext_hash=None):
+        if client is None:
+            client = await self.get_client()
+        
+        if ext_hash is None:
+            if self._ext_hash is not None:
+                ext_hash = self._ext_hash
+        
+        if ext_hash is None:
             return await self._aloop.run_in_executor(None,client.torrents_info)
         else:
-            return await self._aloop.run_in_executor(None,partial(client.torrents_info,torrent_hashes=ehash))
+            return await self._aloop.run_in_executor(None,partial(client.torrents_info,torrent_hashes=ext_hash))
 
 
     async def add_torrent_magnet(self):
@@ -99,6 +113,8 @@ class QbittorrentDownloader:
             ctor = len(await self.get_torrent_info(client))
             
             ext_hash = hash_utils.get_hash_magnet(magnet)
+            # Set hash here
+            self._ext_hash = ext_hash
             ext_res = await self.get_torrent_info(client, ext_hash)
 
             if len(ext_res) > 0:
@@ -168,6 +184,7 @@ class QbittorrentDownloader:
         try:
 
             ext_hash = hash_utils.get_hash_file(path)
+            self._ext_hash = ext_hash
             ext_res = await self.get_torrent_info(client, ext_hash)
 
             if len(ext_res) > 0:
@@ -224,7 +241,7 @@ class QbittorrentDownloader:
 
     async def pause_all(self):
         
-        message = self._message
+        message = self._cmd_message
 
         client = await self.get_client()
         await self._aloop.run_in_executor(None,partial(client.torrents_pause,torrent_hashes='all'))
@@ -243,7 +260,7 @@ class QbittorrentDownloader:
     
     async def resume_all(self):
 
-        message = self._message
+        message = self._cmd_message
 
         client = await self.get_client()
 
@@ -265,7 +282,7 @@ class QbittorrentDownloader:
 
     async def delete_all(self):
 
-        message = self._message
+        message = self._cmd_message
 
         client = await self.get_client()
         tors = await self.get_torrent_info(client)
@@ -275,8 +292,14 @@ class QbittorrentDownloader:
         await message.reply(msg,parse_mode="html")
         await message.delete()
 
-    async def delete_this(self, ext_hash):
+    async def delete_this(self, ext_hash=None):
         "Mostly not a class method will be used seperatly."
+        if ext_hash is None:
+            if self._ext_hash is not None:
+                ext_hash = self._ext_hash
+            else:
+                torlog.error("No ext hash found to delete.")
+                return
         
         client = await self.get_client()
         await self._aloop.run_in_executor(None,partial(client.torrents_delete,delete_files=True,torrent_hashes=ext_hash))
@@ -297,27 +320,40 @@ class QbittorrentDownloader:
                 pr += ncomp
         return pr
 
-    async def deregister_torrent(self, hashid):
-        "Mostly not a class method will be used seperatly."
+    async def deregister_torrent(self, ext_hash=None):
+        "Mostly not a class method will be used seperatly. IG its a duplicate will be depricated."
+
+        if ext_hash is None:
+            if self._ext_hash is not None:
+                ext_hash = self._ext_hash
+            else:
+                torlog.error("No ext hash found to delete.")
+                return
+        
         client = await self.get_client()
-        await self._aloop.run_in_executor(None,partial(client.torrents_delete, torrent_hashes=hashid,delete_files=True))
+        await self._aloop.run_in_executor(None,partial(client.torrents_delete, torrent_hashes=ext_hash,delete_files=True))
     
-    async def register_torrent(self, entity,message,user_msg=None,magnet=False,file=False):
+    async def register_torrent(self):
         client = await self.get_client()
 
-        #refresh message
-        message = await message.client.get_messages(message.chat_id,ids=message.id)
+        
+        message = self._message
+        user_msg = self._cmd_message
+
         if user_msg is None:
             omess = await message.get_reply_message()
         else:
             omess = user_msg
 
-        if magnet:
-            torlog.info(f"magnet :- {magnet}")
-            torrent = await self.add_torrent_magnet(entity,message)
+        if not self._is_file:
+            torlog.info(f"magnet :- {self._torrent}")
+            torrent = await self.add_torrent_magnet()
+            self._tor_info = torrent
+
             if isinstance(torrent,bool):
                 return False
             torlog.info(torrent)
+
             if torrent.progress == 1 and torrent.completion_on > 1:
                 await message.edit("The provided torrent was already completly downloaded.")
                 return True
@@ -354,8 +390,10 @@ class QbittorrentDownloader:
                 task = QBTask(torrent, message, client)
                 await task.set_original_mess(omess)
                 return await self.update_progress(client,message,torrent, task)
-        if file:
-            torrent = await self.add_torrent_file(entity,message)
+        else:
+            torrent = await self.add_torrent_file()
+            self._tor_info = torrent
+            
             if isinstance(torrent,bool):
                 return False
             torlog.info(torrent)
@@ -396,17 +434,23 @@ class QbittorrentDownloader:
                 await task.set_original_mess(omess)
                 return await self.update_progress(client,message,torrent, task)
     
-    async def update_progress(self, client,message,torrent,task,except_retry=0,sleepsec=None):
+    async def update_progress(self, except_retry=0, sleepsec=None):
         #task = QBTask(torrent, message, client)
+        message = self._message
+        torrent = self._tor_info
+
         if sleepsec is None:
             sleepsec = get_val("EDIT_SLEEP_SECS")
+        
+
         #switch to iteration from recursion as python dosent have tailing optimization :O
         #RecursionError: maximum recursion depth exceeded
+        
         is_meta = False
         meta_time = time.time()
 
         while True:
-            tor_info = await self.get_torrent_info(client, torrent.hash)
+            tor_info = await self.get_torrent_info()
             #update cancellation
             if len(tor_info) > 0:
                 tor_info = tor_info[0]
