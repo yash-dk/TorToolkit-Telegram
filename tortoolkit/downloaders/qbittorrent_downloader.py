@@ -468,3 +468,6 @@ class QbittorrentDownloader(BaseTask):
                 except:pass
                 return False
 
+    # Implement Abstract Methods
+    async def execute(self):
+        await self.register_torrent()

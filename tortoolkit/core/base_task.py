@@ -47,18 +47,18 @@ class BaseTask(ABC):
     def get_times(self):
         return self._time_added, self._time_completed
 
-    #@abstractmethod
+    @abstractmethod
     async def execute(self):
         ...
     
-    #@abstractmethod
+    @abstractmethod
     def cancel(self, is_admin=False):
         ...
     
-    #@abstractmethod
+    @abstractmethod
     async def get_update(self):
         ...
     
-    #@abstractmethod
+    @abstractmethod
     def get_error_reason(self):
         ...
