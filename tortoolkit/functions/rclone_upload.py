@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 import os,subprocess,logging,re,time,json,traceback
 from . import Human_Format
@@ -22,7 +23,7 @@ async def rclone_driver(path,message, user_msg, dl_task):
     # get the default drive
     conf_path = await get_config()
     if conf_path is None:
-        torlog.info("The confi file not found")
+        torlog.info("The config file was not found")
         return None
     else:
         drive_name = get_val("DEF_RCLONE_DRIVE")

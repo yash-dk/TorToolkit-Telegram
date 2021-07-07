@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 from aiohttp import web
 import qbittorrentapi as qba
@@ -34,7 +35,7 @@ p { font-size: 12px; margin: 24px;}
 </style>
 </head>
 <body>
-<h1>TorToolKit : <a href="#">Github</a></h1>
+<h1>TorToolKitXX : <a href="#">Github</a></h1>
 <form action="{form_url}" method="POST">
 
 {My_content}
@@ -107,7 +108,7 @@ code_page = """
 <head>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <title>
-TorToolkit Torrent Files
+TorToolKitX Torrent Files
 </title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
@@ -270,38 +271,23 @@ async def set_priority(request):
 
 @routes.get('/')
 async def homepage(request):
-    return web.Response(text="<h1>See TorTookit <a href=\"#\">@GitHub</a> By YashDK</h1>",content_type="text/html")
+    return web.Response(text="<h1>Tor-ToolkitX on Heroku modded By AmirulAndalib</h1>",content_type="text/html")
 
 async def e404_middleware(app, handler):
   async def middleware_handler(request):
       try:
           response = await handler(request)
           if response.status == 404:
-              return web.Response(text="<h1>404: Page not found</h2><br><h3>Tortoolkit</h3>",content_type="text/html")
+              return web.Response(text="<h1>404: Page not found</h2><br><h3>TorToolKitX</h3>",content_type="text/html")
           return response
       except web.HTTPException as ex:
           if ex.status == 404:
-              return web.Response(text="<h1>404: Page not found</h2><br><h3>Tortoolkit</h3>",content_type="text/html")
+              return web.Response(text="<h1>404: Page not found</h2><br><h3>TorToolKitX</h3>",content_type="text/html")
           raise
   return middleware_handler
 
 async def start_server():
-    strfg = ""
-    hyu = [104,101, 114,111, 107,117, 97, 112,112, 46,99, 111, 109]
-    
-    for i in hyu:
-        strfg += chr(i)
-    # Configure the server
-    if os.environ.get("BASE_URL_OF_BOT",False):
-        if strfg.lower() in os.environ.get("BASE_URL_OF_BOT").lower():
-          tm = [84 , 
-          73 , 77 , 69 , 
-          95 , 83 , 
-          84 , 65 , 84]
-          strfg=""
-          for i in tm:
-            strfg += chr(i)
-          os.environ[strfg] = str(time.time())
+# REMOVED HEROKU BLOCK
     
 
     app = web.Application(middlewares=[e404_middleware])
@@ -309,22 +295,7 @@ async def start_server():
     return app
 
 async def start_server_async(port = 8080):
-    strfg = ""
-    hyu = [104,101, 114,111, 107,117, 97, 112,112, 46,99, 111, 109]
-    
-    for i in hyu:
-        strfg += chr(i)
-    # Configure the server
-    if os.environ.get("BASE_URL_OF_BOT",False):
-        if strfg.lower() in os.environ.get("BASE_URL_OF_BOT").lower():
-          tm = [84 , 
-          73 , 77 , 69 , 
-          95 , 83 , 
-          84 , 65 , 84]
-          strfg=""
-          for i in tm:
-            strfg += chr(i)
-          os.environ[strfg] = str(time.time())
+# REMOVED HEROKU BLOCK
     
     app = web.Application(middlewares=[e404_middleware])
     app.add_routes(routes)

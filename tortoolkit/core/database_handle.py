@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 import psycopg2,os,datetime
 import psycopg2.extras
@@ -13,9 +14,9 @@ class TorToolkitDB(DataBaseHandle):
     def __init__(self,dburl=None):
         # *** QUERIES ***
         if dburl is None:
-            dburl = os.environ.get("DB_URI",None)
+            dburl = os.environ.get("DATABASE_URL",None)
             if dburl is None:
-                dburl = ExecVars.DB_URI
+                dburl = ExecVars.DATABASE_URL
 
         super().__init__(dburl)
 
@@ -109,9 +110,9 @@ class TtkUpload(DataBaseHandle):
     def __init__(self,dburl=None):
         # *** QUERIES ***
         if dburl is None:
-            dburl = os.environ.get("DB_URI",None)
+            dburl = os.environ.get("DATABASE_URL",None)
             if dburl is None:
-                dburl = ExecVars.DB_URI
+                dburl = ExecVars.DATABASE_URL
 
         super().__init__(dburl)
 
@@ -220,9 +221,9 @@ class TtkUpload(DataBaseHandle):
 class TtkTorrents(DataBaseHandle):
     def __init__(self,dburl=None):
         if dburl is None:
-            dburl = os.environ.get("DB_URI",None)
+            dburl = os.environ.get("DATABASE_URL",None)
             if dburl is None:
-                dburl = ExecVars.DB_URI
+                dburl = ExecVars.DATABASE_URL
 
         super().__init__(dburl)
         cur = self.scur()
@@ -287,9 +288,9 @@ class UserDB(DataBaseHandle):
     shared_users = {}
     def __init__(self,dburl=None):
         if dburl is None:
-            dburl = os.environ.get("DB_URI",None)
+            dburl = os.environ.get("DATABASE_URL",None)
             if dburl is None:
-                dburl = ExecVars.DB_URI
+                dburl = ExecVars.DATABASE_URL
 
         super().__init__(dburl)
         cur = self.scur()

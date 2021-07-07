@@ -1,4 +1,4 @@
-# [Join Tortoolkit Group for DEMO](https://t.me/TorToolKit)
+# [Join XcodersHub Group for DEMO](https://t.me/XcodersHubSupport)
 
 # TorToolkit Telegram
 So basically Tortoolkit is aimed to be the most versatile torrent leecher and Youtube-DL bot for telegram. This bot is highly customizable and to customize this bot you don't need to restart the bot every time. 
@@ -6,7 +6,7 @@ The bot gets started with minimum variables and others can be set as and when ne
 ## Use master branch if you encounter some issues and report the same.
 ## Use beta branch if you want to try latest features.
 
-## For any help join this:- [TTKDISC](https://t.me/ttkdisc)
+## For any help join this:- [Xcodershub](https://t.me/XcodersHub)
 
 ## Whats new
 - MegaDL added
@@ -18,8 +18,8 @@ Table of Content
 - [FEATURES](#features)
 - [TEST THE BOT (DEMO)](https://t.me/TorToolKit)
 - [DEPLOYMENT METHODS](#deployment)
-  - [Heroku](##heroku)
-  - [Zeet](##zeet)
+  - [Heroku](#heroku)
+  - [Zeet](#zeet)
   - [VPS DEPLOYMENT USING DOCKER](#vps-deployment-docker)
   - [VPS DEPLOYMENT WITHOUT DOCKER](#vps-deployment-without-docker)
 
@@ -48,8 +48,8 @@ Following are some awesome features offered by this bot:-
 # Deployment
 
 ## ***Heroku***
-### For Heroku users New repo will come soon (This repo will not work on heroku)
-[![Deploy](https://telegra.ph/file/e7d224c45cf1d106a28fa.png)](https://telegra.ph/Heroku-TorToolkit-01-18)
+## For Heroku users New repo will come after Yash Khadse Is Free and Availble .. (But This repo will work on heroku)
+[![Deploy](https://telegra.ph/file/e7d224c45cf1d106a28fa.png)](heroku-deployment.md)
 
 ## ***Zeet***
 According to me, this platform provides resources that are enough for a genuine user and by default prevents Abuse:
@@ -62,6 +62,7 @@ ExecVarsSample.py location:- `tortoolkit/consts/ExecVarsSample.py`
 
 ### [Deploy with Docker Video](https://youtu.be/c8_TU1sPK08)
 
+
 Steps:-
 1. You should install docker first :- [How to Install Docker](https://docs.docker.com/engine/install/)
 
@@ -72,7 +73,7 @@ Steps:-
       3. `BOT_TOKEN`
       4. `ALD_USR`
       5. `BASE_URL_OF_BOT`
-      6. `Uncomment the below DB_URI and comment out the above DB_URI`
+      6. `Uncomment the below DATABASE_URL and comment out the above DATABASE_URL`
       7. Also if the given procedure dosent work then set  `IS_VPS` to True and if you want to change the port when IS_VPS is true then change `SERVPORT` to your desired port number. (Note this should be used as backup)
 
 3. After that execute these commands in root of the repo where tortoolkit folder is located.
@@ -123,7 +124,7 @@ Steps:-
        3.  `BOT_TOKEN`
        4.  `ALD_USR`
        5.  `BASE_URL_OF_BOT`
-       6.  Change `DB_URI = "dbname=tortk user=postgres password=your-pass host=127.0.0.1 port=5432"`
+       6.  Change `DATABASE_URL = "dbname=tortk user=postgres password=your-pass host=127.0.0.1 port=5432"`
 
            Enter the password in the above string.
        7.  After that run (You can use any port for the web interface here i am using 80).
@@ -170,7 +171,7 @@ Steps:-
   - Default Value :- `[]` 
   - Use :- Users and groups with ids here can use the bot.
 
-- `DB_URI` = 
+- `DATABASE_URL` = 
   - Values :- Postgres database URL. Just replace your credentials from below. OR directly Paste the URI you obtained from a database hosting or somewhere else.
   - Default Value :- `dbname=tortk user=postgres password=your-pass host=127.0.0.1 port=5432`
   - Use :- Used to connect to DB. DB is used for many stuff in this bot. 
@@ -277,6 +278,8 @@ Steps:-
     getlogs - Get the robot logs ⚠️ Admin Only
 
 # Credits
+[AmirulAndalib](https://github.com/AmirulAndalib) for modding
+
 [Yash-DK](https://github.com/yash-dk)
 
 [Lonami](https://github.com/LonamiWebs/Telethon/) for awesome Telethon

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 import os,logging,time,traceback,shutil, asyncio
 from ..core.getVars import get_val
@@ -10,7 +11,7 @@ from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 from telethon.errors import VideoContentTypeInvalidError
 from ..core.database_handle import TtkUpload
-from ..core.status.upload import TGUploadTask
+# REMOVED HEROKU BLOCK
 from .. import user_db
 from telethon.tl.types import KeyboardButtonCallback,DocumentAttributeVideo,DocumentAttributeAudio
 from telethon.utils import get_attributes
@@ -20,7 +21,7 @@ from .progress_for_pyrogram import progress_for_pyrogram
 torlog = logging.getLogger(__name__)
 
 #thanks @SpEcHiDe for this concept of recursion
-async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None, user_msg=None, task=TGUploadTask(None)):
+async def upload_handel(path,message,from_uid,files_dict,job_id=0,force_edit=False,updb=None,from_in=False,thumb_path=None, user_msg=None, task=None):
     # creting here so connections are kept low
     if updb is None:
         # Central object is not used its Acknowledged 

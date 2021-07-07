@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 import psycopg2, logging, time
 

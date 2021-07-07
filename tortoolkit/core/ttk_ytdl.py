@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 import asyncio,shlex,logging,time,os,aiohttp,shutil
 import json, time, asyncio
@@ -579,12 +580,7 @@ async def get_ytdl_choice(e,timestamp):
     lis = [False,None]
     cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
     
-    gtyh = ""
-    sam1 = [68, 89, 78, 79]
-    for i in sam1:
-        gtyh += chr(i)
-    if os.environ.get(gtyh,False):
-        os.environ["TIME_STAT"] = str(time.time())
+# REMOVED HEROKU BLOCK
 
     e.client.add_event_handler(
         #lambda e: test_callback(e,lis),

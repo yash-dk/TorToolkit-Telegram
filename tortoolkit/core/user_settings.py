@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 from telethon.tl.types import KeyboardButtonCallback,KeyboardButton
 from telethon import events

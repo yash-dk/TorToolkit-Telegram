@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 import asyncio, aria2p, logging, os
 from ..core.getVars import get_val
@@ -22,7 +23,7 @@ async def aria_start():
     aria2_daemon_start_cmd.append("--enable-rpc")
     aria2_daemon_start_cmd.append("--disk-cache=0")
     aria2_daemon_start_cmd.append("--follow-torrent=false")
-    aria2_daemon_start_cmd.append("--max-connection-per-server=10")
+    aria2_daemon_start_cmd.append("--max-connection-per-server=16")
     aria2_daemon_start_cmd.append("--min-split-size=10M")
     aria2_daemon_start_cmd.append("--rpc-listen-all=true")
     aria2_daemon_start_cmd.append(f"--rpc-listen-port=8100")
@@ -173,13 +174,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message, task, rdept
         if not complete:
             if not file.error_message:
                 msg = ""
-                
-                mem_chk = [68, 89, 78, 79]
-                memstr=""
-                for i in mem_chk:
-                    memstr += chr(i)
-                if os.environ.get(memstr, False):
-                    return
+# REMOVED HEROKU BLOCK
                 
                 await task.refresh_info(file)
                 await task.update_message()

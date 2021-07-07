@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 import re,os,shutil,time, aiohttp
 from telethon.tl import types
@@ -107,15 +108,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
                     else:
                         dl_path = newpath
                 
-                tm = [84 , 
-                73 , 77 , 69 , 
-                95 , 83 , 
-                84 , 65 , 84]
-                strfg=""
-                for i in tm:
-                    strfg += chr(i)
-                if os.environ.get(strfg, False):
-                    return
+# REMOVED HEROKU BLOCK
                 
                 if not rclone:
                     ul_size = calculate_size(dl_path)
@@ -169,15 +162,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
                     else:
                         dl_path = newpath
                 
-                tm = [84 , 
-                73 , 77 , 69 , 
-                95 , 83 , 
-                84 , 65 , 84]
-                strfg=""
-                for i in tm:
-                    strfg += chr(i)
-                if os.environ.get(strfg, False):
-                    return
+# REMOVED  HEROKU BLOCK
 
                 if not rclone:
                     # TODO add exception update for tg upload everywhere
@@ -240,15 +225,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
                     else:
                         dl_path = newpath
 
-                tm = [84 , 
-                73 , 77 , 69 , 
-                95 , 83 , 
-                84 , 65 , 84]
-                strfg=""
-                for i in tm:
-                    strfg += chr(i)
-                if os.environ.get(strfg, False):
-                    return
+# REMOVED  HEROKU BLOCK
                 
                 if not rclone:
                     ul_size = calculate_size(dl_path)
@@ -279,7 +256,9 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
             return dl_path
         
         else:
+            urls = msg.raw_text
             url = msg.raw_text
+
             rmsg = await omess.reply("**Processing the link...**")
             
             path = None
@@ -306,7 +285,7 @@ async def check_link(msg,rclone=False,is_zip=False, extract=False, prev_msg=None
                         await errored_message(omess, rmsg)
                         return
                     else:
-                        await rmsg.edit(f"**Found directs:** `{url}`")
+                        await rmsg.edit(f"**Found direct:** `{url}`")
                         await aio.sleep(2)
 
                 try:
@@ -576,7 +555,7 @@ def calculate_size(path):
             torlog.warning("Size Calculation Failed.")
             return 0
     else:
-        return 0        
+        return 0
 
 
 async def get_transfer():

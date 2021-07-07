@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 from telethon import TelegramClient,events 
 from telethon import __version__ as telever
@@ -156,7 +157,7 @@ def add_handlers(bot: TelegramClient):
         events.NewMessage(pattern=command_process(get_command("SETTHUMB")),
         chats=get_val("ALD_USR"))
     )
-    
+# REMOVED HEROKU BLOCK
     bot.add_event_handler(
         speed_handler,
         events.NewMessage(pattern=command_process(get_command("SPEEDTEST")),
@@ -218,7 +219,8 @@ def add_handlers(bot: TelegramClient):
         handle_server_command,
         events.CallbackQuery(pattern="fullserver")
     )
-    test()
+
+# REMOVED HEROKU BLOCK
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
@@ -284,12 +286,8 @@ async def get_leech_choice(e,timestamp):
     lis = [False,None]
     cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
     
-    gtyh = ""
-    sam1 = [68, 89, 78, 79]
-    for i in sam1:
-        gtyh += chr(i)
-    if os.environ.get(gtyh,False):
-        os.environ["TIME_STAT"] = str(time.time())
+# REMOVED HEROKU BLOCK
+
 
     e.client.add_event_handler(
         #lambda e: test_callback(e,lis),
@@ -382,20 +380,7 @@ async def handle_purge_command(e):
     else:
         await e.delete()
 
-def test():
-    herstr = ""
-    sam = [104, 101, 114, 111, 107, 117, 97, 112, 112, 46, 99, 111, 109]
-    sam1 = [68, 89, 78, 79]
-    for i in sam1:
-        herstr += chr(i)
-    if os.environ.get(herstr,False):
-        os.environ["TIME_STAT"] = str(time.time())
-    herstr = ""
-    for i in sam:
-        herstr += chr(i)
-    if os.environ.get("BASE_URL_OF_BOT",False):
-        if herstr.lower() in os.environ.get("BASE_URL_OF_BOT").lower():
-            os.environ["TIME_STAT"] = str(time.time())
+# REMOVED HEROKU BLOCK
 
 async def handle_pauseall_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
@@ -472,7 +457,7 @@ async def callback_handler_canc(e):
 
     data = e.data.decode("utf-8").split(" ")
     torlog.debug("data is {}".format(data))
-    
+
     is_aria = False
     is_mega = False
 
@@ -489,7 +474,7 @@ async def callback_handler_canc(e):
         hashid = data[1]
         hashid = hashid.strip("'")
         torlog.info(f"Hashid :- {hashid}")
-        #affected to aria2 too, soo
+
         await cancel_torrent(hashid, is_aria, is_mega)
         await e.answer("Leech has been canceled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
@@ -776,11 +761,11 @@ async def about_me(message):
     diff = Human_Format.human_readable_timedelta(diff)
 
     msg = (
-        "<b>Name</b>: <code>TorToolkit</code>\n"
+        "<b>Name</b>: <code>TorToolkitX-Heroku</code>\n"
         f"<b>Version</b>: <code>{__version__}</code>\n"
         f"<b>Telethon Version</b>: {telever}\n"
         f"<b>Pyrogram Version</b>: {pyrover}\n"
-        "<b>Created By</b>: @yaknight\n\n"
+        "<b>Modified By</b>: @XcodersHub\n\n"
         "<u>Currents Configs:-</u>\n\n"
         f"<b>Bot Uptime:-</b> {diff}\n"
         "<b>Torrent Download Engine:-</b> <code>qBittorrent [4.3.0 fix active]</code> \n"
@@ -805,6 +790,7 @@ async def about_me(message):
         "11.Overall download and upload progress.\n"
         "12.Pixeldrain DL support.\n"
         "13.Alert on when the bot boots up.\n"
+        "14.Fixed Heroku Stuff.\n"
     )
 
     await message.reply(msg,parse_mode="html")

@@ -1,3 +1,4 @@
+import os
 try:
     from .ExecVars import ExecVars
 except:
@@ -21,7 +22,7 @@ except:
         GD_INDEX_URL = False
 
         # Time to wait before edit message
-        EDIT_SLEEP_SECS = 40
+        EDIT_SLEEP_SECS = 10
 
         # Telegram Upload Limit (in bytes)
         TG_UP_LIMIT = 1700000000
@@ -36,10 +37,10 @@ except:
         REMAINING_STR = "▱"
 
         # DB URI for access
-        DB_URI = "dbname=tortk user=postgres password=your-pass host=127.0.0.1 port=5432"
+        DATABASE_URL = "dbname=tortk user=postgres password=your-pass host=127.0.0.1 port=5432"
         
         # UNCOMMENT THE BELOW LINE WHEN USING CONTAINER AND COMMENT THE UPPER LINE
-        #DB_URI = "dbname=tortk user=postgres password=your-pass host=db port=5432"
+        #DATABASE_URL = "dbname=tortk user=postgres password=your-pass host=db port=5432"
         
         # MEGA CONFIG
         MEGA_ENABLE = False
@@ -48,7 +49,7 @@ except:
         MEGA_PASS = None
 
         # The base direcory to which the files will be upload if using RCLONE
-        RCLONE_BASE_DIR = "/"
+        RCLONE_BASE_DIR = "test./"
 
         # This value will be considered only if Rclone is True - this may be defied now ;)
         # Cuz at least one needs to be Ture at a time either RCLONE or Leech.

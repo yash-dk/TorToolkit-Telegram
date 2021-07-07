@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 from ..consts.ExecVarsSample import ExecVars
 import os
@@ -14,12 +15,7 @@ class VarHolder:
         self._vardb = var_db
 
         # check var configs
-        herstr = ""
-        sam1 = [68, 89, 78, 79]
-        for i in sam1:
-            herstr += chr(i)
-        if os.environ.get(herstr,False):
-            os.environ["TIME_STAT"] = str(time.time())
+# Removed Heroku Blocks
 
     def get_var(self, variable):
         if variable in self._var_dict.keys():
@@ -57,12 +53,14 @@ class VarHolder:
         elif variable in INTS:
             val =  int(envval) if envval is not None else val
         elif variable in BOOLS:
-            if envval is not None:
+            if envval:
                 if not isinstance(val, bool):
                     if "true" in envval.lower():
                         val = True
                     else:
                         val = False
+            else:
+                val = None
         else:
             val =  envval if envval is not None else val
 

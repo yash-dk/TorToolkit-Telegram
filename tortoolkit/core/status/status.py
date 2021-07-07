@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 import logging
 from ...functions.Human_Format import human_readable_bytes, human_readable_timedelta
 from ..getVars import get_val

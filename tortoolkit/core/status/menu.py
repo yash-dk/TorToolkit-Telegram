@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
+# (c) modified by AmirulAndalib [amirulandalib@github]
 
 from .status import MegaDl, Status, QBTask, ARTask
 from .upload import TGUploadTask, RCUploadTask
