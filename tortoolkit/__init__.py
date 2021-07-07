@@ -10,18 +10,18 @@
 #    handlers=[logging.StreamHandler(),logging.FileHandler("torlog.txt")]
 #)
 #
-from tortoolkit.server.server import start_server
-#from .core.database_handle import TtkUpload,TorToolkitDB,TtkTorrents, UserDB
-#from .core.varholdern import VarHolder
+#from tortoolkit.server.server import start_server
+from .database.dbhandler import TorToolkitDB,TtkTorrents, UserDB
+from .core.varholdern import VarHolder
 #import time
 #
 #logging.info("Database created")
 #upload_db = TtkUpload()
-#var_db = TorToolkitDB()
+var_db = TorToolkitDB()
 #tor_db = TtkTorrents()
-#user_db = UserDB()
+user_db = UserDB()
 #transfer = [0,0] # UP,DOWN
 #
 #uptime = time.time()
 #to_del = []
-#SessionVars = VarHolder(var_db)
+SessionVars = VarHolder(var_db)
