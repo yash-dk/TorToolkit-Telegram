@@ -67,8 +67,6 @@
 
 ## note:- the Postgres "DATABASE_URL" var will need to be added manually after deployment is done....go to https://elements.heroku.com/addons/heroku-postgresql and add it to your deployed app or else bot will crash and wont work..
 
-## if you dont want the app to auto sleep after 30 minutes go to https://kaffeine.herokuapp.com and in there give the heroku-appname and click on `Give my app a caffeine shot every 30 minutes ` then let it be added then enjoy....
-
 
 
 ### [Not Required Environment Variables..Click Here..](readme.md#optional-vars)
