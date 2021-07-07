@@ -64,7 +64,11 @@
 | ALD_USR | Authorized Chats | Your Group Chats ID + admins/owners id | True | Create a Super Group in Telegram, add `@missrose_bot` to the group, and send /id in the chat, to get this value. you can aswell add owner id/add by 1 space for some extra permissions.... |
 | BASE_URL_OF_BOT | Heroku App name web url | https://appname.herokuapp.com  | True | put entire appname url from `Heroku_APP_NAME` note: - the app doesnt need to be created just in `appname` above replace the name you gave in `HEROKU_APP_NAME`.... |
 
-## note:- the Postgres "DATABASE_URL" var will be added automatically no need to touch it.....
+
+## note:- the Postgres "DATABASE_URL" var will need to be added manually after deployment is done....go to https://elements.heroku.com/addons/heroku-postgresql and add it to your deployed app or else bot will crash and wont work..
+
+## if you dont want the app to auto sleep after 30 minutes go to https://kaffeine.herokuapp.com and in there give the heroku-appname and click on `Give my app a caffeine shot every 30 minutes ` then let it be added then enjoy....
+
 
 
 ### [Not Required Environment Variables..Click Here..](readme.md#optional-vars)
