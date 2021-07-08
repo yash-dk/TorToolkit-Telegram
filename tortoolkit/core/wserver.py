@@ -271,7 +271,7 @@ async def set_priority(request):
 
 @routes.get('/')
 async def homepage(request):
-    return web.Response(text="<h1>Tor-ToolkitX on Heroku modded By AmirulAndalib</h1>",content_type="text/html")
+    return web.Response(text="<h1>🤗TorToolkitX webserver is Up and Running successfully🟢</h1>\n\n⚡See TorTookitX on <a href=\"https://github.com/XcodersHub/TorToolkitX\">@GitHub</a>\n\n🐱‍💻Join XcodersHub <a href=\"https://t.me/XcodersHub\">TG channel</a>",content_type="text/html")
 
 async def e404_middleware(app, handler):
   async def middleware_handler(request):
