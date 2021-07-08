@@ -40,6 +40,10 @@ class BaseTask(ABC):
     @property
     def is_canceled(self):
         return self._is_canceled
+    
+    @property
+    def is_errored(self):
+        return self._is_errored
 
     def get_canceled_by(self):
         return self._canceled_by
@@ -47,7 +51,6 @@ class BaseTask(ABC):
     def get_times(self):
         return self._time_added, self._time_completed
 
-    @abstractmethod
     async def execute(self):
         ...
     

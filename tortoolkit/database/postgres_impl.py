@@ -6,6 +6,7 @@ import psycopg2.extras
 from .postrgres_db import PostgresDB
 from ..consts.ExecVarsSample import ExecVars
 import json
+from typing import BinaryIO, Union
 #this will handel the transaction with completed torrents
 
 # this now will handle the setting for the bot
@@ -348,3 +349,9 @@ class TtkTorrents(PostgresDB):
         cur = self.scur()
         cur.execute(sql)
         self.ccur(cur)
+
+    def get_variable(self, var_name: str) -> Union[str, int, list, BinaryIO]:
+        pass
+
+    def set_variable(self, var_name: str, var_value: Union[list, str, int], update_blob: bool, blob_value: BinaryIO) -> None:
+        pass
