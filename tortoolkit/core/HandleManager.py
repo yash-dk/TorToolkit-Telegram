@@ -29,7 +29,7 @@ from .status.status import Status
 from .status.menu import create_status_menu, create_status_user_menu
 import signal
 from PIL import Image
-from ..downloaders.qbittorrent_downloader import QbitController
+from ..uploaders.rclone_uploader import RcloneController
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -226,10 +226,8 @@ async def handle_leech_command(e):
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
-        ent_msg = await e.get_reply_message()
-        hey = QbitController(e, ent_msg)
-        print(await hey.execute())
-
+        rcl = RcloneController("Dockerfile", e)
+        print(await rcl.execute())
         return
         rclone = False
         tsp = time.time()

@@ -54,14 +54,14 @@ class BaseTask(ABC):
     async def execute(self):
         ...
     
-    @abstractmethod
+    #@abstractmethod
     def cancel(self, is_admin=False):
         ...
     
-    @abstractmethod
+    #@abstractmethod
     async def get_update(self):
         ...
     
-    @abstractmethod
+    #@abstractmethod
     def get_error_reason(self):
         ...

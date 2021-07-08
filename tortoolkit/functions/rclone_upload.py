@@ -5,7 +5,7 @@ import os,subprocess,logging,re,time,json,traceback
 from . import Human_Format
 from telethon.tl.types import KeyboardButtonUrl
 from tortoolkit import SessionVars
-import asyncio as aio
+import asyncio
 import aiohttp
 from requests.utils import requote_uri
 from ..core.getVars import get_val
@@ -193,7 +193,7 @@ async def rclone_process_display(process,edit_time,msg, omessage, cancelmsg, tas
                 return False
             
             sleeps=False
-            await aio.sleep(2)
+            await asyncio.sleep(2)
             process.stdout.flush()
 
 
@@ -220,9 +220,9 @@ async def get_glink(drive_name,drive_base,ent_name,conf_path,isdir=True):
 
 
     # piping only stdout
-    process = await aio.create_subprocess_exec(
+    process = await asyncio.create_subprocess_exec(
         *get_id_cmd,
-        stdout=aio.subprocess.PIPE
+        stdout=asyncio.subprocess.PIPE
     )
 
     stdout, _ = await process.communicate()
