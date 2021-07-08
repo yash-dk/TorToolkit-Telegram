@@ -141,7 +141,6 @@ class RcloneUploader(BaseTask):
 
         # TODO upload_db.deregister_upload(message.chat_id, message.id) # deregister the upload here
         
-
     async def rclone_process_update(self):
         blank=0
         sleeps = False

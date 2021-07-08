@@ -29,7 +29,7 @@ from .status.status import Status
 from .status.menu import create_status_menu, create_status_user_menu
 import signal
 from PIL import Image
-from ..uploaders.rclone_uploader import RcloneController
+from ..downloaders.mega_downloader import MegaController
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -226,7 +226,8 @@ async def handle_leech_command(e):
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
-        rcl = RcloneController("Dockerfile", e)
+        link = "https://mega.nz/file/hG4SQDSK#isXGprskZbLP4KnLNuNHcbI279s6FnLcsj8Vydm_sio"
+        rcl = MegaController(link,e)
         print(await rcl.execute())
         return
         rclone = False

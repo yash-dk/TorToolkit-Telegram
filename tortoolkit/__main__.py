@@ -61,13 +61,12 @@ if __name__ == "__main__":
 
     ttkbot.run_until_disconnected()
 
-#from .uploaders.rclone_uploader import RcloneUploader
 #import asyncio
+#from .downloaders.direct_link_gen import DLGen
 #
 #async def main():
-#    rclone = RcloneUploader("Dockerfile", None)
-#    print(await rclone.execute())
-#    
+#    ...
+#
 #if __name__ == "__main__":
 #    loop = asyncio.get_event_loop()
 #    loop.run_until_complete(main())
