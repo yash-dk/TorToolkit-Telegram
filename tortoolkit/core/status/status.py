@@ -234,7 +234,7 @@ class ARTask(Status):
             human_readable_bytes(self._dl_file.completed_length),
             human_readable_bytes(self._dl_file.total_length)
             )
-        msg += "<b>ETA:</b> <b>{} Mins</b>\n".format(
+        msg += "<b>ETA:</b> <b>{}</b>\n".format(
             self._dl_file.eta_string()
             )
         msg += "<b>Conns:</b>{} <b>\n".format(
