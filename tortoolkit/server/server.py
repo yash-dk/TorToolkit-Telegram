@@ -2,11 +2,14 @@
 # (c) YashDK [yash-dk@github]
 
 from aiohttp import web
+from aiohttp.web_response import Response
 import qbittorrentapi as qba
 from . import nodes
 from ..database.dbhandler import TtkTorrents
 import asyncio,logging,os,traceback
 import os, time
+import jinja2
+import aiohttp_jinja2
 
 torlog = logging.getLogger(__name__)
 
@@ -125,6 +128,7 @@ TorToolkit Torrent Files
 </body>
 </html>
 """
+
 
 
 @routes.get('/tortk/files/{hash_id}')
@@ -270,7 +274,8 @@ async def set_priority(request):
 
 @routes.get('/')
 async def homepage(request):
-    return web.Response(text="<h1>See TorTookit <a href=\"#\">@GitHub</a> By YashDK</h1>",content_type="text/html")
+  response = aiohttp_jinja2.render_template("index.html", request,context={})
+  return response
 
 async def e404_middleware(app, handler):
   async def middleware_handler(request):
@@ -285,48 +290,22 @@ async def e404_middleware(app, handler):
           raise
   return middleware_handler
 
+routes.static('/static', os.path.join(os.getcwd(),"tortoolkit", "server", "static"))
 async def start_server():
-    strfg = ""
-    hyu = [104,101, 114,111, 107,117, 97, 112,112, 46,99, 111, 109]
-    
-    for i in hyu:
-        strfg += chr(i)
-    # Configure the server
-    if os.environ.get("BASE_URL_OF_BOT",False):
-        if strfg.lower() in os.environ.get("BASE_URL_OF_BOT").lower():
-          tm = [84 , 
-          73 , 77 , 69 , 
-          95 , 83 , 
-          84 , 65 , 84]
-          strfg=""
-          for i in tm:
-            strfg += chr(i)
-          os.environ[strfg] = str(time.time())
-    
-
     app = web.Application(middlewares=[e404_middleware])
     app.add_routes(routes)
+    
+    aiohttp_jinja2.setup(
+        app, loader=jinja2.FileSystemLoader(os.path.join(os.getcwd(),"tortoolkit", "server", "templates"))
+    )
+    
     return app
 
-async def start_server_async(port = 8080):
-    strfg = ""
-    hyu = [104,101, 114,111, 107,117, 97, 112,112, 46,99, 111, 109]
-    
-    for i in hyu:
-        strfg += chr(i)
-    # Configure the server
-    if os.environ.get("BASE_URL_OF_BOT",False):
-        if strfg.lower() in os.environ.get("BASE_URL_OF_BOT").lower():
-          tm = [84 , 
-          73 , 77 , 69 , 
-          95 , 83 , 
-          84 , 65 , 84]
-          strfg=""
-          for i in tm:
-            strfg += chr(i)
-          os.environ[strfg] = str(time.time())
-    
+async def start_server_async(port = 8080):    
     app = web.Application(middlewares=[e404_middleware])
+    aiohttp_jinja2.setup(
+        app, loader=jinja2.FileSystemLoader(os.path.join(os.getcwd(),"tortoolkit", "server", "templates"))
+    )
     app.add_routes(routes)
     runner = web.AppRunner(app)
     await runner.setup()
