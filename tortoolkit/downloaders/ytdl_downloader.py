@@ -10,6 +10,7 @@ from typing import Union,List,Tuple,Dict,Optional
 from ..utils.human_format import human_readable_bytes
 from ..core.getVars import get_val
 from ..functions.rclone_upload import get_config,rclone_driver
+from ..core.base_task import BaseTask
 from functools import partial
 from PIL import Image
 
@@ -155,6 +156,7 @@ async def create_quality_menu(url: str,message: MessageLike, message1: MessageLi
     return True,None
         
 async def handle_ytdl_command(e: MessageLike):
+    # Initial Menu buildup for yt-dl
     if not e.is_reply:
         await e.reply("Reply to a youtube video link.")
         return
@@ -181,6 +183,7 @@ async def handle_ytdl_command(e: MessageLike):
         await e.reply("Invalid link provided.")
 
 async def handle_ytdl_callbacks(e: MessageLike):
+    # This is used to handle the menu clicked by the user.
     # ytdlsmenu | format | sender_id | suid | dest
     data = e.data.decode("UTF-8")
     data = data.split("|")
@@ -245,6 +248,7 @@ async def handle_ytdl_callbacks(e: MessageLike):
             await e.answer("Try again something went wrong.",alert=True)
             await e.delete()
 
+#will be in
 async def handle_ytdl_file_download(e: MessageLike):
     # ytdldfile | format_id | sender_id | suid | dest
 
@@ -430,6 +434,7 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         await msg.edit("Failed to parse the playlist. Check log if you think its error.")
         torlog.exception("Playlist Parse failed") 
 
+# will be in
 async def handle_ytdl_playlist_down(e: MessageLike) -> None:
     # ytdlplaylist | quality | suid | sender_id | choice(tg/drive)
     
@@ -625,6 +630,125 @@ async def get_leech_choice_callback(e,o_sender,lis,ts):
     lis[0] = True
     
     lis[1] = data[1]
+
+
+class YTDLDownloader(BaseTask):
+    def __init__(self, fromat_id, sender_id, suid):
+        super().__init__()
+        self._format_id = fromat_id
+        self._sender_id = sender_id
+        self._suid = suid
+
+    async def execute(self):
+        # ytdldfile | format_id | sender_id | suid | dest
+        #       0       1           2           3     4
+
+        is_audio = False
+
+        path = os.path.join(os.getcwd(),'userdata',self._suid+".json")
+        if os.path.exists(path):
+            with open(path,encoding="UTF-8") as file:
+                ytdata = json.loads(file.read())
+                yt_url = ytdata.get("webpage_url")
+                thumb_path = await get_max_thumb(ytdata,self._suid)
+
+                op_dir = os.path.join(os.getcwd(),'userdata',self._suid)
+                if not os.path.exists(op_dir):
+                    os.mkdir(op_dir)
+                if self._format_id.startswith("xxother"):
+                    self._format_id = self._format_id.replace("xxother","")
+                    self._format_id = int(self._format_id)
+                    j = 0
+                    for i in ytdata.get("formats"):
+                        if j == self._format_id:
+                            self._format_id = i.get("format_id")
+                        j +=1
+                else:
+                    for i in ytdata.get("formats"):
+                        if i.get("format_id") == self._format_id:
+                            print(i)
+                            if i.get("acodec") is not None:
+                                if "none" not in i.get("acodec"):
+                                    is_audio = True
+                                
+                        
+                if self._format_id.endswith("K"):
+                    cmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {self._format_id} -o '{op_dir}/%(title)s.%(ext)s' {yt_url}"
+
+                else:
+                    if is_audio:
+                        cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {self._format_id} -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+                    else:
+                        cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {self._format_id}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+                
+                out, err = await cli_call(cmd)
+                
+                if not err:
+                    
+                    # TODO Fix the original thumbnail
+                    # rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),thumb_path=thumb_path)
+                    
+                    self._is_completed = True
+                    self._is_done = True
+
+                    shutil.rmtree(op_dir)
+                    os.remove(thumb_path)
+                    os.remove(path)
+                    return op_dir
+                else:
+                    torlog.error(err)
+                    
+                    if "HTTP Error 429" in err:
+                        emsg = "HTTP Error 429: Too many requests try after a while."
+                    else:
+                        emsg = "An error has occured trying to upload any files that are found here."
+                    
+                    self._is_errored = True
+                    self._error_reason = emsg
+                    
+                    try:
+                        shutil.rmtree(op_dir)
+                        os.remove(thumb_path)
+                        os.remove(path)
+                    except:
+                        pass
+                    return op_dir
+
+        else:
+            self._is_errored = True
+            self._error_reason = "Try again something went wrong."
+            return False
+
+
+class YTDLController:
+    def __init__(self, callback, user_message):
+        self.callback = callback
+        self.user_message = user_message
+    
+    async def execute(self):
+        data = self.callback.data.decode("UTF-8")
+        data = data.split("|")
+
+        if data[2] != str(self.callback.sender_id):
+            await self.callback.answer("Not valid user, Dont touch.")
+            return
+        else:
+            await self.callback.answer("Crunching Data.....")
+
+        await self.callback.edit(buttons=None)
+
+        ytdl_task = YTDLDownloader(data[1],data[2],data[3])
+        res = await ytdl_task.execute()
+
+        if ytdl_task.is_errored:
+            if res is False:
+                await self.callback.answer("Something went wrong, try again later.")
+                return res
+            else:
+                return res
+        else:
+            return res
+
 #todo
 # Add the YT playlist feature here
 # Add the YT channels feature here 

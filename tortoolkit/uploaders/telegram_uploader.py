@@ -46,12 +46,15 @@ class TelegramUploader(BaseTask):
         
 
     async def execute(self):
-        self._update_message = None
+        self._update_message = await self._user_message.reply("Uploading files...")
         self._total_files = self.get_num_of_files(self._path)
         self._num_files = 0
         self._up_file_name = ""
         self._current_update = TelegramUploader.TelegramStatus(self._total_files)
-        ...
+        await self.upload_handel(self._update_message)
+
+        return self.files_dict
+
 
     async def upload_handel(self, message, path=None,from_in=False):
         # creting here so connections are kept low
@@ -194,7 +197,7 @@ class TelegramUploader(BaseTask):
                     await message.edit(buttons=buts)
                 #print(updb)
                 if black_list_exts(path):
-                    
+                    self._num_files += 1
                     self._up_file_name =os.path.basename(path)
                     sentmsg = None
                 else:
@@ -213,7 +216,7 @@ class TelegramUploader(BaseTask):
 
                 if sentmsg is not None:
                     self._up_file_name = os.path.basename(path)
-                    
+                    self._num_files += 1
                     self.files_dict[os.path.basename(path)] = sentmsg.id
 
     async def upload_a_file(self, path, message):
@@ -273,7 +276,7 @@ class TelegramUploader(BaseTask):
         opath = path
         
         if self._user_message is not None:
-            dis_thumb = self._user_db.get_var("DISABLE_THUMBNAIL", self._user_message.sender_id)
+            dis_thumb = self._user_db.get_variable("DISABLE_THUMBNAIL", self._user_message.sender_id)
             if dis_thumb is False or dis_thumb is None:
                 thumb_path = self._user_db.get_thumbnail(self._user_message.sender_id)
                 if not thumb_path:
@@ -288,7 +291,7 @@ class TelegramUploader(BaseTask):
                     )
 
             if self._user_message is not None:
-                force_docs = self._user_db.get_var("FORCE_DOCUMENTS",self._user_message.sender_id)  
+                force_docs = self._user_db.get_variable("FORCE_DOCUMENTS",self._user_message.sender_id)  
             else:
                 force_docs = None
             
@@ -411,7 +414,7 @@ class TelegramUploader(BaseTask):
             self._user_message = await message.get_reply_message()
 
         if self._user_message is not None:
-            force_docs = self._user_dbuser_db.get_var("FORCE_DOCUMENTS",self._user_message.sender_id)  
+            force_docs = self._user_db.get_variable("FORCE_DOCUMENTS",self._user_message.sender_id)  
         else:
             force_docs = None
             
@@ -443,7 +446,7 @@ class TelegramUploader(BaseTask):
         start_time = time.time()
         #
         if self._user_message is not None:
-            dis_thumb = self._user_db.get_var("DISABLE_THUMBNAIL", self._user_message.sender_id)
+            dis_thumb = self._user_db.get_variable("DISABLE_THUMBNAIL", self._user_message.sender_id)
             if dis_thumb is False or dis_thumb is None:
                 thumb_image_path = self._user_db.get_thumbnail(self._user_message.sender_id)
                 if not thumb_image_path:
@@ -617,6 +620,20 @@ class TelegramUploader(BaseTask):
             else:
                 num += 1
         return num
+    
+    def cancel(self, is_admin=False):
+        self._is_canceled = True
+        if is_admin:
+            self._canceled_by = self.ADMIN
+        else: 
+            self._canceled_by = self.USER
+    
+    async def get_update(self):
+        self._current_update = TelegramUploader.TelegramStatus(self._total_files, self._num_files, self._up_file_name)
+        return self._current_update
+
+    def get_error_reason(self):
+        return self._error_reason
 
 def black_list_exts(file):
     for i in ['!qb']:

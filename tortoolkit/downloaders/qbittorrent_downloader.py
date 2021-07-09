@@ -1,4 +1,5 @@
 import re
+import aiohttp
 from requests.api import get
 from telethon.tl.types import Config, Message, KeyboardButtonCallback, KeyboardButtonUrl
 from telethon.errors import FloodWaitError, MessageNotModifiedError
@@ -486,11 +487,12 @@ class QbittorrentDownloader(BaseTask):
 
 
 class QbitController:
-    def __init__(self, user_msg, entity_message, is_file = False):
+    def __init__(self, user_msg, entity_message, is_file = False, is_link = False):
         self._entity_msg = entity_message
         self._user_msg = user_msg
         self._is_file = is_file
         self._update_message = None
+        self._is_link = is_link
 
     async def execute(self):
         
@@ -499,6 +501,27 @@ class QbitController:
             
             torrent = self._entity_msg.download()
             self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_file)
+            
+            await self._qbit_task.register_torrent()
+
+            if  self._qbit_task.is_errored:
+                self._update_message("Your Task was unsccuessful. {}".format(self._qbit_task.get_error_reason()))
+                return False
+        
+        elif self._is_link:
+            self._update_message = await self._user_msg.reply("Downloading the torrent file.")
+            torrent = ""
+            async with aiohttp.ClientSession() as sess:
+                async with sess.get(self._entity_msg.raw_text) as resp:
+                    if resp.status == 200:
+                        torrent = str(time.time()).replace(".","")+".torrent"
+                        with open(torrent, "wb") as fi:
+                            fi.write(await resp.read())
+                    else:
+                        await self._update_message.edit("Error got HTTP response code:- "+str(resp.status))
+                        return False
+            
+            self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_link)
             
             await self._qbit_task.register_torrent()
 

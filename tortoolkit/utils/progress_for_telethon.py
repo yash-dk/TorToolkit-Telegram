@@ -5,7 +5,7 @@ import logging
 import math
 import os
 import time
-from .Human_Format import human_readable_bytes,human_readable_timedelta
+from .human_format import human_readable_bytes,human_readable_timedelta
 from ..core.getVars import get_val
 #logging.basicConfig(level=logging.DEBUG)
 
