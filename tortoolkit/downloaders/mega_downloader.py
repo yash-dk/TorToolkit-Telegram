@@ -130,3 +130,6 @@ class MegaController:
                 await self._update_msg.edit(mega_down.get_error_reason())    
             
             return res
+    
+    async def get_update_message(self):
+        return self._update_msg

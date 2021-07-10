@@ -580,7 +580,9 @@ class QbitController:
                 await self._update_message.edit("{}".format(self._qbit_task.get_error_reason()))
             return result
         
-        
+    async def get_update_message(self):
+        return self._update_message
+
     def get_magnets(self, text):
         matches = [ i for i in re.finditer("magnet:",text)]
         magnets = list()

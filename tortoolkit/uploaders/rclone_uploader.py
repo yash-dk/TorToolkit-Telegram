@@ -277,6 +277,6 @@ class RcloneController:
             await self._update_msg.edit("Your Task was unsccuessful. {}".format(rclone_up.get_error_reason()))
         else:
             drive_link, index_link = res 
-            print(res)
+            # Add the logic to edit the message with the url buttons here only if the task was successful :)
             # TODO add buttons for the links
             await self._update_msg.edit(rclone_up.get_error_reason())

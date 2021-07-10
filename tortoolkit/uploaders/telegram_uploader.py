@@ -614,11 +614,14 @@ class TelegramUploader(BaseTask):
 
     def get_num_of_files(self, path):
         num = 0
-        for file in os.listdir(path):
-            if os.path.isdir(os.path.join(path,file)):
-                num += self.get_num_of_files(os.path.join(path,file))
-            else:
-                num += 1
+        if os.path.isfile(path):
+            num += 1
+        else:
+            for file in os.listdir(path):
+                if os.path.isdir(os.path.join(path,file)):
+                    num += self.get_num_of_files(os.path.join(path,file))
+                else:
+                    num += 1
         return num
     
     def cancel(self, is_admin=False):

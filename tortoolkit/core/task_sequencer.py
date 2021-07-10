@@ -1,35 +1,87 @@
 from functools import partial
 import os
-import re
 import time
 from ..downloaders.qbittorrent_downloader import QbitController
 from ..downloaders.mega_downloader import MegaController
 from ..downloaders.aria2_downloader import Aria2Controller
 from ..downloaders.direct_link_gen import DLGen
+from ..uploaders.archiver import Archiver
+from ..uploaders.extractor import Extractor
 from telethon.tl.types import KeyboardButtonCallback, DocumentAttributeFilename
 from telethon import events
-from ..uploaders.rclone_uploader import RcloneUploader
+from ..uploaders.rclone_uploader import RcloneUploader, RcloneController
+from ..uploaders.telegram_uploader import TelegramUploader
 from .getVars import get_val
 import asyncio
+import logging
+from ..utils.zip7_utils import is_archive
+
+torlog = logging.getLogger(__name__)
 
 class TaskSequence:
-    def __init__(self, user_msg, entity_message) -> None:
+    LEECH = 0
+    YTDL = 1
+    PYTDL = 2
+    def __init__(self, user_msg, entity_message, task_type) -> None:
         self._user_msg = user_msg
         self._entity_message = entity_message
+        self._task_type = task_type
 
     async def execute(self):
-        choices = await self.get_leech_choices()
-        print(choices)
+        if self._task_type == self.LEECH:
+            choices = await self.get_leech_choices()
+            torlog.info(choices)
 
-        current_downloader = await self.get_downloader_leech()
-        
-        res = await current_downloader.execute()
+            current_downloader = await self.get_downloader_leech()
+            
+            dl_path = await current_downloader.execute()
+
+            if dl_path is False:
+                return
+            
+            prev_update_message = await current_downloader.get_update_message()
+            
+            if choices["ext"] and choices["zip"]:
+                if is_archive(dl_path):
+                    ext_obj = Extractor(dl_path, prev_update_message, self._user_msg)
+                    extracted_path = await ext_obj.execute()
+                    if extracted_path is not False:
+                        dl_path = extracted_path
+                else:
+                    arch_obj = Archiver(dl_path,  prev_update_message, self._user_msg)
+                    archived_path = await arch_obj.execute()
+                    if archived_path is not False:
+                        dl_path = archived_path
+            
+            elif choices["ext"]:
+                if is_archive(dl_path):
+                    ext_obj = Extractor(dl_path, prev_update_message, self._user_msg)
+                    extracted_path = await ext_obj.execute()
+                    if extracted_path is not False:
+                        dl_path = extracted_path
+                
+            elif choices["zip"]:
+                arch_obj = Archiver(dl_path,  prev_update_message, self._user_msg)
+                archived_path = await arch_obj.execute()
+                if archived_path is not False:
+                    dl_path = archived_path
+
+            if not choices["rclone"]:
+                teleup = TelegramUploader(dl_path, self._user_msg, prev_update_message)
+                files = await teleup.execute()
+                # temp:
+                print(files)
+            else:
+                rcloneup = RcloneController(dl_path, self._user_msg, prev_update_message)            
+                await rcloneup.execute()
+
         
         
     
     async def get_downloader_leech(self):
         if self._entity_message is None:
             return False
+        
         elif self._entity_message.document is not None:
             name = None
             for i in self._entity_message.document.attributes:
@@ -38,18 +90,25 @@ class TaskSequence:
                 
                 if name is None:
                     await self._user_msg.reply("This is not a torrent file to leech from. Send <code>.torrent</code> file",parse_mode="html")
+        
                 elif name.lower().endswith(".torrent"):
                     return QbitController(self._user_msg, self._entity_message, is_file = True)
+        
                 else:
                     await self._user_msg.reply("This is not a torrent file to leech from. Send <code>.torrent</code> file",parse_mode="html")
+        
         elif self._entity_message.raw_text is not None:
             raw_text = self._entity_message.raw_text 
+            
             if raw_text.lower().startswith("magnet:"):
                 return QbitController(self._user_msg, self._entity_message)
+            
             elif raw_text.lower().endswith(".torrent"):
                 return QbitController(self._user_msg, self._entity_message, is_link=True)
+            
             elif "mega.nz" in raw_text:
                 return MegaController(raw_text, self._user_msg)
+            
             else:
                 dl_gen = DLGen()
                 res = await dl_gen.generate_directs(raw_text)
@@ -57,12 +116,16 @@ class TaskSequence:
                 if dl_gen.is_errored:
                     await self._user_msg.reply(dl_gen.get_error_reason())
                     return False
+            
                 elif res is not False:
                     return Aria2Controller(res, self._user_msg)
+            
                 else:
                     return Aria2Controller(raw_text, self._user_msg)
     
-    # All the methods below are for getting the leech and zip/extract choices
+
+
+    ####### All the methods below are for getting the leech and zip/extract choices #######
 
     async def get_leech_choices(self):
         rclone = False

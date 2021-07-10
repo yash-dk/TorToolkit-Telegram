@@ -146,5 +146,11 @@ async def extract_archive(path, password=""):
         # None means fetal error and cant be ignored
         return None 
 
+def is_archive(path):
+    if str(path).endswith((".zip", "7z", "tar", "gzip2", "iso", "wim", "rar", "tar.gz","tar.bz2")):
+        return True
+    else:
+        return False
+
 #7z e -y {path} {ext_path}
 #/setpassword jobid password

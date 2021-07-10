@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
+from ..uploaders.telegram_uploader import TelegramUploader
 from telethon import TelegramClient,events 
 from telethon import __version__ as telever
 from pyrogram import __version__ as pyrover
@@ -226,7 +227,7 @@ async def handle_leech_command(e):
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
-        sequencer = TaskSequence(e, await e.get_reply_message())
+        sequencer = TaskSequence(e, await e.get_reply_message(), TaskSequence.LEECH)
         res = await sequencer.execute()
         print("Sequencer out",res)
         return

@@ -4,6 +4,7 @@ import asyncio
 from functools import partial
 import aria2p
 import os
+import time
 from ..core.getVars import get_val
 from telethon.errors.rpcerrorlist import MessageNotModifiedError
 
@@ -215,11 +216,14 @@ class Aria2Downloader(BaseTask):
     async def add_url(self):
         aria_instance = await self.get_client()
         uris = [self._dl_link]
+        dlp = os.path.join(os.getcwd(), "Downloads", str(time.time()).replace(".", ""))
+        os.makedirs(dlp, exist_ok=True)
+        optis = {"dir":dlp}
 
         # Add URL Into Queue
         try:
             
-            download = await self._aloop.run_in_executor(None, aria_instance.add_uris, uris)
+            download = await self._aloop.run_in_executor(None, aria_instance.add_uris, uris, optis)
 
         except Exception as e:
             return False, "**FAILED** \n" + str(e) + " \nPlease do not send SLOW links. Read /help"
@@ -261,3 +265,6 @@ class Aria2Controller:
                 await self._update_msg.edit(aria2_down.get_error_reason())    
             
             return res
+
+    async def get_update_message(self):
+        return self._update_msg
