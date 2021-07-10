@@ -253,18 +253,21 @@ class Aria2Controller:
     async def execute(self):
         self._update_msg = await self._user_msg.reply("Starting the Aria2 Download.")
 
-        aria2_down = Aria2Downloader(self._dl_link, self._user_msg.sender_id, self._new_name)
+        self._aria2_down = Aria2Downloader(self._dl_link, self._user_msg.sender_id, self._new_name)
 
-        res = await aria2_down.execute()
+        res = await self._aria2_down.execute()
 
-        if aria2_down.is_errored:
-            await self._update_msg.edit("Your Task was unsccuessful. {}".format(aria2_down.get_error_reason()))
+        if self._aria2_down.is_errored:
+            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._aria2_down.get_error_reason()))
             return False
         else:
-            if aria2_down.is_completed:
-                await self._update_msg.edit(aria2_down.get_error_reason())    
+            if self._aria2_down.is_completed:
+                await self._update_msg.edit(self._aria2_down.get_error_reason())    
             
             return res
 
     async def get_update_message(self):
         return self._update_msg
+    
+    async def get_downloader(self):
+        return self._aria2_down

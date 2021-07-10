@@ -31,7 +31,7 @@ class BaseTask(ABC):
 
     @property
     def is_done(self):
-        return self._is_done
+        return (self._is_done or self._is_errored or self._is_canceled or self._is_completed)
 
     @property
     def is_completed(self):

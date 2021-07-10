@@ -499,7 +499,7 @@ class QbitController:
         if self._is_file:
             self._update_message = await self._user_msg.reply("Downloading the torrent file.")
             
-            torrent = self._entity_msg.download()
+            torrent = await self._entity_msg.download()
             self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_file)
             
             await self._qbit_task.register_torrent()
@@ -582,6 +582,9 @@ class QbitController:
         
     async def get_update_message(self):
         return self._update_message
+    
+    async def get_downloader(self):
+        return self._qbit_task
 
     def get_magnets(self, text):
         matches = [ i for i in re.finditer("magnet:",text)]

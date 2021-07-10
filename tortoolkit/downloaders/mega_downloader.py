@@ -118,18 +118,21 @@ class MegaController:
     async def execute(self):
         self._update_msg = await self._user_msg.reply("Starting the Mega DL Download.")
 
-        mega_down = MegaDownloader(self._dl_link, self._user_msg.sender_id)
+        self._mega_down = MegaDownloader(self._dl_link, self._user_msg.sender_id)
 
-        res = await mega_down.execute()
+        res = await self._mega_down.execute()
 
-        if mega_down.is_errored:
-            await self._update_msg.edit("Your Task was unsccuessful. {}".format(mega_down.get_error_reason()))
+        if self._mega_down.is_errored:
+            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._mega_down.get_error_reason()))
             return False
         else:
-            if mega_down.is_completed:
-                await self._update_msg.edit(mega_down.get_error_reason())    
+            if self._mega_down.is_completed:
+                await self._update_msg.edit(self._mega_down.get_error_reason())    
             
             return res
     
     async def get_update_message(self):
         return self._update_msg
+
+    async def get_downloader(self):
+        return self._mega_down
