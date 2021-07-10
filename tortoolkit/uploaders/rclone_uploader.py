@@ -13,6 +13,8 @@ import time
 import re
 from ..utils.size import calculate_size
 from requests.utils import requote_uri
+from ..status.rclone_status import RcloneStatus
+from ..status.status_manager import StatusManager
 
 
 torlog = logging.getLogger(__name__)
@@ -270,13 +272,25 @@ class RcloneController:
         else:
             self._update_msg = await self._user_msg.reply("Starting the rclone upload.")
         
-        rclone_up = RcloneUploader(self._path, self._user_msg)
+        self._rclone_up = RcloneUploader(self._path, self._user_msg)
 
-        res = await rclone_up.execute()
-        if rclone_up.is_errored:
-            await self._update_msg.edit("Your Task was unsccuessful. {}".format(rclone_up.get_error_reason()))
+        status_msg = RcloneStatus(self, self._rclone_up)
+        StatusManager().add_status(status_msg)
+        status_msg.set_active()
+
+        res = await self._rclone_up.execute()
+        status_msg.set_inactive()
+        
+        if self._rclone_up.is_errored:
+            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._rclone_up.get_error_reason()))
         else:
             drive_link, index_link = res 
             # Add the logic to edit the message with the url buttons here only if the task was successful :)
             # TODO add buttons for the links
-            await self._update_msg.edit(rclone_up.get_error_reason())
+            await self._update_msg.edit(self._rclone_up.get_error_reason())
+    
+    async def get_update_message(self):
+        return self._update_msg
+    
+    async def get_downloader(self):
+        return self._rclone_up

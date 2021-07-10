@@ -1,6 +1,7 @@
 import logging
 import asyncio
 from ..core.getVars import get_val
+from telethon.errors import MessageNotModifiedError
 
 torlog = logging.getLogger(__name__)
 
@@ -14,7 +15,12 @@ class StatusManager():
         torlog.debug('Status called')
         for i in self.ALL_STATUS:
             if i.is_active and not i.is_inactive:
-                await i.update_now()
+                try:
+                    await i.update_now()
+                except MessageNotModifiedError:
+                    pass
+                except:
+                    torlog.exception("This was unexpected.")
                 await asyncio.sleep(1.1)
 
     def add_status(self, status):
