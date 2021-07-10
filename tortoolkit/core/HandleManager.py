@@ -227,6 +227,11 @@ async def handle_leech_command(e):
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
+        from ..uploaders.telegram_uploader import TelegramUploader
+
+        a= TelegramUploader("/mnt/d/oc/a.mkv", e, await e.get_reply_message())
+        await a.execute()
+        return
         sequencer = TaskSequence(e, await e.get_reply_message(), TaskSequence.LEECH)
         res = await sequencer.execute()
         print("Sequencer out",res)

@@ -14,11 +14,11 @@ from ..core.getVars import get_val
 import shutil
 from .Ftele import upload_file
 from ..utils import video_helpers, zip7_utils
-from ..utils.progress_for_telethon import progress
-from ..utils.progress_for_pyrogram import progress_for_pyrogram
 import time
 from telethon.utils import get_attributes
 from telethon.errors import VideoContentTypeInvalidError
+from ..utils.human_format import human_readable_bytes, human_readable_timedelta
+import math
 
 torlog = logging.getLogger(__name__)
 
@@ -28,13 +28,18 @@ class TelegramUploader(BaseTask):
             self.files = files
             self.uploaded_files = uploaded_files
             self.current_file = current_file
+
+            self.current_done = 0
+            self.current_total = 0
+            self.current_speed = 0
+            self.current_eta = ""
             
 
 
     def __init__(self, path, user_message, previous_task_msg=None, pyroclient = None):
         super().__init__()
 
-        self._current_update = None
+        self._current_update = self.TelegramStatus(0)
         self._path = path
         self._user_message = user_message
         self._client = user_message.client
@@ -50,7 +55,7 @@ class TelegramUploader(BaseTask):
         self._total_files = self.get_num_of_files(self._path)
         self._num_files = 0
         self._up_file_name = ""
-        self._current_update = TelegramUploader.TelegramStatus(self._total_files)
+        self._current_update.files = self._total_files
         await self.upload_handel(self._update_message)
 
         return self.files_dict
@@ -287,7 +292,7 @@ class TelegramUploader(BaseTask):
                 torlog.info("Fast upload is enabled")
                 with open(path,"rb") as filee:
                     path = await upload_file(message.client,filee,file_name,
-                    lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,self._updb)
+                    lambda c,t: self.progress_for_telethon(c,t,msg,file_name,start_time,tout,message,self._updb)
                     )
 
             if self._user_message is not None:
@@ -317,7 +322,7 @@ class TelegramUploader(BaseTask):
                         caption=caption_str,
                         reply_to=message.id,
                         supports_streaming=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,self._updb),
+                        progress_callback=lambda c,t: self.progress_for_telethon(c,t,msg,file_name,start_time,tout,message,self._updb),
                         attributes=attrs
                     )
                 except VideoContentTypeInvalidError:
@@ -331,7 +336,7 @@ class TelegramUploader(BaseTask):
                         thumb=thumb,
                         reply_to=message.id,
                         force_document=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,self._updb),
+                        progress_callback=lambda c,t: self.progress_for_telethon(c,t,msg,file_name,start_time,tout,message,self._updb),
                         attributes=attrs
                     )
                 except Exception:
@@ -345,7 +350,7 @@ class TelegramUploader(BaseTask):
                     parse_mode="html",
                     caption=caption_str,
                     reply_to=message.id,
-                    progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,self._updb),
+                    progress_callback=lambda c,t: self.progress_for_telethon(c,t,msg,file_name,start_time,tout,message,self._updb),
                     attributes=attrs
                 )
             else:
@@ -358,7 +363,7 @@ class TelegramUploader(BaseTask):
                         caption=caption_str,
                         reply_to=message.id,
                         force_document=True,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,self._updb),
+                        progress_callback=lambda c,t: self.progress_for_telethon(c,t,msg,file_name,start_time,tout,message,self._updb),
                         attributes=attrs,
                         thumb=thumb_path
                     )
@@ -370,7 +375,7 @@ class TelegramUploader(BaseTask):
                         parse_mode="html",
                         caption=caption_str,
                         reply_to=message.id,
-                        progress_callback=lambda c,t: progress(c,t,msg,file_name,start_time,tout,message,self._updb),
+                        progress_callback=lambda c,t: self.progress_for_telethon(c,t,msg,file_name,start_time,tout,message,self._updb),
                         attributes=attrs,
                         thumb=thumb_path
                     )
@@ -499,7 +504,7 @@ class TelegramUploader(BaseTask):
                     supports_streaming=True,
                     disable_notification=True,
                     # reply_to_message_id=message.reply_to_message.message_id,
-                    progress=progress_for_pyrogram,
+                    progress=self.progress_for_pyrogram,
                     progress_args=(
                         f"{os.path.basename(path)}",
                         message_for_progress_display,
@@ -540,7 +545,7 @@ class TelegramUploader(BaseTask):
                     thumb=thumb,
                     disable_notification=True,
                     # reply_to_message_id=message.reply_to_message.message_id,
-                    progress=progress_for_pyrogram,
+                    progress=self.progress_for_pyrogram,
                     progress_args=(
                         f"{os.path.basename(path)}",
                         message_for_progress_display,
@@ -570,7 +575,7 @@ class TelegramUploader(BaseTask):
                     parse_mode="html",
                     disable_notification=True,
                     # reply_to_message_id=message.reply_to_message.message_id,
-                    progress=progress_for_pyrogram,
+                    progress=self.progress_for_pyrogram,
                     caption=caption_str,
                     progress_args=(
                         f"{os.path.basename(path)}",
@@ -609,6 +614,135 @@ class TelegramUploader(BaseTask):
         sent_message = await thonmsg.client.get_messages(sent_message.chat.id, ids=sent_message.message_id)
         return sent_message
 
+    async def progress_for_telethon(self, current, total, message, file_name, start, time_out, cancel_msg=None, updb=None, do_edit=True):
+        now = time.time()
+        diff = now - start
+        
+        if round(diff % time_out) == 0 or current == total:
+            if cancel_msg is not None:
+                # dirty alt. was not able to find something to stop upload
+                # todo inspect with "StopAsyncIteration"
+                if updb.get_cancel_status(cancel_msg.chat_id,cancel_msg.id):
+                    raise Exception("cancel the upload")
+            percentage = current * 100 / total
+            speed = current / diff
+            elapsed_time = round(diff) * 1000
+            time_to_completion = round((total - current) / speed) * 1000
+            estimated_total_time = elapsed_time + time_to_completion
+
+            elapsed_time = human_readable_timedelta(seconds=elapsed_time/1000)
+
+            estimated_total_time = human_readable_timedelta(seconds=estimated_total_time/1000)
+
+
+            progress = "[{0}{1}] \nP: {2}%\n".format(
+                ''.join([get_val("COMPLETED_STR") for i in range(math.floor(percentage / 10))]),
+                ''.join([get_val("REMAINING_STR") for i in range(10 - math.floor(percentage / 10))]),
+                round(percentage, 2))
+            
+            tmp = progress + "{0} of {1}\nSpeed: {2}/s\nETA: {3}\nUsing engine: Telethon".format(
+                human_readable_bytes(current),
+                human_readable_bytes(total),
+                human_readable_bytes(speed),
+                # elapsed_time if elapsed_time != '' else "0 s",
+                estimated_total_time if estimated_total_time != '' else "0 s"
+            )
+
+            self._update_message.current_done = current
+            self._update_message.current_total = total
+            self._update_message.current_speed = speed
+            self._update_message.current_eta = estimated_total_time if estimated_total_time != '' else "0 s"
+
+            if not do_edit:
+                return
+            try:
+                if not message.photo:
+                    await message.edit(
+                        text="**Uploading:** `{}`\n{}".format(
+                            file_name,
+                            tmp
+                        )
+                    )
+                else:
+                    await message.edit(
+                        caption="**Uploading:** `{}`\n{}".format(
+                            file_name,
+                            tmp
+                        )
+                    )
+            except Exception as e:
+                logging.error(e)
+                pass
+            return
+        else:
+            return
+
+    async def progress_for_pyrogram(self, current,total,ud_type,message,start,time_out,client,cancel_msg=None,updb=None,markup=None, do_edit=True):
+        now = time.time()
+        diff = now - start
+        
+        # too early to update the progress
+        if diff < 1:
+            return
+        
+        if round(diff % time_out) == 0 or current == total:
+            if cancel_msg is not None:
+                # dirty alt. was not able to find something to stop upload
+                # todo inspect with "StopAsyncIteration"
+                # IG Open stream will be Garbage Collected
+                if updb.get_cancel_status(cancel_msg.chat.id,cancel_msg.message_id):
+                    print("Stopping transmission")
+                    client.stop_transmission()
+        
+            # if round(current / total * 100, 0) % 5 == 0:
+            percentage = current * 100 / total
+            elapsed_time = round(diff)
+            speed = current / elapsed_time
+            time_to_completion = round((total - current) / speed)
+            estimated_total_time = elapsed_time + time_to_completion
+
+            elapsed_time = human_readable_timedelta(elapsed_time)
+            estimated_total_time = human_readable_timedelta(estimated_total_time)
+
+            progress = "[{0}{1}] \nP: {2}%\n".format(
+                ''.join([get_val("COMPLETED_STR") for _ in range(math.floor(percentage / 10))]),
+                ''.join([get_val("REMAINING_STR") for _ in range(10 - math.floor(percentage / 10))]),
+                round(percentage, 2))
+
+            tmp = progress + "{0} of {1}\nSpeed: {2}/s\nETA: {3}\nUsing engine: Pyrogram".format(
+                human_readable_bytes(current),
+                human_readable_bytes(total),
+                human_readable_bytes(speed),
+                estimated_total_time if estimated_total_time != '' else "0 seconds"
+            )
+            self._update_message.current_done = current
+            self._update_message.current_total = total
+            self._update_message.current_speed = speed
+            self._update_message.current_eta = estimated_total_time if estimated_total_time != '' else "0 s"
+
+            if not do_edit:
+                return
+            try:
+                if not message.photo:
+                    await message.edit_text(
+                        text="**Uploading:** `{}`\n{}".format(
+                            ud_type,
+                            tmp
+                        ),
+                        reply_markup=markup
+                    )
+                else:
+                    await message.edit_caption(
+                        caption="**Uploading:** `{}`\n{}".format(
+                            ud_type,
+                            tmp
+                        ),
+                        reply_markup=markup
+                    )
+                await asyncio.sleep(1)
+            except:
+                pass
+
     def re_calc_files(self):
         self._total_files = self.get_num_of_files(self._path)
 
@@ -632,7 +766,9 @@ class TelegramUploader(BaseTask):
             self._canceled_by = self.USER
     
     async def get_update(self):
-        self._current_update = TelegramUploader.TelegramStatus(self._total_files, self._num_files, self._up_file_name)
+        self._current_update.files = self._total_files
+        self._current_update.uploaded_files = self._num_files
+        self._current_update.current_file = self._up_file_name
         return self._current_update
 
     def get_error_reason(self):
