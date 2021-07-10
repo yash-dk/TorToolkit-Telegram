@@ -3,6 +3,8 @@ import logging
 from ..core.getVars import get_val
 from subprocess import Popen
 from megasdkrestclient import MegaSdkRestClient, errors, constants
+from ..status.mega_status import MegaStatus
+from ..status.status_manager import StatusManager
 import asyncio
 import time
 import pathlib
@@ -17,6 +19,7 @@ class MegaDownloader(BaseTask):
         self._process = None
         self._link = link
         self._from_user_id = from_user_id
+        self._update_info = None
 
     
     async def init_mega_client(self, return_pr=False):
@@ -120,7 +123,15 @@ class MegaController:
 
         self._mega_down = MegaDownloader(self._dl_link, self._user_msg.sender_id)
 
+        # Status update active
+        status_mgr = MegaStatus(self,self._mega_down)
+        StatusManager().add_status(status_mgr)
+        status_mgr.set_active()
+
         res = await self._mega_down.execute()
+
+        # Status update inactive
+        status_mgr.set_inactive()
 
         if self._mega_down.is_errored:
             await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._mega_down.get_error_reason()))

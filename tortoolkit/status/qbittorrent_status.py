@@ -15,7 +15,8 @@ class QbittorrentStatus(BaseStatus):
         self._torrent = await self._downloader.get_update()
 
         # Construct the status message
-        await self._update_message.edit(await self.create_message(), parse_mode="html")
+        if self._torrent is not None:
+            await self._update_message.edit(await self.create_message(), parse_mode="html")
 
     async def create_message(self):
         msg = "<b>Downloading:</b> <code>{}</code>\n".format(

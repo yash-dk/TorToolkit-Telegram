@@ -15,7 +15,8 @@ class MegaStatus(BaseStatus):
         self._dl_task = await self._downloader.get_update()
 
         # Construct the status message
-        await self._update_message.edit(await self.create_message(), parse_mode="html")
+        if self._dl_task is not None:
+            await self._update_message.edit(await self.create_message(), parse_mode="html")
 
     async def create_message(self):
 

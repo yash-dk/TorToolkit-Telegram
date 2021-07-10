@@ -1,3 +1,4 @@
+from ..status.status_manager import StatusManager
 from ..core.base_task import BaseTask
 import logging
 import asyncio
@@ -7,6 +8,7 @@ import os
 import time
 from ..core.getVars import get_val
 from telethon.errors.rpcerrorlist import MessageNotModifiedError
+from ..status.aria2_status import Aria2Status
 
 torlog = logging.getLogger(__name__)
 
@@ -255,7 +257,15 @@ class Aria2Controller:
 
         self._aria2_down = Aria2Downloader(self._dl_link, self._user_msg.sender_id, self._new_name)
 
+        # Status update active
+        status_mgr = Aria2Status(self,self._aria2_down)
+        StatusManager().add_status(status_mgr)
+        status_mgr.set_active()
+
         res = await self._aria2_down.execute()
+
+        # Status update inactive
+        status_mgr.set_inactive()
 
         if self._aria2_down.is_errored:
             await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._aria2_down.get_error_reason()))
