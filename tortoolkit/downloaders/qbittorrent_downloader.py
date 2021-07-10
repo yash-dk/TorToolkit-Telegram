@@ -15,6 +15,8 @@ from ..core.getVars import get_val
 from random import randint
 from ..database.dbhandler import TorToolkitDB, TtkTorrents
 from ..core.base_task import BaseTask
+from ..status.qbittorrent_status import QbittorrentStatus
+from ..status.status_manager import StatusManager
 
 torlog = logging.getLogger(__name__)
 
@@ -571,7 +573,13 @@ class QbitController:
 
         db.disable_torrent(torhash)
 
+        status_mgr = QbittorrentStatus(self, self._qbit_task)
+        StatusManager().add_status(status_mgr)
+        status_mgr.set_active()
+
         result = await self._qbit_task.update_progress()
+        status_mgr.set_inactive()
+        
         if self._qbit_task.is_errored:
             await self._update_message.edit("Your Task was unsccuessful. {}".format(self._qbit_task.get_error_reason()))
             return False

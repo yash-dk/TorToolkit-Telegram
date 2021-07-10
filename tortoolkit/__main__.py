@@ -7,6 +7,7 @@ import logging,asyncio
 from tortoolkit.server.server import start_server_async
 from tortoolkit.core.status.auto_delete import del_status
 from pyrogram import Client
+from .status.status_manager import StatusManager
 try:
     from tortoolkit.functions.rstuff import get_rstuff
 except ImportError:pass
@@ -49,7 +50,10 @@ if __name__ == "__main__":
     # Associate the handlers
     add_handlers(ttkbot)
 
+    status_mgr = StatusManager()
+
     ttkbot.loop.create_task(del_status())
+    ttkbot.loop.create_task(status_mgr.status_poller())
 
     if get_val("IS_VPS"):
         ttkbot.loop.run_until_complete(start_server_async(get_val("SERVPORT")))
