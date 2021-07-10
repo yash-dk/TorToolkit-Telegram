@@ -24,7 +24,7 @@ class TaskSequence:
         current_downloader = await self.get_downloader_leech()
         
         res = await current_downloader.execute()
-        print(res)
+        
         
     
     async def get_downloader_leech(self):
@@ -61,10 +61,7 @@ class TaskSequence:
                     return Aria2Controller(res, self._user_msg)
                 else:
                     return Aria2Controller(raw_text, self._user_msg)
-
-            
-
-                
+    
     # All the methods below are for getting the leech and zip/extract choices
 
     async def get_leech_choices(self):
