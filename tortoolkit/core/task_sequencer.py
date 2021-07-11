@@ -5,6 +5,7 @@ from ..downloaders.qbittorrent_downloader import QbitController, QbittorrentDown
 from ..downloaders.mega_downloader import MegaController, MegaDownloader
 from ..downloaders.aria2_downloader import Aria2Controller, Aria2Downloader
 from ..downloaders.direct_link_gen import DLGen
+from ..downloaders.ytdl_downloader import YTDLController, PYTDLController
 from ..uploaders.archiver import Archiver
 from ..uploaders.extractor import Extractor
 from telethon.tl.types import KeyboardButtonCallback, DocumentAttributeFilename
@@ -65,7 +66,7 @@ class TaskSequence:
                 archived_path = await arch_obj.execute()
                 if archived_path is not False:
                     dl_path = archived_path
-
+        
             if not choices["rclone"]:
                 teleup = TelegramUploader(dl_path, self._user_msg, prev_update_message)
                 files = await teleup.execute()
@@ -74,6 +75,44 @@ class TaskSequence:
             else:
                 rcloneup = RcloneController(dl_path, self._user_msg, prev_update_message)            
                 await rcloneup.execute()
+        
+        elif self._task_type == self.YTDL:
+            data = self._entity_message.data.decode("UTF-8")
+            data = data.split("|")
+            up_dest = data[4]
+            ytdl_obj = YTDLController(self._entity_message, self._user_msg)
+            dl_path = await ytdl_obj.execute()
+            if dl_path is False:
+                return
+            
+            if up_dest == "tg":
+                teleup = TelegramUploader(dl_path, self._user_msg, self._entity_message)
+                files = await teleup.execute()
+                # temp:
+                print(files)
+            else:
+                rcloneup = RcloneController(dl_path, self._user_msg, self._entity_message)            
+                await rcloneup.execute()
+        
+        elif self._task_type == self.PYTDL:
+            data = self._entity_message.data.decode("UTF-8")
+            data = data.split("|")
+            up_dest = data[4]
+            ytdl_obj = PYTDLController(self._entity_message, self._user_msg)
+            dl_path = await ytdl_obj.execute()
+            if dl_path is False:
+                return
+            
+            if up_dest == "tg":
+                teleup = TelegramUploader(dl_path, self._user_msg, self._entity_message)
+                files = await teleup.execute()
+                # temp:
+                print(files)
+            else:
+                rcloneup = RcloneController(dl_path, self._user_msg, self._entity_message)            
+                await rcloneup.execute()
+
+        
     
     async def cancel_task(self, hashid, is_aria = False, is_mega = False):
         if is_aria:

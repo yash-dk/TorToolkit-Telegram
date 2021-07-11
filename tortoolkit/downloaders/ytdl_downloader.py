@@ -248,113 +248,6 @@ async def handle_ytdl_callbacks(e: MessageLike):
             await e.answer("Try again something went wrong.",alert=True)
             await e.delete()
 
-#will be in
-async def handle_ytdl_file_download(e: MessageLike):
-    # ytdldfile | format_id | sender_id | suid | dest
-
-    data = e.data.decode("UTF-8")
-    data = data.split("|")
-    
-    
-    if data[2] != str(e.sender_id):
-        await e.answer("Not valid user, Dont touch.")
-        return
-    else:
-        await e.answer("Crunching Data.....")
-    
-    await e.edit(buttons=None)
-
-    is_audio = False
-
-    path = os.path.join(os.getcwd(),'userdata',data[3]+".json")
-    if os.path.exists(path):
-        with open(path,encoding="UTF-8") as file:
-            ytdata = json.loads(file.read())
-            yt_url = ytdata.get("webpage_url")
-            thumb_path = await get_max_thumb(ytdata,data[3])
-
-            op_dir = os.path.join(os.getcwd(),'userdata',data[3])
-            if not os.path.exists(op_dir):
-                os.mkdir(op_dir)
-            if data[1].startswith("xxother"):
-                data[1] = data[1].replace("xxother","")
-                data[1] = int(data[1])
-                j = 0
-                for i in ytdata.get("formats"):
-                    if j == data[1]:
-                        data[1] = i.get("format_id")
-                    j +=1
-            else:
-                for i in ytdata.get("formats"):
-                    if i.get("format_id") == data[1]:
-                        print(i)
-                        if i.get("acodec") is not None:
-                            if "none" not in i.get("acodec"):
-                                is_audio = True
-                            
-                    
-            if data[1].endswith("K"):
-                cmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{op_dir}/%(title)s.%(ext)s' {yt_url}"
-
-            else:
-                if is_audio:
-                    cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]} -o {op_dir}/%(title)s.%(ext)s {yt_url}"
-                else:
-                    cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
-            
-            out, err = await cli_call(cmd)
-            
-            if not err:
-                
-                # TODO Fix the original thumbnail
-                # rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(),thumb_path=thumb_path)
-                
-                if data[4] == "tg":
-                    rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(), user_msg=e)
-                    await print_files(e,rdict)
-                else:
-                    res = await rclone_driver(op_dir,await e.get_message(), e, None)
-                    if res is None:
-                        torlog.error("Error in YTDL Rclone upload.")
-
-                shutil.rmtree(op_dir)
-                os.remove(thumb_path)
-                os.remove(path)
-            else:
-                torlog.error(err)
-                omess = await e.get_message()
-                omess1 = await omess.get_reply_message()
-                if "HTTP Error 429" in err:
-                    emsg = "HTTP Error 429: Too many requests try after a while."
-                else:
-                    emsg = "An error has occured trying to upload any files that are found here."
-                await omess.edit(emsg)
-                if omess1 is None:
-                    await omess.respond(emsg)
-                else:
-                    await omess1.reply(emsg)
-                
-                if data[4] == "tg":
-                    rdict = await upload_handel(op_dir,await e.get_message(),e.sender_id,dict(), user_msg=e)
-                    await print_files(e,rdict)
-                else:
-                    res = await rclone_driver(op_dir,await e.get_message(), e, None)
-                    if res is None:
-                        torlog.error("Error in YTDL Rclone upload.")
-                
-
-                try:
-                    shutil.rmtree(op_dir)
-                    os.remove(thumb_path)
-                    os.remove(path)
-                except:
-                    pass
-
-    else:
-        await e.delete()
-        await e.answer("Try again something went wrong.",alert=True)
-        await e.delete()
-
 async def handle_ytdl_playlist(e: MessageLike) -> None:
     if not e.is_reply:
         await e.reply("Reply to a youtube playlist link.")
@@ -434,162 +327,12 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         await msg.edit("Failed to parse the playlist. Check log if you think its error.")
         torlog.exception("Playlist Parse failed") 
 
-# will be in
-async def handle_ytdl_playlist_down(e: MessageLike) -> None:
-    # ytdlplaylist | quality | suid | sender_id | choice(tg/drive)
-    
-    data = e.data.decode("UTF-8").split("|")
-    
-    if data[3] != str(e.sender_id):
-        await e.answer("Not valid user, Dont touch.")
-        return
-    else:
-        await e.answer("Crunching Data.....")
-
-    await e.edit(buttons=None)
-    path = os.path.join(os.getcwd(),"userdata",data[2]+".json")
-    if os.path.exists(path):
-        await e.answer("Processing Please wait")
-        opdir = os.path.join(os.getcwd(),"userdata",data[2])
-        if not os.path.exists(opdir):
-            os.mkdir(opdir)
-
-        with open(path) as file:
-            pldata = json.loads(file.read())
-        url = pldata.get("webpage_url")
-
-        if data[1].endswith("k"):
-            audcmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
-            out, err = await cli_call(audcmd)
-
-            ofiles = len(os.listdir(opdir))
-
-            if err and ofiles < 2 :
-                await e.reply(f"Failed to download the audios <code>{err}</code>",parse_mode="html")
-            else:
-                if err:
-                    await e.reply("Some videos from this have errored in download. Uploading which are successfull.")
-                
-                if data[4] == "tg":
-                    rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
-                    await print_files(e,rdict)
-                else:
-                    res = await rclone_driver(opdir,await e.get_message(), e, None)
-                    if res is None:
-                        torlog.error("Error in YTDL Rclone upload.")
-                
-        else:
-            if data[1] == "best":
-                vidcmd = f"youtube-dl -i --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
-            else:
-                vidcmd = f"youtube-dl -i --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4,height<={data[1]}]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
-            out, err = await cli_call(vidcmd)
-            
-            ofiles = len(os.listdir(opdir))
-
-            if err and ofiles < 2 :
-                await e.reply(f"Failed to download the videos <code>{err}</code>",parse_mode="html")
-            else:
-                if err:
-                    await e.reply("Some videos from this have errored in download. Uploading which are successfull.")
-                
-                if data[4] == "tg":
-                    rdict = await upload_handel(opdir, await e.get_message(), e.sender_id, dict(), user_msg=e)
-                    await print_files(e,rdict)
-                else:
-                    res = await rclone_driver(opdir,await e.get_message(), e, None)
-                    if res is None:
-                        torlog.error("Error in YTDL Rclone upload.")
-        shutil.rmtree(opdir)
-        os.remove(path)
-    else:
-        await e.delete()
-        await e.answer("Something went wrong try again.",alert=True)
-        torlog.error("the file for that suid was not found.")
-
-async def print_files(e,files):
-    
-    msg = "#uploads\n"
-    if len(files) == 0:
-        return
-    
-    chat_id = e.chat_id
-
-    for i in files.keys():
-        link = f'https://t.me/c/{str(chat_id)[4:]}/{files[i]}'
-        msg += f'🚩 <a href="{link}">{i}</a>\n'
-     
-    rmsg = await e.client.get_messages(e.chat_id,ids=e.message_id)
-    rmsg = await rmsg.get_reply_message()
-    if rmsg is None:
-        #msg += "\n<a href='tg://user?id={}'>Done<a>".format(rmsg.sender_id)
-        msg += "\n<a href='tg://user?id={}'>Done</a>".format(e.sender_id)
-        await e.reply(msg,parse_mode="html")
-    else:
-        msg += "\n<a href='tg://user?id={}'>Done</a>".format(rmsg.sender_id)
-        await rmsg.reply(msg,parse_mode="html")
-
-    if len(files) < 2:
-        return
-
-    ids = list()
-    for i in files.keys():
-        ids.append(files[i])
-    
-    msgs = await e.client.get_messages(e.chat_id,ids=ids)
-    for i in msgs:
-        index = None
-        for j in range(0,len(msgs)):
-            index = j
-            if ids[j] == i.id:
-                break
-        nextt,prev = "",""
-        chat_id = str(e.chat_id)[4:]
-        buttons = []
-        if index == 0:
-            nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
-            buttons.append(
-                KeyboardButtonUrl("Next", nextt)
-            )
-            nextt = f'<a href="{nextt}">Next</a>\n'
-        elif index == len(msgs)-1:
-            prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
-            buttons.append(
-                KeyboardButtonUrl("Prev", prev)
-            )
-            prev = f'<a href="{prev}">Prev</a>\n'
-        else:
-            nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
-            buttons.append(
-                KeyboardButtonUrl("Next", nextt)
-            )
-            nextt = f'<a href="{nextt}">Next</a>\n'
-            
-            prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
-            buttons.append(
-                KeyboardButtonUrl("Prev", prev)
-            )
-            prev = f'<a href="{prev}">Prev</a>\n'
-            
-        try:
-            #await i.edit("{} {} {}".format(prev,i.text,nextt),parse_mode="html")
-            await i.edit(buttons=buttons)
-        except:pass
-        await asyncio.sleep(1)
-
 async def get_ytdl_choice(e,timestamp):
     # abstract for getting the confirm in a context
 
     lis = [False,None]
     cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
     
-    gtyh = ""
-    sam1 = [68, 89, 78, 79]
-    for i in sam1:
-        gtyh += chr(i)
-    if os.environ.get(gtyh,False):
-        os.environ["TIME_STAT"] = str(time.time())
-
     e.client.add_event_handler(
         #lambda e: test_callback(e,lis),
         cbak,
@@ -653,8 +396,9 @@ class YTDLDownloader(BaseTask):
                 thumb_path = await get_max_thumb(ytdata,self._suid)
 
                 op_dir = os.path.join(os.getcwd(),'userdata',self._suid)
-                if not os.path.exists(op_dir):
-                    os.mkdir(op_dir)
+                
+                os.makedirs(op_dir, exist_ok=True)
+                
                 if self._format_id.startswith("xxother"):
                     self._format_id = self._format_id.replace("xxother","")
                     self._format_id = int(self._format_id)
@@ -691,9 +435,6 @@ class YTDLDownloader(BaseTask):
                     self._is_completed = True
                     self._is_done = True
 
-                    shutil.rmtree(op_dir)
-                    os.remove(thumb_path)
-                    os.remove(path)
                     return op_dir
                 else:
                     torlog.error(err)
@@ -705,13 +446,7 @@ class YTDLDownloader(BaseTask):
                     
                     self._is_errored = True
                     self._error_reason = emsg
-                    
-                    try:
-                        shutil.rmtree(op_dir)
-                        os.remove(thumb_path)
-                        os.remove(path)
-                    except:
-                        pass
+                
                     return op_dir
 
         else:
@@ -726,12 +461,13 @@ class YTDLController:
         self.user_message = user_message
     
     async def execute(self):
+        # ytdldfile | format_id | sender_id | suid | dest
         data = self.callback.data.decode("UTF-8")
         data = data.split("|")
 
         if data[2] != str(self.callback.sender_id):
             await self.callback.answer("Not valid user, Dont touch.")
-            return
+            return False
         else:
             await self.callback.answer("Crunching Data.....")
 
@@ -740,6 +476,103 @@ class YTDLController:
         ytdl_task = YTDLDownloader(data[1],data[2],data[3])
         res = await ytdl_task.execute()
 
+        if ytdl_task.is_errored:
+            if res is False:
+                omess = await self.user_message.get_reply_message()
+                await self.user_message.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
+                await self.omess.reply("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
+
+                return res
+            else:
+                return res
+        else:
+            return res
+
+
+class PYTDLDownloader(BaseTask):
+    def __init__(self, quality, sender_id, suid):
+        super().__init__()
+        self._quality = quality
+        self._sender_id = sender_id
+        self._suid = suid
+    
+    # ytdlplaylist | quality | suid | sender_id | choice(tg/drive)
+    #   0               1          2       3           4    
+
+    async def execute(self):
+
+        path = os.path.join(os.getcwd(),"userdata",self._suid+".json")
+        if os.path.exists(path):
+            opdir = os.path.join(os.getcwd(),"userdata",self._suid)
+            if not os.path.exists(opdir):
+                os.mkdir(opdir)
+
+            with open(path) as file:
+                pldata = json.loads(file.read())
+            url = pldata.get("webpage_url")
+
+            if self._quality.endswith("k"):
+                audcmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {self._quality} -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
+                out, err = await cli_call(audcmd)
+
+                ofiles = len(os.listdir(opdir))
+
+                if err and ofiles < 2 :
+                    self._is_errored = True
+                    self._error_reason = f"Failed to download the audios <code>{err}</code>"
+                else:
+                    if err:
+                        self._is_errored = True
+                        self._error_reason = "Some videos from this have errored in download. Uploading which are successfull."
+                    
+                return opdir
+                    
+            else:
+                print("here i am bot")
+                if self._quality == "best":
+                    vidcmd = f"youtube-dl -i --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
+                else:
+                    vidcmd = f"youtube-dl -i --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4,height<={self._quality}]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
+                out, err = await cli_call(vidcmd)
+                
+                ofiles = len(os.listdir(opdir))
+
+                if err and ofiles < 2 :
+                    self._is_errored = True
+                    self._error_reason = f"Failed to download the videos <code>{err}</code>"
+                else:
+                    if err:
+                        self._is_errored = True
+                        self._error_reason = "Some videos from this have errored in download. Uploading which are successfull."
+                    
+                    return opdir
+            
+        else:
+            self._is_errored = True
+            self._error_reason = "Something went wrong try again."
+            torlog.error("the file for that suid was not found.")
+
+class PYTDLController:
+    def __init__(self, callback, user_message):
+        self.callback = callback
+        self.user_message = user_message
+    
+    async def execute(self):
+        # ytdlplaylist | quality | suid | sender_id | choice(tg/drive)
+        data = self.callback.data.decode("UTF-8")
+        data = data.split("|")
+
+        if data[3] != str(self.callback.sender_id):
+            await self.callback.answer("Not valid user, Dont touch.")
+            return False
+        else:
+            await self.callback.answer("Crunching Data.....")
+
+        await self.callback.edit(buttons=None)
+
+        ytdl_task = PYTDLDownloader(data[1],data[3],data[2])
+        res = await ytdl_task.execute()
+        print("sdsdsdds",res, ytdl_task.get_error_reason())
         if ytdl_task.is_errored:
             if res is False:
                 omess = await self.user_message.get_reply_message()

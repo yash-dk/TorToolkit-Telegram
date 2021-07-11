@@ -23,7 +23,7 @@ from .. import upload_db, var_db, tor_db, user_db, uptime
 import asyncio as aio
 import re,logging,time,os,psutil,shutil
 from tortoolkit import __version__
-from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
+from ..downloaders.ytdl_downloader import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_playlist
 from ..functions.instadl import _insta_post_downloader
 torlog = logging.getLogger(__name__)
 from .status.status import Status
@@ -258,6 +258,16 @@ async def handle_resumeall_command(e):
         await e.delete()
 
 #       ###### Qbittorrent Related End ######
+
+async def handle_ytdl_file_download(e):
+    message = await e.get_message()
+    taskseq = TaskSequence(await message.get_reply_message(),e,TaskSequence.YTDL)
+    await taskseq.execute()
+
+async def handle_ytdl_playlist_down(e):
+    message = await e.get_message()
+    taskseq = TaskSequence(await message.get_reply_message(),e,TaskSequence.PYTDL)
+    await taskseq.execute()
 
 async def handle_settings_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
