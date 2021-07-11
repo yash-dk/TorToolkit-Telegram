@@ -226,6 +226,10 @@ async def handle_leech_command(e):
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
+        from ..uploaders.rclone_uploader import RcloneController
+        tg =RcloneController("/mnt/d/oc/a.mkv",e,await e.get_reply_message())
+        print(await tg.execute())
+        return
         sequencer = TaskSequence(e, await e.get_reply_message(), TaskSequence.LEECH)
         res = await sequencer.execute()
         torlog.info("Sequencer out"+ str(res))

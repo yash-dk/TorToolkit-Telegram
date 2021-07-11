@@ -54,6 +54,8 @@ class RcloneUploader(BaseTask):
             self._is_errored = True
             self._error_reason = f"Returning none cuz the path {path} not found"
             return False
+
+        TtkUpload().register_upload(self._user_msg.chat_id, self._user_msg.id)
         
         if os.path.isdir(path):
             # handle dirs
@@ -97,6 +99,7 @@ class RcloneUploader(BaseTask):
             ul_size = calculate_size(path)
             #transfer[0] += ul_size
             self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(ul_size, os.path.basename(path))
+            TtkUpload().deregister_upload(self._user_msg.chat_id, self._user_msg.id)
             return folder_link, index_link
 
         else:
@@ -138,9 +141,9 @@ class RcloneUploader(BaseTask):
             ul_size = calculate_size(path)
             #transfer[0] += ul_size
             self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(ul_size, os.path.basename(path))
+            TtkUpload().deregister_upload(self._user_msg.chat_id, self._user_msg.id) # deregister the upload here
             return file_link, index_link
 
-        # TODO upload_db.deregister_upload(message.chat_id, message.id) # deregister the upload here
         
     async def rclone_process_update(self):
         blank=0
@@ -163,7 +166,6 @@ class RcloneUploader(BaseTask):
                         nstr = nstr.strip()
                         nstr = nstr.split(",")
                         prg = nstr[1].strip("% ")
-                        print(nstr[0])
                         self._current_update = self.RcloneStatus(nstr[0], nstr[2], nstr[3],prg)
                         
             if data == "":
@@ -176,8 +178,8 @@ class RcloneUploader(BaseTask):
                 blank = 0
 
             if sleeps:
-                # TODO insert the cancle status here - if upload_db.get_cancel_status(cancelmsg.chat_id, cancelmsg.id):
-                #    return False
+                if TtkUpload().get_cancel_status(self._user_msg.chat_id, self._user_msg.id):
+                    return False
                 
                 sleeps=False
                 await asyncio.sleep(2)
@@ -290,6 +292,9 @@ class RcloneController:
     
     async def get_update_message(self):
         return self._update_msg
+
+    async def get_user_message(self):
+        return self._user_msg
     
     async def get_downloader(self):
         return self._rclone_up

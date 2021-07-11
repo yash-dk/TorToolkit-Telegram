@@ -1,5 +1,6 @@
 from .base_status import BaseStatus
 from ..utils.human_format import human_readable_bytes, human_readable_timedelta
+from telethon.tl.types import KeyboardButtonCallback
 
 class RcloneStatus(BaseStatus):
     def __init__(self, controller, downloader=None, sender_id = None):
@@ -16,8 +17,11 @@ class RcloneStatus(BaseStatus):
         self._up_task = await self._downloader.get_update()
 
         # Construct the status message
+        user_msg = await self._controller.get_user_message()
+        data = "upcancel {} {} {}".format(user_msg.chat_id,user_msg.id,user_msg.sender_id)
+        
         if self._up_task is not None:
-            await self._update_message.edit(await self.create_message(), parse_mode="html")
+            await self._update_message.edit(await self.create_message(), parse_mode="html", buttons = [KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))])
 
     async def create_message(self):
         try:
