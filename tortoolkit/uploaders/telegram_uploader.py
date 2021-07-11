@@ -6,7 +6,7 @@ from ..core.base_task import BaseTask
 from ..database.dbhandler import UserDB, TtkUpload
 import os
 import logging
-from telethon.tl.types import KeyboardButtonCallback
+from telethon.tl.types import KeyboardButtonCallback, KeyboardButtonUrl
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 from ..core.getVars import get_val
@@ -57,6 +57,7 @@ class TelegramUploader(BaseTask):
         self._num_files = 0
         self._up_file_name = ""
         self._current_update.files = self._total_files
+        self._path_size = self.calculate_size(self._path)
 
         status_mgr = TGUploadStatus(self, self._user_message.sender_id)
         StatusManager().add_status(status_mgr)
@@ -65,9 +66,94 @@ class TelegramUploader(BaseTask):
         await self.upload_handel(self._update_message)
 
         status_mgr.set_inactive()
+        await self.print_files()
         
         return self.files_dict
 
+    async def print_files(self):
+        msg = f"<a href='tg://user?id={self._user_message.sender_id}'>Done</a>\n#uploads\n"
+
+        if self._path_size is not None:
+            size = human_readable_bytes(self._path_size)
+            msg += f"Uploaded Size:- {str(size)}\n\n"
+
+
+        if len(self.files_dict) == 0:
+            return
+        
+        chat_id = self._user_message.chat_id
+        msg_li = []
+        for i in self.files_dict.keys():
+            link = f'https://t.me/c/{str(chat_id)[4:]}/{self.files_dict[i]}'
+            if len(msg + f'🚩 <a href="{link}">{i}</a>\n') > 4000:
+                msg_li.append(msg)
+                msg = f'🚩 <a href="{link}">{i}</a>\n'
+            else:
+                msg += f'🚩 <a href="{link}">{i}</a>\n'
+
+        for i in msg_li:
+            await self._user_message.reply(i,parse_mode="html")
+            await asyncio.sleep(1)
+            
+        await self._user_message.reply(msg,parse_mode="html")
+
+        #try:
+        #    if thash is not None:
+        #        from .store_info_hash import store_driver # pylint: disable=import-error
+        #        await store_driver(e, files, thash) 
+        #except:
+        #    pass
+
+        if len(self.files_dict) < 2:
+            return
+
+        ids = list()
+        for i in self.files_dict.keys():
+            ids.append(self.files_dict[i])
+        
+        msgs = await self._client.get_messages(self._user_message.chat_id,ids=ids)
+        for i in msgs:
+            index = None
+            for j in range(0,len(msgs)):
+                index = j
+                if ids[j] == i.id:
+                    break
+            nextt,prev = "",""
+            if self._user_message.is_private:
+                chat_id = self._user_message.chat_id
+            else:
+                chat_id = str(self._user_message.chat_id)[4:]
+            buttons = []
+            if index == 0:
+                nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+                buttons.append(
+                    KeyboardButtonUrl("Next", nextt)
+                )
+                nextt = f'<a href="{nextt}">Next</a>\n'
+            elif index == len(msgs)-1:
+                prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+                buttons.append(
+                    KeyboardButtonUrl("Prev", prev)
+                )
+                prev = f'<a href="{prev}">Prev</a>\n'
+            else:
+                nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
+                buttons.append(
+                    KeyboardButtonUrl("Next", nextt)
+                )
+                nextt = f'<a href="{nextt}">Next</a>\n'
+                
+                prev = f'https://t.me/c/{chat_id}/{ids[index-1]}'
+                buttons.append(
+                    KeyboardButtonUrl("Prev", prev)
+                )
+                prev = f'<a href="{prev}">Prev</a>\n'
+
+            try:
+                #await i.edit("{} {} {}".format(prev,i.text,nextt),parse_mode="html")
+                await i.edit(buttons=buttons)
+            except:pass
+            await asyncio.sleep(2)
 
     async def upload_handel(self, message, path=None,from_in=False):
         # creting here so connections are kept low
@@ -399,7 +485,10 @@ class TelegramUploader(BaseTask):
                 await queue.put(uploader_id)
                 torlog.info(f"Freed uploader with id {uploader_id}")
                     
-
+        try:
+            os.remove(opath)
+        except:
+            torlog.exception("aaa")
         if out_msg is None:
             return None
         if out_msg.id != msg.id:
@@ -620,6 +709,9 @@ class TelegramUploader(BaseTask):
         if sent_message is None:
             return None
         sent_message = await thonmsg.client.get_messages(sent_message.chat.id, ids=sent_message.message_id)
+        try:
+            os.remove(path)
+        except:pass
         return sent_message
 
     async def progress_for_telethon(self, current, total, message, file_name, start, time_out, cancel_msg=None, updb=None, do_edit=True):
@@ -766,6 +858,31 @@ class TelegramUploader(BaseTask):
                     num += 1
         return num
     
+    def calculate_size(self, path):
+        if path is not None:
+            try:
+                if os.path.isdir(path):
+                    return self.get_size_fl(path)
+                else:
+                    return os.path.getsize(path)
+            except:
+                torlog.warning("Size Calculation Failed.")
+                return 0
+        else:
+            return 0   
+    
+    def get_size_fl(self, start_path = '.'):
+        total_size = 0
+        for dirpath, _, filenames in os.walk(start_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                # skip if it is symbolic link
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+
+        return total_size
+
+
     def cancel(self, is_admin=False):
         self._is_canceled = True
         if is_admin:
