@@ -107,7 +107,8 @@ class Aria2Downloader(BaseTask):
         
         if op:
             file = await self._aloop.run_in_executor(None, aria_instance.get_download, err_message)
-            to_upload_file = file.name
+            print(file)
+            to_upload_file = os.path.join(file.dir,file.name)
             
             self.path = to_upload_file
             
