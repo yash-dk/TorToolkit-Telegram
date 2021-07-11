@@ -40,12 +40,20 @@ except:
         
         # UNCOMMENT THE BELOW LINE WHEN USING CONTAINER AND COMMENT THE UPPER LINE
         #DB_URI = "dbname=tortk user=postgres password=your-pass host=db port=5432"
-        
+
         # MEGA CONFIG
         MEGA_ENABLE = False
         MEGA_API = ""
         MEGA_UNAME = None
         MEGA_PASS = None
+
+        # qBittorrent Config
+        # TODO add port, retry to ints
+        QBIT_HOST = "localhost"
+        QBIT_PORT = 8090
+        QBIT_UNAME = "admin"
+        QBIT_PASS = "adminadmin"
+        QBIT_MAX_RETRIES = 2
 
         # The base direcory to which the files will be upload if using RCLONE
         RCLONE_BASE_DIR = "/"
