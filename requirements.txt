@@ -33,3 +33,4 @@ lxml
 beautifulsoup4>=4.8.2,<4.8.10
 speedtest-cli
 megasdkrestclient
+pymongo
