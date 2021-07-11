@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 import logging
 import os
 torlog = logging.getLogger(__name__)

@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 import asyncio
 from functools import partial
 
@@ -12,7 +15,7 @@ from hachoir.metadata import extractMetadata
 from ..core.getVars import get_val
 import shutil
 from .Ftele import upload_file
-from ..utils import video_helpers, zip7_utils
+from ..utils import video_helpers, zip7_utils, size
 import time
 from telethon.utils import get_attributes
 from telethon.errors import VideoContentTypeInvalidError
@@ -57,7 +60,7 @@ class TelegramUploader(BaseTask):
         self._num_files = 0
         self._up_file_name = ""
         self._current_update.files = self._total_files
-        self._path_size = self.calculate_size(self._path)
+        self._path_size = size.calculate_size(self._path)
 
         status_mgr = TGUploadStatus(self, self._user_message.sender_id)
         StatusManager().add_status(status_mgr)
@@ -857,31 +860,6 @@ class TelegramUploader(BaseTask):
                 else:
                     num += 1
         return num
-    
-    def calculate_size(self, path):
-        if path is not None:
-            try:
-                if os.path.isdir(path):
-                    return self.get_size_fl(path)
-                else:
-                    return os.path.getsize(path)
-            except:
-                torlog.warning("Size Calculation Failed.")
-                return 0
-        else:
-            return 0   
-    
-    def get_size_fl(self, start_path = '.'):
-        total_size = 0
-        for dirpath, _, filenames in os.walk(start_path):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
-                # skip if it is symbolic link
-                if not os.path.islink(fp):
-                    total_size += os.path.getsize(fp)
-
-        return total_size
-
 
     def cancel(self, is_admin=False):
         self._is_canceled = True

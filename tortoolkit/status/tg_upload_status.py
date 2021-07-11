@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from .base_status import BaseStatus
 from ..utils.human_format import human_readable_bytes, human_readable_timedelta
 

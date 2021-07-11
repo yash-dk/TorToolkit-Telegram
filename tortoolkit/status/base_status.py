@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from abc import ABC, abstractmethod
 from ..core.getVars import get_val
 # TODO add fallback to deactivate the tasks just in case the

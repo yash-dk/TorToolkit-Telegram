@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 import asyncio
 from ..utils.zip7_utils import extract_archive
 from ..core.getVars import get_val

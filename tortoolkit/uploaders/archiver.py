@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from ..utils.zip7_utils import add_to_zip
 from ..core.getVars import get_val
 from ..utils.misc_utils import clear_stuff

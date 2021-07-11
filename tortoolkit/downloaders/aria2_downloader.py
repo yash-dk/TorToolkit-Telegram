@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from ..status.status_manager import StatusManager
 from ..core.base_task import BaseTask
 import logging

@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# (c) YashDK [yash-dk@github]
+
 from sys import path
 from ..core.base_task import BaseTask
 from ..core.getVars import get_val
