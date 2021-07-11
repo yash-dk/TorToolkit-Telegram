@@ -11,7 +11,16 @@ class TGUploadStatus(BaseStatus):
         return
 
     async def create_message(self):
-        ...
+        msg = f"<b>Uploading:</b> <code>{self._up_task.current_file}</code>\n"
+        try:
+            percent = self._up_task.current_done/ self._up_task.current_total
+        except:
+            percent = 0
+        msg += self.progress_bar(percent)
+        msg += " - {}%\n{} of {}\nSpeed: {}/s\nETA: {}\nUsing engine: Telethon".format(round(percent), human_readable_bytes(self._up_task.current_done), 
+        human_readable_bytes(self._up_task.current_total), human_readable_bytes(self._up_task.current_speed), self._up_task.current_eta)
+
+        return msg
 
     def get_type(self):
         return self.QBIT

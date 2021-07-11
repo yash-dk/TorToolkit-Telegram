@@ -18,6 +18,8 @@ import time
 from telethon.utils import get_attributes
 from telethon.errors import VideoContentTypeInvalidError
 from ..utils.human_format import human_readable_bytes, human_readable_timedelta
+from ..status.tg_upload_status import TGUploadStatus
+from ..status.status_manager import StatusManager
 import math
 
 torlog = logging.getLogger(__name__)
@@ -56,8 +58,15 @@ class TelegramUploader(BaseTask):
         self._num_files = 0
         self._up_file_name = ""
         self._current_update.files = self._total_files
+
+        status_mgr = TGUploadStatus(self)
+        StatusManager().add_status(status_mgr)
+        status_mgr.set_active()
+
         await self.upload_handel(self._update_message)
 
+        status_mgr.set_inactive()
+        
         return self.files_dict
 
 
