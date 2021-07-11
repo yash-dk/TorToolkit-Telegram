@@ -21,6 +21,7 @@ class Aria2Downloader(BaseTask):
         self._from_user_id = from_user_id
         self._new_file_name = new_file_name 
         self._aloop = asyncio.get_event_loop()
+        self._gid = 0
 
     async def get_client(self):
         
@@ -232,6 +233,20 @@ class Aria2Downloader(BaseTask):
         else:
             return True, "" + download.gid + ""
 
+    async def remove_dl(self, gid=None):
+        if gid is None:
+            gid = self._gid
+        aria2 = await self.get_client()
+        try:
+            downloads = await self._aloop.run_in_executor(None, aria2.get_download, gid)
+            downloads.remove(force=True, files=True)
+        except:
+            torlog.exception("exc")
+            pass
+
+    def get_gid(self):
+        return self._gid
+
     def cancel(self, is_admin=False):
         self._is_canceled = True
         if is_admin:
@@ -247,6 +262,7 @@ class Aria2Downloader(BaseTask):
 
 
 class Aria2Controller:
+    all_tasks = []
     def __init__(self, dl_link, user_msg, new_name=None):
         self._dl_link = dl_link
         self._user_msg = user_msg
@@ -256,7 +272,7 @@ class Aria2Controller:
         self._update_msg = await self._user_msg.reply("Starting the Aria2 Download.")
 
         self._aria2_down = Aria2Downloader(self._dl_link, self._user_msg.sender_id, self._new_name)
-
+        self.all_tasks.append(self)
         # Status update active
         status_mgr = Aria2Status(self,self._aria2_down,self._user_msg.sender_id)
         StatusManager().add_status(status_mgr)
@@ -266,9 +282,10 @@ class Aria2Controller:
 
         # Status update inactive
         status_mgr.set_inactive()
+        self.all_tasks.remove(self)
 
-        if self._aria2_down.is_errored:
-            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._aria2_down.get_error_reason()))
+        if self._aria2_down.is_errored or self._aria2_down.is_canceled:
+            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._aria2_down.get_error_reason()), buttons=None)
             return False
         else:
             if self._aria2_down.is_completed:

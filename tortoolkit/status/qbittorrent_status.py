@@ -1,5 +1,6 @@
 from .base_status import BaseStatus
 from ..utils.human_format import human_readable_bytes, human_readable_timedelta
+from telethon.tl.types import KeyboardButtonCallback
 
 class QbittorrentStatus(BaseStatus):
     def __init__(self, controller, downloader=None, sender_id=None):
@@ -16,8 +17,9 @@ class QbittorrentStatus(BaseStatus):
         self._torrent = await self._downloader.get_update()
 
         # Construct the status message
+        data = "torcancel {} {}".format(self._downloader.get_hash(), self._sender_id)
         if self._torrent is not None:
-            await self._update_message.edit(await self.create_message(), parse_mode="html")
+            await self._update_message.edit(await self.create_message(), parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
 
     async def create_message(self):
         msg = "<b>Downloading:</b> <code>{}</code>\n".format(

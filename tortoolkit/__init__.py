@@ -11,8 +11,7 @@ logging.basicConfig(
 )
 
 from tortoolkit.server.server import start_server
-from .database.dbhandler import TorToolkitDB,TtkTorrents, UserDB
-from .core.database_handle import TtkUpload
+from .database.dbhandler import TorToolkitDB,TtkTorrents, UserDB, TtkUpload
 from .core.varholdern import VarHolder
 import time
 logging.info("Database created")

@@ -1,10 +1,9 @@
 from sys import path
 from ..core.base_task import BaseTask
 from ..core.getVars import get_val
-from ..database.dbhandler import TorToolkitDB
+from ..database.dbhandler import TorToolkitDB, TtkUpload
 import os
 import logging
-from ..core.database_handle import TtkUpload
 from telethon.tl.types import KeyboardButtonUrl, KeyboardButtonCallback
 import subprocess
 import asyncio

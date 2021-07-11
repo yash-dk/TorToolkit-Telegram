@@ -3,8 +3,7 @@ from functools import partial
 
 from pyrogram.types import InputMediaDocument, InputMediaVideo, InputMediaPhoto, InputMediaAudio, InlineKeyboardButton, InlineKeyboardMarkup
 from ..core.base_task import BaseTask
-from ..core.database_handle import TtkUpload
-from ..database.dbhandler import UserDB
+from ..database.dbhandler import UserDB, TtkUpload
 import os
 import logging
 from telethon.tl.types import KeyboardButtonCallback

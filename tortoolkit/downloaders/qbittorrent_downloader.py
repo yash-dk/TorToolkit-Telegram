@@ -489,6 +489,7 @@ class QbittorrentDownloader(BaseTask):
 
 
 class QbitController:
+    all_tasks = []
     def __init__(self, user_msg, entity_message, is_file = False, is_link = False):
         self._entity_msg = entity_message
         self._user_msg = user_msg
@@ -572,7 +573,7 @@ class QbitController:
         self._update_message = await self._update_message.edit(buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
 
         db.disable_torrent(torhash)
-
+        self.all_tasks.append(self)
         # Status update active
         status_mgr = QbittorrentStatus(self, self._qbit_task, self._user_msg.sender_id)
         StatusManager().add_status(status_mgr)
@@ -581,10 +582,11 @@ class QbitController:
         result = await self._qbit_task.update_progress()
         
         # Status update inactive
+        self.all_tasks.remove(self)
         status_mgr.set_inactive()
         
-        if self._qbit_task.is_errored:
-            await self._update_message.edit("Your Task was unsccuessful. {}".format(self._qbit_task.get_error_reason()))
+        if self._qbit_task.is_errored or self._qbit_task.is_canceled:
+            await self._update_message.edit("Your Task was unsccuessful. {}".format(self._qbit_task.get_error_reason()), buttons=None)
             return False
         else:
             if self._qbit_task.is_completed:

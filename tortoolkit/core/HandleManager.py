@@ -228,7 +228,7 @@ async def handle_leech_command(e):
     else:
         sequencer = TaskSequence(e, await e.get_reply_message(), TaskSequence.LEECH)
         res = await sequencer.execute()
-        torlog.info("Sequencer out", res)
+        torlog.info("Sequencer out"+ str(res))
         
 
 #       ###### Qbittorrent Related ######
@@ -343,7 +343,8 @@ async def callback_handler_canc(e):
         hashid = hashid.strip("'")
         torlog.info(f"Hashid :- {hashid}")
         #affected to aria2 too, soo
-        await cancel_torrent(hashid, is_aria, is_mega)
+        await TaskSequence(None, None, None).cancel_task(hashid, is_aria, is_mega)
+    
         await e.answer("Leech has been canceled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
         hashid = data[1]
@@ -351,8 +352,9 @@ async def callback_handler_canc(e):
         
         torlog.info(f"Hashid :- {hashid}")
         
-        await cancel_torrent(hashid, is_aria, is_mega)
+        await TaskSequence(None, None, None).cancel_task(hashid, is_aria, is_mega)
         await e.answer("Leech has been canceled in ADMIN MODE XD ;)",alert=True)
+    
     else:
         await e.answer("Can't Cancel others leech 😡", alert=True)
 

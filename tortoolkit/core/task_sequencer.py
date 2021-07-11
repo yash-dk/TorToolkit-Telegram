@@ -1,9 +1,9 @@
 from functools import partial
 import os
 import time
-from ..downloaders.qbittorrent_downloader import QbitController
-from ..downloaders.mega_downloader import MegaController
-from ..downloaders.aria2_downloader import Aria2Controller
+from ..downloaders.qbittorrent_downloader import QbitController, QbittorrentDownloader
+from ..downloaders.mega_downloader import MegaController, MegaDownloader
+from ..downloaders.aria2_downloader import Aria2Controller, Aria2Downloader
 from ..downloaders.direct_link_gen import DLGen
 from ..uploaders.archiver import Archiver
 from ..uploaders.extractor import Extractor
@@ -75,6 +75,14 @@ class TaskSequence:
                 rcloneup = RcloneController(dl_path, self._user_msg, prev_update_message)            
                 await rcloneup.execute()
     
+    async def cancel_task(self, hashid, is_aria = False, is_mega = False):
+        if is_aria:
+            await Aria2Downloader(None, None).remove_dl(hashid)
+        elif is_mega:
+            await MegaDownloader(None, None).remove_mega_dl(hashid)
+        else:
+            await QbittorrentDownloader(None, None).deregister_torrent(hashid)
+
     async def get_downloader_leech(self):
         if self._entity_message is None:
             return False

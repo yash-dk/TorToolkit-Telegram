@@ -20,6 +20,7 @@ class MegaDownloader(BaseTask):
         self._link = link
         self._from_user_id = from_user_id
         self._update_info = None
+        self._gid = 0
 
     
     async def init_mega_client(self, return_pr=False):
@@ -99,6 +100,14 @@ class MegaDownloader(BaseTask):
                     self._is_errored = True
                     self._error_reason = dl_info["error_string"]
                 return False
+    
+    async def remove_mega_dl(self, gid):
+        mega_client = await self.init_mega_client()
+        mega_client.cancelDl(gid)
+
+    def get_gid(self):
+        return self._gid
+
     def cancel(self, is_admin=False):
         self._is_canceled = True
         if is_admin:
@@ -113,6 +122,7 @@ class MegaDownloader(BaseTask):
         return self._error_reason
     
 class MegaController:
+    all_tasks = []
     def __init__(self, dl_link, user_msg, new_name=None):
         self._dl_link = dl_link
         self._user_msg = user_msg
@@ -123,6 +133,7 @@ class MegaController:
 
         self._mega_down = MegaDownloader(self._dl_link, self._user_msg.sender_id)
 
+        self.all_tasks.append(self)
         # Status update active
         status_mgr = MegaStatus(self,self._mega_down,self._user_msg.sender_id)
         StatusManager().add_status(status_mgr)
@@ -132,9 +143,10 @@ class MegaController:
 
         # Status update inactive
         status_mgr.set_inactive()
+        self.all_tasks.remove(self)
 
-        if self._mega_down.is_errored:
-            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._mega_down.get_error_reason()))
+        if self._mega_down.is_errored or self._mega_down.is_canceled:
+            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._mega_down.get_error_reason()), buttons=None)
             return False
         else:
             if self._mega_down.is_completed:
