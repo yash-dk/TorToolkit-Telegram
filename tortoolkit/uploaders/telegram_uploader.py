@@ -87,6 +87,7 @@ class TelegramUploader(BaseTask):
         chat_id = self._user_message.chat_id
         msg_li = []
         for i in self.files_dict.keys():
+            
             link = f'https://t.me/c/{str(chat_id)[4:]}/{self.files_dict[i]}'
             if len(msg + f'🚩 <a href="{link}">{i}</a>\n') > 4000:
                 msg_li.append(msg)
@@ -122,10 +123,8 @@ class TelegramUploader(BaseTask):
                 if ids[j] == i.id:
                     break
             nextt,prev = "",""
-            if self._user_message.is_private:
-                chat_id = self._user_message.chat_id
-            else:
-                chat_id = str(self._user_message.chat_id)[4:]
+            
+            chat_id = str(self._user_message.chat_id)[4:]
             buttons = []
             if index == 0:
                 nextt = f'https://t.me/c/{chat_id}/{ids[index+1]}'
