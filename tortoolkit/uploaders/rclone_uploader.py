@@ -274,7 +274,7 @@ class RcloneController:
         
         self._rclone_up = RcloneUploader(self._path, self._user_msg)
 
-        status_msg = RcloneStatus(self, self._rclone_up)
+        status_msg = RcloneStatus(self, self._rclone_up, self._user_msg.sender_id)
         StatusManager().add_status(status_msg)
         status_msg.set_active()
 

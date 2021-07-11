@@ -2,9 +2,10 @@ from .base_status import BaseStatus
 from ..utils.human_format import human_readable_bytes, human_readable_timedelta
 
 class Aria2Status(BaseStatus):
-    def __init__(self, controller, downloader=None):
+    def __init__(self, controller, downloader=None, sender_id=None):
         self._controller = controller
         self._downloader = downloader
+        self._sender_id = sender_id
 
     async def update_now(self):
         if self._downloader is None:
@@ -52,3 +53,6 @@ class Aria2Status(BaseStatus):
 
     def get_type(self):
         return self.ARIA2
+    
+    def get_sender_id(self):
+        return self._sender_id

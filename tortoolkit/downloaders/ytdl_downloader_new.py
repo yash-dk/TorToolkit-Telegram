@@ -13,6 +13,7 @@ from ..functions.rclone_upload import get_config,rclone_driver
 from ..core.base_task import BaseTask
 from functools import partial
 from PIL import Image
+from youtube_dl import YoutubeDL
 
 torlog = logging.getLogger(__name__)
 
@@ -51,26 +52,35 @@ async def cli_call(cmd: Union[str,List[str]]) -> Tuple[str,str]:
     
     return stdout, stderr
 
+class TorLogger:
+    def __init__(self):
+        self._latest = ""
+    def debug(self, msg):
+        self._latest = msg
+
+    def warning(self, msg):
+        pass
+
+    def error(self, msg):
+        print(msg)
+
+    def get_latest_stuff(self):
+        return self._latest
 
 async def get_yt_link_details(url: str) -> Union[Dict[str,str], None]:
-    cmd = "youtube-dl --no-warnings --youtube-skip-dash-manifest --dump-json"
-    cmd = shlex.split(cmd)
-    if "hotstar" in url:
-        cmd.append("--geo-bypass-country")
-        cmd.append("IN")
-    cmd.append(url)
-    
-    out, error = await cli_call(cmd)
-    if error:
-        torlog.error(f"Error occured:- {error} for url {url}")
-    # sanitize the json
-    out = out.replace("\n",",")
-    out = "[" + out + "]"
+    cloger = TorLogger()
+    ydl_opts = {
+        "dump_single_json":True,
+        "skip_download":True,
+        "youtube_include_dash_manifest":False,
+        'logger':cloger
+    }
     try:
-        return json.loads(out)[0], None
-    except:
-        torlog.exception("Error occured while parsing the json.\n")
-        return None, error
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download(['https://youtu.be/hGNMprXxuME'])
+            return cloger.get_latest_stuff(), None
+    except Exception as e:
+        return None, str(e)
 
 async def get_max_thumb(data: dict, suid: str) -> str:
     thumbnail = data.get("thumbnail")
@@ -294,13 +304,32 @@ async def handle_ytdl_file_download(e: MessageLike):
                             
                     
             if data[1].endswith("K"):
-                cmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{op_dir}/%(title)s.%(ext)s' {yt_url}"
-
+                ytdl_opts = {
+                    "extractaudio":True,
+                    "addmetadata":True,
+                    "audioformat":"mp3",
+                    "audioquality":data[1],
+                    "outtmpl": f"{op_dir}/%(title)s.%(ext)s {yt_url}"
+                }
             else:
                 if is_audio:
-                    cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]} -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+                    ytdl_opts = {
+                        "continue_dl":True,
+                        "embedsubtitles":True,
+                        "hls_prefer_native":False,
+                        "prefer_ffmpeg":True,
+                        "format":data[1],
+                        "outtmpl":f"{op_dir}/%(title)s.%(ext)s {yt_url}",
+                    }
                 else:
-                    cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+                    ytdl_opts = {
+                        "continue_dl":True,
+                        "embedsubtitles":True,
+                        "hls_prefer_native":False,
+                        "prefer_ffmpeg":True,
+                        "format":f"{data[1]}+bestaudio[ext=m4a]/best",
+                        "outtmpl":f"{op_dir}/%(title)s.%(ext)s {yt_url}",
+                    }
             
             out, err = await cli_call(cmd)
             
@@ -742,10 +771,7 @@ class YTDLController:
 
         if ytdl_task.is_errored:
             if res is False:
-                omess = await self.user_message.get_reply_message()
-                await self.user_message.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
-                await self.omess.reply("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
-
+                await self.callback.answer("Something went wrong, try again later.")
                 return res
             else:
                 return res

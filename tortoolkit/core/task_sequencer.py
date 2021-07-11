@@ -74,9 +74,6 @@ class TaskSequence:
             else:
                 rcloneup = RcloneController(dl_path, self._user_msg, prev_update_message)            
                 await rcloneup.execute()
-
-        
-        
     
     async def get_downloader_leech(self):
         if self._entity_message is None:
@@ -123,7 +120,7 @@ class TaskSequence:
                 else:
                     return Aria2Controller(raw_text, self._user_msg)
     
-
+    # TODO add the disable leech and rclone options
 
     ####### All the methods below are for getting the leech and zip/extract choices #######
 

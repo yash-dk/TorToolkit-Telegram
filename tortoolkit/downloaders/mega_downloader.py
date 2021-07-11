@@ -124,7 +124,7 @@ class MegaController:
         self._mega_down = MegaDownloader(self._dl_link, self._user_msg.sender_id)
 
         # Status update active
-        status_mgr = MegaStatus(self,self._mega_down)
+        status_mgr = MegaStatus(self,self._mega_down,self._user_msg.sender_id)
         StatusManager().add_status(status_mgr)
         status_mgr.set_active()
 

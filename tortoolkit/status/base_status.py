@@ -50,3 +50,7 @@ class BaseStatus(ABC):
     @abstractmethod
     def get_type(self):
         ...
+    
+    @abstractmethod
+    def get_sender_id(self):
+        ...

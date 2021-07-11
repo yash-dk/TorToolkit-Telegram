@@ -59,7 +59,7 @@ class TelegramUploader(BaseTask):
         self._up_file_name = ""
         self._current_update.files = self._total_files
 
-        status_mgr = TGUploadStatus(self)
+        status_mgr = TGUploadStatus(self, self._user_message.sender_id)
         StatusManager().add_status(status_mgr)
         status_mgr.set_active()
 

@@ -574,7 +574,7 @@ class QbitController:
         db.disable_torrent(torhash)
 
         # Status update active
-        status_mgr = QbittorrentStatus(self, self._qbit_task)
+        status_mgr = QbittorrentStatus(self, self._qbit_task, self._user_msg.sender_id)
         StatusManager().add_status(status_mgr)
         status_mgr.set_active()
 

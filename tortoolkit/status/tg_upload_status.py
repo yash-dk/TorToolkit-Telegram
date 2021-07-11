@@ -2,8 +2,9 @@ from .base_status import BaseStatus
 from ..utils.human_format import human_readable_bytes, human_readable_timedelta
 
 class TGUploadStatus(BaseStatus):
-    def __init__(self, downloader):
+    def __init__(self, downloader, sender_id=None):
         self._downloader = downloader
+        self._sender_id = sender_id
 
     async def update_now(self):
 
@@ -23,4 +24,7 @@ class TGUploadStatus(BaseStatus):
         return msg
 
     def get_type(self):
-        return self.QBIT
+        return self.TGUP
+    
+    def get_sender_id(self):
+        return self._sender_id

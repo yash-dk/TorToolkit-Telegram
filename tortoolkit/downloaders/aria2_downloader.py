@@ -258,7 +258,7 @@ class Aria2Controller:
         self._aria2_down = Aria2Downloader(self._dl_link, self._user_msg.sender_id, self._new_name)
 
         # Status update active
-        status_mgr = Aria2Status(self,self._aria2_down)
+        status_mgr = Aria2Status(self,self._aria2_down,self._user_msg.sender_id)
         StatusManager().add_status(status_mgr)
         status_mgr.set_active()
 

@@ -9,16 +9,16 @@ from telethon.tl.types import KeyboardButtonCallback
 from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
 from ..core.getVars import get_val
-from ..core.speedtest import get_speed
-from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files, get_transfer
+from ..utils.speedtest import get_speed
 from ..functions.tele_upload import upload_a_file,upload_handel
 from ..functions import Human_Format
 from .database_handle import TtkUpload,TtkTorrents, TorToolkitDB
+from ..downloaders.qbittorrent_downloader import QbittorrentDownloader
 from .settings import handle_settings,handle_setting_callback
 from .user_settings import handle_user_settings, handle_user_setting_callback
 from functools import partial
 from ..functions.rclone_upload import get_config,rclone_driver
-from ..functions.admin_check import is_admin
+from ..utils.admin_check import is_admin
 from .. import upload_db, var_db, tor_db, user_db, uptime
 import asyncio as aio
 import re,logging,time,os,psutil,shutil
@@ -220,205 +220,44 @@ def add_handlers(bot: TelegramClient):
         handle_server_command,
         events.CallbackQuery(pattern="fullserver")
     )
-    test()
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
     if not e.is_reply:
         await e.reply("Reply to a link or magnet")
     else:
-        from ..uploaders.telegram_uploader import TelegramUploader
-
-        a= TelegramUploader("/mnt/d/oc/a.mkv", e, await e.get_reply_message())
-        await a.execute()
-        return
         sequencer = TaskSequence(e, await e.get_reply_message(), TaskSequence.LEECH)
         res = await sequencer.execute()
-        print("Sequencer out",res)
-        return
-        rclone = False
-        tsp = time.time()
-        buts = [[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
-        if await get_config() is not None:
-            buts.append(
-                [KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")]
-            )
-        # tsp is used to split the callbacks so that each download has its own callback
-        # cuz at any time there are 10-20 callbacks linked for leeching XD
-           
-        buts.append(
-                [KeyboardButtonCallback("Upload in a ZIP.[Toggle]", data=f"leechzip toggle {tsp}")]
-        )
-        buts.append(
-                [KeyboardButtonCallback("Extract from Archive.[Toggle]", data=f"leechzipex toggleex {tsp}")]
-        )
+        torlog.info("Sequencer out", res)
         
-        conf_mes = await e.reply(f"First click if you want to zip the contents or extract as an archive (only one will work at a time) then...\n\n<b>Choose where to upload your files:-</b>\nThe files will be uploaded to default destination: <b>{get_val('DEFAULT_TIMEOUT')}</b> after 60 sec of no action by user.</u>\n\n<b>Supported archives to extract:</b>\nzip, 7z, tar, gzip2, iso, wim, rar, tar.gz, tar.bz2",parse_mode="html",buttons=buts)
 
-        # zip check in background
-        ziplist = await get_zip_choice(e,tsp)
-        zipext = await get_zip_choice(e,tsp,ext=True)
-        
-        # blocking leech choice 
-        choice = await get_leech_choice(e,tsp)
-        
-        # zip check in backgroud end
-        await get_zip_choice(e,tsp,ziplist,start=False)
-        await get_zip_choice(e,tsp,zipext,start=False,ext=True)
-        is_zip = ziplist[1]
-        is_ext = zipext[1]
-        
-        
-        # Set rclone based on choice
-        if choice == "drive":
-            rclone = True
-        else:
-            rclone = False
-        
-        await conf_mes.delete()
+#       ###### Qbittorrent Related ######
 
-        if rclone:
-            if get_val("RCLONE_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext, conf_mes)
-            else:
-                await e.reply("<b>DRIVE IS DISABLED BY THE ADMIN</b>",parse_mode="html")
-        else:
-            if get_val("LEECH_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext, conf_mes)
-            else:
-                await e.reply("<b>TG LEECH IS DISABLED BY THE ADMIN</b>",parse_mode="html")
-
-
-async def get_leech_choice(e,timestamp):
-    # abstract for getting the confirm in a context
-
-    lis = [False,None]
-    cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
-    
-    gtyh = ""
-    sam1 = [68, 89, 78, 79]
-    for i in sam1:
-        gtyh += chr(i)
-    if os.environ.get(gtyh,False):
-        os.environ["TIME_STAT"] = str(time.time())
-
-    e.client.add_event_handler(
-        #lambda e: test_callback(e,lis),
-        cbak,
-        events.CallbackQuery(pattern="leechselect")
-    )
-
-    start = time.time()
-    defleech = get_val("DEFAULT_TIMEOUT")
-
-    while not lis[0]:
-        if (time.time() - start) >= 60: #TIMEOUT_SEC:
-            
-            if defleech == "leech":
-                return "tg"
-            elif defleech == "rclone":
-                return "drive"
-            else:
-                # just in case something goes wrong
-                return "tg"
-            break
-        await aio.sleep(1)
-
-    val = lis[1]
-    
-    e.client.remove_event_handler(cbak)
-
-    return val
-
-async def get_zip_choice(e,timestamp, lis=None,start=True, ext=False):
-    # abstract for getting the confirm in a context
-    # creating this functions to reduce the clutter
-    if lis is None:
-        lis = [None, None, None]
-    
-    if start:
-        cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
-        lis[2] = cbak
-        if ext:
-            e.client.add_event_handler(
-                cbak,
-                events.CallbackQuery(pattern="leechzipex")
-            )
-        else:
-            e.client.add_event_handler(
-                cbak,
-                events.CallbackQuery(pattern="leechzip")
-            )
-        return lis
-    else:
-        e.client.remove_event_handler(lis[2])
-
-
-async def get_leech_choice_callback(e,o_sender,lis,ts):
-    # handle the confirm callback
-
-    if o_sender != e.sender_id:
-        return
-    data = e.data.decode().split(" ")
-    if data [2] != str(ts):
-        return
-    
-    lis[0] = True
-    if data[1] == "toggle":
-        # encompasses the None situation too
-        print("data ",lis)
-        if lis[1] is True:
-            await e.answer("Will Not be zipped", alert=True)
-            lis[1] = False 
-        else:
-            await e.answer("Will be zipped", alert=True)
-            lis[1] = True
-    elif data[1] == "toggleex":
-        print("exdata ",lis)
-        # encompasses the None situation too
-        if lis[1] is True:
-            await e.answer("It will not be extracted.", alert=True)
-            lis[1] = False 
-        else:
-            await e.answer("If it is a Archive it will be extracted. Further in you can set password to extract the ZIP.", alert=True)
-            lis[1] = True
-    else:
-        lis[1] = data[1]
-    
-
-#add admin checks here - done
 async def handle_purge_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
-        await purge_all(e)
+        msg = await QbittorrentDownloader(None, None).delete_all()
+        await e.reply(msg)
+        await e.delete()
     else:
         await e.delete()
 
-def test():
-    herstr = ""
-    sam = [104, 101, 114, 111, 107, 117, 97, 112, 112, 46, 99, 111, 109]
-    sam1 = [68, 89, 78, 79]
-    for i in sam1:
-        herstr += chr(i)
-    if os.environ.get(herstr,False):
-        os.environ["TIME_STAT"] = str(time.time())
-    herstr = ""
-    for i in sam:
-        herstr += chr(i)
-    if os.environ.get("BASE_URL_OF_BOT",False):
-        if herstr.lower() in os.environ.get("BASE_URL_OF_BOT").lower():
-            os.environ["TIME_STAT"] = str(time.time())
-
 async def handle_pauseall_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
-        await pause_all(e)
+        msg = await QbittorrentDownloader(None, None).pause_all()
+        await e.reply(msg)
+        await e.delete()
     else:
         await e.delete()
 
 async def handle_resumeall_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
-        await resume_all(e)
+        msg = await QbittorrentDownloader(None, None).resume_all()
+        await e.reply(msg)
+        await e.delete()
     else:
         await e.delete()
+
+#       ###### Qbittorrent Related End ######
 
 async def handle_settings_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
@@ -427,6 +266,8 @@ async def handle_settings_command(e):
         await e.delete()
 
 async def handle_status_command(e):
+    # TODO work on status command
+    return
     cmds = e.text.split(" ")
     if len(cmds) > 1:
         if cmds[1] == "all":
@@ -438,7 +279,8 @@ async def handle_status_command(e):
 
 async def handle_u_status_command(e):
     await create_status_user_menu(e)
-        
+
+
 async def speed_handler(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
         await get_speed(e)
@@ -455,6 +297,7 @@ async def handle_settings_cb(e):
     else:
         await e.answer("⚠️ WARN ⚠️ Dont Touch Admin Settings.",alert=True)
 
+
 async def handle_upcancel_cb(e):
     db = upload_db
 
@@ -470,7 +313,6 @@ async def handle_upcancel_cb(e):
         await e.answer("UPLOAD CANCELED IN ADMIN MODE XD ;)",alert=True)
     else:
         await e.answer("Can't Cancel others upload 😡",alert=True)
-
 
 async def callback_handler_canc(e):
     # TODO the msg can be deleted
@@ -899,5 +741,6 @@ async def booted(client):
             await client.send_message(i, "The bot is booted and is ready to use.")
         except Exception as e:
             torlog.info(f"Not found the entity {i}")
+
 def command_process(command):
     return re.compile(command,re.IGNORECASE)
