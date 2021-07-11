@@ -6,18 +6,14 @@ from telethon import TelegramClient,events
 from telethon import __version__ as telever
 from pyrogram import __version__ as pyrover
 from telethon.tl.types import KeyboardButtonCallback
-from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
 from ..core.getVars import get_val
 from ..utils.speedtest import get_speed
-from ..functions.tele_upload import upload_a_file,upload_handel
-from ..functions import Human_Format
-from .database_handle import TtkUpload,TtkTorrents, TorToolkitDB
+from ..utils import human_format
 from ..downloaders.qbittorrent_downloader import QbittorrentDownloader
 from .settings import handle_settings,handle_setting_callback
 from .user_settings import handle_user_settings, handle_user_setting_callback
 from functools import partial
-from ..functions.rclone_upload import get_config,rclone_driver
 from ..utils.admin_check import is_admin
 from .. import upload_db, var_db, tor_db, user_db, uptime
 import asyncio as aio
@@ -432,8 +428,6 @@ async def handle_pincode_cb(e):
         await e.answer("It's not your torrent.",alert=True)
 
 async def upload_document_f(message):
-    if get_val("REST11"):
-        return
     imsegd = await message.reply(
         "processing ..."
     )
@@ -441,12 +435,11 @@ async def upload_document_f(message):
     if await is_admin(message.client, message.sender_id, message.chat_id, force_owner=True):
         if " " in message.text:
             recvd_command, local_file_name = message.text.split(" ", 1)
-            recvd_response = await upload_a_file(
-                local_file_name,
-                imsegd,
-                False,
-                upload_db
-            )
+            try:
+                tgup = TelegramUploader(local_file_name, imsegd)
+                await tgup.execute()
+            except Exception as e:
+                await imsegd.edit(e)
             #torlog.info(recvd_response)
     else:
         await message.reply("Only for owner")
@@ -511,10 +504,10 @@ async def handle_server_command(message):
     try:
         # Memory
         mem = psutil.virtual_memory()
-        memavailable = Human_Format.human_readable_bytes(mem.available)
-        memtotal = Human_Format.human_readable_bytes(mem.total)
+        memavailable = human_format.human_readable_bytes(mem.available)
+        memtotal = human_format.human_readable_bytes(mem.total)
         mempercent = mem.percent
-        memfree = Human_Format.human_readable_bytes(mem.free)
+        memfree = human_format.human_readable_bytes(mem.free)
     except:
         memavailable = "N/A"
         memtotal = "N/A"
@@ -546,9 +539,9 @@ async def handle_server_command(message):
     try:
         # Storage
         usage = shutil.disk_usage("/")
-        totaldsk = Human_Format.human_readable_bytes(usage.total)
-        useddsk = Human_Format.human_readable_bytes(usage.used)
-        freedsk = Human_Format.human_readable_bytes(usage.free)
+        totaldsk = human_format.human_readable_bytes(usage.total)
+        useddsk = human_format.human_readable_bytes(usage.used)
+        freedsk = human_format.human_readable_bytes(usage.free)
     except:
         totaldsk = "N/A"
         useddsk = "N/A"
@@ -556,15 +549,15 @@ async def handle_server_command(message):
 
 
     try:
-        upb, dlb = await get_transfer()
-        dlb = Human_Format.human_readable_bytes(dlb)
-        upb = Human_Format.human_readable_bytes(upb)
+        upb, dlb = 0,0
+        dlb = human_format.human_readable_bytes(dlb)
+        upb = human_format.human_readable_bytes(upb)
     except:
         dlb = "N/A"
         upb = "N/A"
 
     diff = time.time() - uptime
-    diff = Human_Format.human_readable_timedelta(diff)
+    diff = human_format.human_readable_timedelta(diff)
 
     if callbk:
         msg = (
@@ -638,7 +631,7 @@ async def about_me(message):
 
 
     diff = time.time() - uptime
-    diff = Human_Format.human_readable_timedelta(diff)
+    diff = human_format.human_readable_timedelta(diff)
 
     msg = (
         "<b>Name</b>: <code>TorToolkit</code>\n"

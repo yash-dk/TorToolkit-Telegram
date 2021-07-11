@@ -9,7 +9,7 @@ from telethon.tl.types import KeyboardButtonCallback, KeyboardButtonUrl
 from typing import Union,List,Tuple,Dict,Optional
 from ..utils.human_format import human_readable_bytes
 from ..core.getVars import get_val
-from ..functions.rclone_upload import get_config,rclone_driver
+from ..uploaders.rclone_uploader import RcloneUploader
 from ..core.base_task import BaseTask
 from functools import partial
 from PIL import Image
@@ -164,7 +164,7 @@ async def handle_ytdl_command(e: MessageLike):
 
     tsp = time.time()
     buts = [[KeyboardButtonCallback("To Telegram",data=f"ytdlselect tg {tsp}")]]
-    if await get_config() is not None:
+    if await RcloneUploader(None, None).get_config() is not None:
         buts.append(
             [KeyboardButtonCallback("To Drive",data=f"ytdlselect drive {tsp}")]
         )
@@ -258,7 +258,7 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
     
     tsp = time.time()
     buts = [[KeyboardButtonCallback("To Telegram",data=f"ytdlselect tg {tsp}")]]
-    if await get_config() is not None:
+    if await RcloneUploader(None, None).get_config() is not None:
         buts.append(
             [KeyboardButtonCallback("To Drive",data=f"ytdlselect drive {tsp}")]
         )

@@ -1,5 +1,5 @@
 from .mongo_db import MongoDB
-from ..consts.ExecVarsSample import ExecVars
+from ..config.ExecVarsSample import ExecVars
 import os,datetime, json
 
 class TorToolkitDB(MongoDB):

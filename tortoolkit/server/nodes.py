@@ -3,7 +3,7 @@
 
 from anytree import NodeMixin, RenderTree, PreOrderIter
 import qbittorrentapi as qba
-from ..functions.Human_Format import human_readable_bytes
+from ..utils.human_format import human_readable_bytes
 #from ..functions.Human_Format import human_readable_bytes
 
 class TorNode(NodeMixin):

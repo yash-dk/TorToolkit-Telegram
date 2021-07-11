@@ -1,4 +1,4 @@
-from ..consts.ExecVarsSample import ExecVars
+from ..config.ExecVarsSample import ExecVars
 import os
 
 dburl = os.environ.get("DB_URI",None)

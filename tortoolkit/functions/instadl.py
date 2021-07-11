@@ -14,7 +14,7 @@ from instaloader import (
     ConnectionException, LoginRequiredException
 )
 
-from ..core.thumb_manage import get_thumbnail
+from ..utils.video_helpers import get_thumbnail
 
 # Thanks TO https://github.com/UsergeTeam/Userge/blob/alpha/userge/plugins/misc/instadl.py
 

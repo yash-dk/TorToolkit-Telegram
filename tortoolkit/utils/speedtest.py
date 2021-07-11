@@ -1,6 +1,6 @@
 from speedtest import Speedtest
 import logging
-from ..functions.Human_Format import human_readable_bytes
+from .human_format import human_readable_bytes
 
 torlog = logging.getLogger(__name__)
 

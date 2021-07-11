@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 import logging
-from ...functions.Human_Format import human_readable_bytes, human_readable_timedelta
+from ...utils.human_format import human_readable_bytes, human_readable_timedelta
 from ..getVars import get_val
 from telethon.errors.rpcerrorlist import MessageNotModifiedError, FloodWaitError
 from telethon.tl.types import KeyboardButtonCallback

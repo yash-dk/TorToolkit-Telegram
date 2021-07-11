@@ -6,7 +6,7 @@ from telethon import events
 from tortoolkit import SessionVars
 import asyncio as aio
 from .getVars import get_val
-from .database_handle import TorToolkitDB
+from ..database.dbhandler import TorToolkitDB
 from .. import user_db
 from functools import partial
 import time,os,configparser,logging,traceback

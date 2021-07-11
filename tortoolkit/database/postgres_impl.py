@@ -4,7 +4,7 @@
 import psycopg2,os,datetime
 import psycopg2.extras
 from .postrgres_db import PostgresDB
-from ..consts.ExecVarsSample import ExecVars
+from ..config.ExecVarsSample import ExecVars
 import json
 from typing import BinaryIO, Union
 #this will handel the transaction with completed torrents
