@@ -687,6 +687,9 @@ class PYTDLDownloader(BaseTask):
 
     def progress_update(self, progress):
         self._update_info = progress
+    
+    async def get_update(self):
+        return self._update_info
 
 class PYTDLController:
     def __init__(self, callback, user_message):
@@ -724,6 +727,9 @@ class PYTDLController:
                 return res
         else:
             return res
+
+    async def get_update_message(self):
+        return await self.callback.get_message()
 
 #todo
 # Add the YT playlist feature here
