@@ -20,7 +20,6 @@ import asyncio as aio
 import re,logging,time,os,psutil,shutil
 from tortoolkit import __version__
 from ..downloaders.ytdl_downloader import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_playlist
-from ..functions.instadl import _insta_post_downloader
 torlog = logging.getLogger(__name__)
 from .status.status import Status
 from .status.menu import create_status_menu, create_status_user_menu
@@ -131,13 +130,7 @@ def add_handlers(bot: TelegramClient):
         handle_user_settings_,
         events.NewMessage(pattern=command_process(get_command("USERSETTINGS")))
     )
-
-    bot.add_event_handler(
-        _insta_post_downloader,
-        events.NewMessage(pattern=command_process(get_command("INSTADL")),
-        chats=get_val("ALD_USR"))
-    )
-
+    
     bot.add_event_handler(
         start_handler,
         events.NewMessage(pattern=command_process(get_command("START")))
