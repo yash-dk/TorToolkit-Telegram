@@ -558,6 +558,8 @@ class YTDLController:
         
         status_mgr.set_inactive()
 
+        await (await self.get_update_message()).edit("Youtube Download is complete. Success/Failure is not determinded.")
+
         if ytdl_task.is_errored:
             if res is False:
                 omess = await self.user_message.get_reply_message()
@@ -716,6 +718,8 @@ class PYTDLController:
         res = await ytdl_task.execute()
         status_mgr.set_inactive()
         
+        await (await self.get_update_message()).edit("Youtube Playlist Download is complete. Success/Failure is not determinded.")
+
         if ytdl_task.is_errored:
             if res is False:
                 omess = await self.user_message.get_reply_message()
