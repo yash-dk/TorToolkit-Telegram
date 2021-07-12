@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-__version__ = "0.2.6"
+__version__ = "2.0.1.alpha"
 __author__ = "YashDK Github@yash-dk"
 #
 import logging

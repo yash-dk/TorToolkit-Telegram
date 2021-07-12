@@ -130,7 +130,7 @@ def add_handlers(bot: TelegramClient):
         handle_user_settings_,
         events.NewMessage(pattern=command_process(get_command("USERSETTINGS")))
     )
-    
+
     bot.add_event_handler(
         start_handler,
         events.NewMessage(pattern=command_process(get_command("START")))
@@ -644,18 +644,19 @@ async def about_me(message):
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
         "1.DB Optimizations.\n"
-        "2.Database handling on disconnections..\n"
-        "3.Support for ARM devices.\n"
-        "4.Support for ARM devices.\n"
-        "5.Gdrive Support for PYTDL and YTDL\n"
-        "6.Upload YT Playlist even when some vids are errored.\n"
-        "7.Changed /server menu. Add /speedtest\n"
-        "8.Minor fixes.\n"
-        "9.Deploy takes less then 2 mins now.\n"
-        "10.MegaDL added.\n"
-        "11.Overall download and upload progress.\n"
-        "12.Pixeldrain DL support.\n"
-        "13.Alert on when the bot boots up.\n"
+        "2.Mongo DB and Postgres DB both are supported.\n"
+        "3.Mega Enable/Disable feature.\n"
+        "4.Progress for YTDL (in beta implementation).\n"
+        "5.Progress for PYTDL (in beta implementation).\n"
+        "6.Re written Qbit Interface.\n"
+        "7.Re written Aria2 Interface.\n"
+        "8.Re written Mega Interface.\n"
+        "9.Re written TGUpload Interface.\n"
+        "10.Re written Rclone Interface.\n"
+        "11.Major project structure change.\n"
+        "12.Change the web server interface.\n"
+        "13.Add ability to access downloaded data on the server from web server.\n"
+        "14.Major changes will prevail soon.\n"
     )
 
     await message.reply(msg,parse_mode="html")
