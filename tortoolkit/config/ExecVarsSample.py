@@ -72,6 +72,9 @@ except:
         # For vps set path here or you can use runtime too
         RCLONE_CONFIG = False
         
+        # If set then you can view the downloaded files which are currently on the server
+        ENABLE_WEB_FILES_VIEW = False
+
         # Name of the RCLONE drive from the config
         DEF_RCLONE_DRIVE = ""
 

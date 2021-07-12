@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-from aiohttp import web
+from aiohttp import web, BasicAuth
 from aiohttp.web_response import Response
+from aiohttp.web_routedef import get
 import qbittorrentapi as qba
 from . import nodes
 from ..database.dbhandler import TtkTorrents
+from ..config.ExecVarsSample import ExecVars
 import asyncio,logging,os,traceback
 import os, time
 import jinja2
@@ -274,7 +276,7 @@ async def set_priority(request):
 
 @routes.get('/')
 async def homepage(request):
-  response = aiohttp_jinja2.render_template("index.html", request,context={})
+  response = aiohttp_jinja2.render_template("index.html", request,context={"err404":False, "dirs_open":ExecVars.ENABLE_WEB_FILES_VIEW})
   return response
 
 async def e404_middleware(app, handler):
@@ -282,15 +284,23 @@ async def e404_middleware(app, handler):
       try:
           response = await handler(request)
           if response.status == 404:
-              return web.Response(text="<h1>404: Page not found</h2><br><h3>Tortoolkit</h3>",content_type="text/html")
+              err404 = aiohttp_jinja2.render_template("index.html", request,context={"err404":True, "dirs_open":ExecVars.ENABLE_WEB_FILES_VIEW})
+              return err404
           return response
       except web.HTTPException as ex:
           if ex.status == 404:
-              return web.Response(text="<h1>404: Page not found</h2><br><h3>Tortoolkit</h3>",content_type="text/html")
+              err404 = aiohttp_jinja2.render_template("index.html", request,context={"err404":True, "dirs_open":ExecVars.ENABLE_WEB_FILES_VIEW})
+              return err404
           raise
   return middleware_handler
 
 routes.static('/static', os.path.join(os.getcwd(),"tortoolkit", "server", "static"))
+
+if ExecVars.ENABLE_WEB_FILES_VIEW:
+  routes.static('/downloads', os.path.join(os.getcwd(), "Downloads"),show_index=True)
+  routes.static('/userdata', os.path.join(os.getcwd(), "userdata"), show_index=True)
+
+#web.static('/static', os.path.join(os.getcwd()), show_index=True)
 async def start_server():
     app = web.Application(middlewares=[e404_middleware])
     app.add_routes(routes)

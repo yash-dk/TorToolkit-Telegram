@@ -33,7 +33,20 @@ class TaskSequence:
             choices = await self.get_leech_choices()
             torlog.info(choices)
 
+            if not choices["rclone"]:
+                if not get_val("LEECH_ENABLED"):
+                    await self._user_msg.reply("Leech to Telegram is disabled by admin.")
+                    return
+            else:
+                if not get_val("RCLONE_ENABLED"):
+                    await self._user_msg.reply("Leech to Rclone Drive is disabled by admin.")
+                    return
+
+
             current_downloader = await self.get_downloader_leech()
+            
+            if current_downloader is None:
+                return
             
             dl_path = await current_downloader.execute()
 
@@ -80,6 +93,16 @@ class TaskSequence:
             data = self._entity_message.data.decode("UTF-8")
             data = data.split("|")
             up_dest = data[4]
+
+            if up_dest=="tg":
+                if not get_val("LEECH_ENABLED"):
+                    await self._user_msg.reply("Leech to Telegram is disabled by admin.")
+                    return
+            else:
+                if not get_val("RCLONE_ENABLED"):
+                    await self._user_msg.reply("Leech to Rclone Drive is disabled by admin.")
+                    return
+
             ytdl_obj = YTDLController(self._entity_message, self._user_msg)
             dl_path = await ytdl_obj.execute()
             if dl_path is False:
@@ -124,7 +147,7 @@ class TaskSequence:
 
     async def get_downloader_leech(self):
         if self._entity_message is None:
-            return False
+            return None
         
         elif self._entity_message.document is not None:
             name = None
@@ -134,12 +157,14 @@ class TaskSequence:
                 
                 if name is None:
                     await self._user_msg.reply("This is not a torrent file to leech from. Send <code>.torrent</code> file",parse_mode="html")
+                    return None
         
                 elif name.lower().endswith(".torrent"):
                     return QbitController(self._user_msg, self._entity_message, is_file = True)
         
                 else:
                     await self._user_msg.reply("This is not a torrent file to leech from. Send <code>.torrent</code> file",parse_mode="html")
+                    return None
         
         elif self._entity_message.raw_text is not None:
             raw_text = self._entity_message.raw_text 
@@ -151,8 +176,11 @@ class TaskSequence:
                 return QbitController(self._user_msg, self._entity_message, is_link=True)
             
             elif "mega.nz" in raw_text:
-                return MegaController(raw_text, self._user_msg)
-            
+                if get_val("MEGA_ENABLE"):
+                    return MegaController(raw_text, self._user_msg)
+                else:
+                    await self._user_msg.reply("Mega leeching is disabled by admin.")
+                    return None
             else:
                 dl_gen = DLGen()
                 res = await dl_gen.generate_directs(raw_text)

@@ -16,12 +16,22 @@
 		<div class="main-div center-text" style="background-image:url(/static/anon.jpg);background-position: center;">
 			<div class="display-table">
 				<div class="display-table-cell">
-				
+					{% if err404 %}
+						
+						<h3 class="title font-white"><b>Error 404 Resource Not Found</b></h3>
+						<br>
+					{% endif %}
 					<h1 class="title font-white"><b>Tortoolkit Telegram</b></h1>
 					
 					<p class="desc font-white">Developed by Yash DK. </p>
 					
 					<a class="link-btn" href="https://github.com/yash-dk/TorToolkit-Telegram" target="_blank"><ion-icon class="github-button" name="logo-github"></ion-icon><b> Star and Fork on Github</b></a>
+					{% if dirs_open%}
+						<br>
+						<br>
+						<a class="link-btn" href="/userdata"><ion-icon name="folder"></ion-icon><b> Go to Userdata</b></a>
+						<a class="link-btn" href="/downloads"><ion-icon name="folder"></ion-icon><b> Go to Downloads</b></a>
+					{% endif %}
 					
 				</div>
 			</div>
