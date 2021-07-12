@@ -291,7 +291,13 @@ class RcloneController:
             drive_link, index_link = res 
             # Add the logic to edit the message with the url buttons here only if the task was successful :)
             # TODO add buttons for the links
-            await self._update_msg.edit(self._rclone_up.get_error_reason())
+            buttons = [
+                [KeyboardButtonUrl("Drive URL", drive_link)]
+            ]
+            if index_link is not None:
+                buttons.append([KeyboardButtonUrl("Index URL", index_link)])
+            
+            await self._update_msg.edit(self._rclone_up.get_error_reason(), buttons=buttons)
     
     async def get_update_message(self):
         return self._update_msg
