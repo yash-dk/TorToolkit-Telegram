@@ -6,6 +6,7 @@ from ..downloaders.mega_downloader import MegaController, MegaDownloader
 from ..downloaders.aria2_downloader import Aria2Controller, Aria2Downloader
 from ..downloaders.direct_link_gen import DLGen
 from ..downloaders.ytdl_downloader import YTDLController, PYTDLController
+from ..downloaders.ytdl_downloader_new import YTDLController as YTDLControllerNew, PYTDLController as PYTDLControllerNew
 from ..uploaders.archiver import Archiver
 from ..uploaders.extractor import Extractor
 from telethon.tl.types import KeyboardButtonCallback, DocumentAttributeFilename
@@ -102,8 +103,11 @@ class TaskSequence:
                 if not get_val("RCLONE_ENABLED"):
                     await self._user_msg.reply("Leech to Rclone Drive is disabled by admin.")
                     return
-
-            ytdl_obj = YTDLController(self._entity_message, self._user_msg)
+            if get_val("ENABLE_BETA_YOUTUBE_DL"):
+                ytdl_obj = YTDLControllerNew(self._entity_message, self._user_msg)
+            else:
+                ytdl_obj = YTDLController(self._entity_message, self._user_msg)
+            
             dl_path = await ytdl_obj.execute()
             if dl_path is False:
                 return
@@ -121,7 +125,10 @@ class TaskSequence:
             data = self._entity_message.data.decode("UTF-8")
             data = data.split("|")
             up_dest = data[4]
-            ytdl_obj = PYTDLController(self._entity_message, self._user_msg)
+            if get_val("ENABLE_BETA_YOUTUBE_DL"):
+                ytdl_obj = PYTDLControllerNew(self._entity_message, self._user_msg)
+            else:
+                ytdl_obj = PYTDLController(self._entity_message, self._user_msg)
             dl_path = await ytdl_obj.execute()
             if dl_path is False:
                 return

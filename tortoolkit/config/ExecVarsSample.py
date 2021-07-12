@@ -75,6 +75,9 @@ except:
         # If set then you can view the downloaded files which are currently on the server
         ENABLE_WEB_FILES_VIEW = False
 
+        # Try beta ytdl download if errored turn this off
+        ENABLE_BETA_YOUTUBE_DL = True
+
         # Name of the RCLONE drive from the config
         DEF_RCLONE_DRIVE = ""
 
