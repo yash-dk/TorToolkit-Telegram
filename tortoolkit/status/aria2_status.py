@@ -49,7 +49,7 @@ class Aria2Status(BaseStatus):
             human_readable_bytes(self._dl_task.completed_length),
             human_readable_bytes(self._dl_task.total_length)
             )
-        msg += "<b>ETA:</b> <b>{} Mins</b>\n".format(
+        msg += "<b>ETA:</b> <b>{}</b>\n".format(
             self._dl_task.eta_string()
             )
         msg += "<b>Conns:</b>{} <b>\n".format(
