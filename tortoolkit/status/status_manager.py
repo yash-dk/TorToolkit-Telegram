@@ -17,10 +17,8 @@ class StatusManager():
         pass
 
     async def generate_central_update(self, cmd_msg = None):
-        print("gen called")
         renew = False
         if cmd_msg is not None:
-            print("this set")
             self.CENTRAL_UPDATE["status_message"] = cmd_msg
             renew = True
 

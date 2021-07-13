@@ -11,7 +11,7 @@ class QbittorrentStatus(BaseStatus):
         self._downloader = downloader
         self._sender_id = sender_id
 
-    async def update_now(self):
+    async def update_now(self, get_msg = False):
         if self._downloader is None:
             self._downloader = await self._controller.get_downloader()
 
@@ -21,8 +21,16 @@ class QbittorrentStatus(BaseStatus):
 
         # Construct the status message
         data = "torcancel {} {}".format(self._downloader.get_hash(), self._sender_id)
+        
+        msg = "Qbittorrent Task Running."
         if self._torrent is not None:
-            await self._update_message.edit(await self.create_message(), parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
+            msg = await self.create_message()
+            if not get_msg:
+                await self._update_message.edit(msg, parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Leech",data=data.encode("UTF-8"))])
+
+        if get_msg:
+            return msg
+
 
     async def create_message(self):
         msg = "<b>Downloading:</b> <code>{}</code>\n".format(

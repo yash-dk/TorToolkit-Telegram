@@ -11,7 +11,7 @@ class YTDLStatus(BaseStatus):
         self._downloader = downloader
         self._sender_id = sender_id
 
-    async def update_now(self):
+    async def update_now(self, get_msg = False):
         if self._downloader is None:
             self._downloader = await self._controller.get_downloader()
 
@@ -21,9 +21,15 @@ class YTDLStatus(BaseStatus):
 
         # Construct the status message
         # Add cancel login here
+        msg = "YTDL/PYTDL Task Running."
         
         if self._dl_task is not None:
-            await self._update_message.edit(await self.create_message(), parse_mode="html", buttons=None)
+            msg = await self.create_message()
+            if not get_msg:
+                await self._update_message.edit(await self.create_message(), parse_mode="html", buttons=None)
+            
+        if get_msg:
+            return msg
 
     async def create_message(self):
         
