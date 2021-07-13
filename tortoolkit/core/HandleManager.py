@@ -26,6 +26,7 @@ from .status.menu import create_status_menu, create_status_user_menu
 import signal
 from PIL import Image
 from .task_sequencer import TaskSequence
+from ..status.status_manager import StatusManager
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -266,6 +267,7 @@ async def handle_settings_command(e):
 
 async def handle_status_command(e):
     # TODO work on status command
+    await StatusManager().generate_central_update(e)
     return
     cmds = e.text.split(" ")
     if len(cmds) > 1:

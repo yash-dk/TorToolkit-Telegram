@@ -11,7 +11,7 @@ class Aria2Status(BaseStatus):
         self._downloader = downloader
         self._sender_id = sender_id
 
-    async def update_now(self):
+    async def update_now(self, get_msg = False):
         if self._downloader is None:
             self._downloader = await self._controller.get_downloader()
 
@@ -24,8 +24,14 @@ class Aria2Status(BaseStatus):
                 self._downloader.get_gid(),
                 self._sender_id
             )
+        msg = "Aria2 Task Running."
         if self._dl_task is not None:
-            await self._update_message.edit(await self.create_message(), parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))])
+            msg = await self.create_message()
+            if not get_msg:
+                await self._update_message.edit(msg, parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))])
+        
+        if get_msg:
+            return msg
 
     async def create_message(self):
         downloading_dir_name = "N/A"

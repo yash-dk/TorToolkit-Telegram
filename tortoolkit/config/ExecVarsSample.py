@@ -41,6 +41,9 @@ except:
         # UNCOMMENT THE BELOW LINE WHEN USING CONTAINER AND COMMENT THE UPPER LINE
         #DB_URI = "dbname=tortk user=postgres password=your-pass host=db port=5432"
 
+        # Use the central update (everything will be updated in one msg)
+        CENTRAL_UPDATE = True
+
         # MEGA CONFIG
         MEGA_ENABLE = False
         MEGA_API = ""
