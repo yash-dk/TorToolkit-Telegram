@@ -593,7 +593,7 @@ class QbitController:
             return False
         else:
             if self._qbit_task.is_completed:
-                await self._update_message.edit("{}".format(self._qbit_task.get_error_reason()))
+                await self._update_message.edit("{}".format(self._qbit_task.get_error_reason()), buttons=None)
             return result
         
     async def get_update_message(self):

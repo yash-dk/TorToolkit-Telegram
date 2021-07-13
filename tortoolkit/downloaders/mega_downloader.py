@@ -153,7 +153,7 @@ class MegaController:
             return False
         else:
             if self._mega_down.is_completed:
-                await self._update_msg.edit(self._mega_down.get_error_reason())    
+                await self._update_msg.edit(self._mega_down.get_error_reason(), buttons=None)
             
             return res
     
