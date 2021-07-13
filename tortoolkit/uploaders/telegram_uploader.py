@@ -755,10 +755,10 @@ class TelegramUploader(BaseTask):
                 estimated_total_time if estimated_total_time != '' else "0 s"
             )
 
-            self._update_message.current_done = current
-            self._update_message.current_total = total
-            self._update_message.current_speed = speed
-            self._update_message.current_eta = estimated_total_time if estimated_total_time != '' else "0 s"
+            self._current_update.current_done = current
+            self._current_update.current_total = total
+            self._current_update.current_speed = speed
+            self._current_update.current_eta = estimated_total_time if estimated_total_time != '' else "0 s"
 
             if not do_edit:
                 return
@@ -822,10 +822,10 @@ class TelegramUploader(BaseTask):
                 human_readable_bytes(speed),
                 estimated_total_time if estimated_total_time != '' else "0 seconds"
             )
-            self._update_message.current_done = current
-            self._update_message.current_total = total
-            self._update_message.current_speed = speed
-            self._update_message.current_eta = estimated_total_time if estimated_total_time != '' else "0 s"
+            self._current_update.current_done = current
+            self._current_update.current_total = total
+            self._current_update.current_speed = speed
+            self._current_update.current_eta = estimated_total_time if estimated_total_time != '' else "0 s"
 
             if not do_edit:
                 return

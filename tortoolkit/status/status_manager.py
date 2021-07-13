@@ -86,7 +86,7 @@ class StatusManager():
                         msg_list.append(curr_msg)
                         curr_msg = temp_msg
                     else:
-                        curr_msg += temp_msg
+                        curr_msg += "\n\n"+str(temp_msg)
                     
                 except:
                     pass
