@@ -440,8 +440,12 @@ async def upload_document_f(message):
 
 async def get_logs_f(e):
     if await is_admin(e.client,e.sender_id,e.chat_id, force_owner=True):
-        e.text += " torlog.txt"
-        await upload_document_f(e)
+        await e.client.send_file(
+            entity=e.chat_id,
+            file="torlog.txt",
+            caption="torlog.txt",
+            reply_to=e.message.id
+        )
     else:
         await e.delete()
 
