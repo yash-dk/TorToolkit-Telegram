@@ -17,6 +17,7 @@ from ..core.base_task import BaseTask
 from functools import partial
 from PIL import Image
 from youtube_dl import YoutubeDL
+from ..database.dbhandler import TtkUpload
 
 torlog = logging.getLogger(__name__)
 
@@ -413,12 +414,14 @@ class TorLogger:
         return self._latest
 
 class YTDLDownloader(BaseTask):
-    def __init__(self, fromat_id, sender_id, suid):
+    def __init__(self, fromat_id, sender_id, suid, cancel_msg = None):
         super().__init__()
         self._format_id = fromat_id
         self._sender_id = sender_id
         self._suid = suid
         self._update_info = None
+        self._cancel_msg = cancel_msg
+        self._updb = TtkUpload()
 
     async def execute(self):
         # ytdldfile | format_id | sender_id | suid | dest
@@ -517,7 +520,7 @@ class YTDLDownloader(BaseTask):
                     self._is_errored = True
                     self._error_reason = emsg
                 
-                    return op_dir
+                    return False
 
         else:
             self._is_errored = True
@@ -526,6 +529,11 @@ class YTDLDownloader(BaseTask):
         
     
     def progress_update(self, progress):
+        print("updated")
+        if self._cancel_msg is not None:
+            if self._updb.get_cancel_status(self._cancel_msg.chat_id, self._cancel_msg.id):
+                print("canceled")
+                raise Exception("cancel")
         self._update_info = progress
     
     async def get_update(self):
@@ -536,6 +544,7 @@ class YTDLController:
     def __init__(self, callback, user_message):
         self.callback = callback
         self.user_message = user_message
+        self._updb = TtkUpload()
     
     async def execute(self):
         # ytdldfile | format_id | sender_id | suid | dest
@@ -550,12 +559,18 @@ class YTDLController:
 
         await self.callback.edit(buttons=None)
 
-        ytdl_task = YTDLDownloader(data[1],data[2],data[3])
+        bot_msg = await self.get_update_message()
+        ytdl_task = YTDLDownloader(data[1],data[2],data[3], bot_msg)
         status_mgr = YTDLStatus(self, ytdl_task, self.user_message.sender_id)
+
+        # An exception here for using the updb for ytdl downloader
+        self._updb.register_upload(bot_msg.chat_id,bot_msg.id)
+
         StatusManager().add_status(status_mgr)
         status_mgr.set_active()
         res = await ytdl_task.execute()
         
+        self._updb.deregister_upload(bot_msg.chat_id,bot_msg.id)
         status_mgr.set_inactive()
 
         await (await self.get_update_message()).edit("Youtube Download is complete. Success/Failure is not determinded.", buttons=None)
@@ -563,7 +578,7 @@ class YTDLController:
         if ytdl_task.is_errored:
             if res is False:
                 omess = await self.user_message.get_reply_message()
-                await self.user_message.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()), buttons=None)
+                omess.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()), buttons=None)
                 await self.omess.reply("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
 
                 return res
@@ -575,13 +590,18 @@ class YTDLController:
     async def get_update_message(self):
         return await self.callback.get_message()
     
+    async def get_user_message(self):
+        return self.user_message
+    
 class PYTDLDownloader(BaseTask):
-    def __init__(self, quality, sender_id, suid):
+    def __init__(self, quality, sender_id, suid, cancel_msg = None):
         super().__init__()
         self._quality = quality
         self._sender_id = sender_id
         self._suid = suid
         self._update_info = None
+        self._cancel_msg = cancel_msg
+        self._updb = TtkUpload()
     
     # ytdlplaylist | quality | suid | sender_id | choice(tg/drive)
     #   0               1          2       3           4    
@@ -662,6 +682,7 @@ class PYTDLDownloader(BaseTask):
                 })
                 
                 err = False
+
                 try:
                     with youtube_dl.YoutubeDL(ytdl_opts) as ydl:
                         loop = asyncio.get_event_loop()
@@ -688,6 +709,11 @@ class PYTDLDownloader(BaseTask):
             torlog.error("the file for that suid was not found.")
 
     def progress_update(self, progress):
+        print("uodate")
+        if self._cancel_msg is not None:
+            print("in cancel")
+            if self._updb.get_cancel_status(self._cancel_msg.chat_id, self._cancel_msg.id):
+                raise Exception("cancel")
         self._update_info = progress
     
     async def get_update(self):
@@ -697,6 +723,7 @@ class PYTDLController:
     def __init__(self, callback, user_message):
         self.callback = callback
         self.user_message = user_message
+        self._updb = TtkUpload()
     
     async def execute(self):
         # ytdlplaylist | quality | suid | sender_id | choice(tg/drive)
@@ -711,11 +738,18 @@ class PYTDLController:
 
         await self.callback.edit(buttons=None)
 
-        ytdl_task = PYTDLDownloader(data[1],data[3],data[2])
+        bot_msg = await self.get_update_message()
+        ytdl_task = PYTDLDownloader(data[1],data[3],data[2], bot_msg)
         status_mgr = YTDLStatus(self, ytdl_task, self.user_message.sender_id)
+        # An exception here for using the updb for ytdl downloader
+        self._updb.register_upload(bot_msg.chat_id,bot_msg.id)
+
         StatusManager().add_status(status_mgr)
         status_mgr.set_active()
+
         res = await ytdl_task.execute()
+        
+        self._updb.deregister_upload(bot_msg.chat_id,bot_msg.id)
         status_mgr.set_inactive()
         
         await (await self.get_update_message()).edit("Youtube Playlist Download is complete. Success/Failure is not determinded.", buttons=None)
@@ -723,7 +757,7 @@ class PYTDLController:
         if ytdl_task.is_errored:
             if res is False:
                 omess = await self.user_message.get_reply_message()
-                await self.user_message.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()), buttons=None)
+                await omess.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()), buttons=None)
                 await self.omess.reply("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
 
                 return res
@@ -734,6 +768,9 @@ class PYTDLController:
 
     async def get_update_message(self):
         return await self.callback.get_message()
+    
+    async def get_user_message(self):
+        return self.user_message
 
 #todo
 # Add the YT playlist feature here

@@ -22,11 +22,13 @@ class YTDLStatus(BaseStatus):
         # Construct the status message
         # Add cancel login here
         msg = "YTDL/PYTDL Task Running."
-        
+        user_msg = await self._controller.get_user_message()
+        data = "upcancel {} {} {}".format(user_msg.chat_id,user_msg.id,user_msg.sender_id)
+
         if self._dl_task is not None:
             msg = await self.create_message()
             if not get_msg:
-                await self._update_message.edit(await self.create_message(), parse_mode="html", buttons=None)
+                await self._update_message.edit(await self.create_message(), parse_mode="html", buttons=[KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))])
             
         if get_msg:
             return msg
