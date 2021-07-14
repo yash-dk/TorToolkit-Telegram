@@ -721,11 +721,12 @@ class TelegramUploader(BaseTask):
         except:pass
         return sent_message
 
-    async def progress_for_telethon(self, current, total, message, file_name, start, time_out, cancel_msg=None, updb=None, do_edit=True):
+    async def progress_for_telethon(self, current, total, message, file_name, start, time_out, cancel_msg=None, updb=None):
         now = time.time()
         diff = now - start
         
         if round(diff % time_out) == 0 or current == total:
+            do_edit = not get_val("CENTRAL_UPDATE")
             if cancel_msg is not None:
                 # dirty alt. was not able to find something to stop upload
                 # todo inspect with "StopAsyncIteration"
@@ -784,7 +785,7 @@ class TelegramUploader(BaseTask):
         else:
             return
 
-    async def progress_for_pyrogram(self, current,total,ud_type,message,start,time_out,client,cancel_msg=None,updb=None,markup=None, do_edit=True):
+    async def progress_for_pyrogram(self, current,total,ud_type,message,start,time_out,client,cancel_msg=None,updb=None,markup=None):
         now = time.time()
         diff = now - start
         
@@ -793,6 +794,7 @@ class TelegramUploader(BaseTask):
             return
         
         if round(diff % time_out) == 0 or current == total:
+            do_edit = not get_val("CENTRAL_UPDATE")
             if cancel_msg is not None:
                 # dirty alt. was not able to find something to stop upload
                 # todo inspect with "StopAsyncIteration"
