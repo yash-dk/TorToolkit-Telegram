@@ -23,7 +23,7 @@ class StatusManager():
         if sender_id is not None:
             update_list = await self.get_update_list(sender_id)
             for i in update_list: 
-                await cmd_msg.reply(i)
+                await cmd_msg.reply(i, parse_mode="html")
             
             return
 

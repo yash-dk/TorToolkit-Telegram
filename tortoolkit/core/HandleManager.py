@@ -269,14 +269,6 @@ async def handle_status_command(e):
     # TODO work on status command
     await StatusManager().generate_central_update(e)
     return
-    cmds = e.text.split(" ")
-    if len(cmds) > 1:
-        if cmds[1] == "all":
-            await get_status(e,True)
-        else:
-            await get_status(e)
-    else:
-        await create_status_menu(e)
 
 async def handle_u_status_command(e):
     await StatusManager().generate_central_update(e, e.sender_id)
