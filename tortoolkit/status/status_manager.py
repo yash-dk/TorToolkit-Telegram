@@ -16,10 +16,17 @@ class StatusManager():
     def __init__(self) -> None:
         pass
 
-    async def generate_central_update(self, cmd_msg = None):
+    async def generate_central_update(self, cmd_msg = None, sender_id=None):
         # Default behaviour is that when all the tasks are completed 
         # the message deletes itself.
         renew = False
+        if sender_id is not None:
+            update_list = await self.get_update_list(sender_id)
+            for i in update_list: 
+                await cmd_msg.reply(i)
+            
+            return
+
         if cmd_msg is not None:
             self.CENTRAL_UPDATE["status_message"] = cmd_msg
             renew = True
@@ -73,14 +80,18 @@ class StatusManager():
                         torlog.exception("This was unexpected.")
                     await asyncio.sleep(1.1)
 
-    async def get_update_list(self):
+    async def get_update_list(self, sender_id = None):
         msg_list = []
         curr_msg = ""
         for i in self.ALL_STATUS:
             if i.is_active and not i.is_inactive:
                 try:
                     try:
-                        temp_msg = await i.update_now(True)
+                        if sender_id is not None:
+                            if str(i.get_sender_id()) == str(sender_id):
+                                temp_msg = await i.update_now(True)
+                        else:
+                            temp_msg = await i.update_now(True)
                     except:
                         torlog.exception("in update")
                         temp_msg = "Unknown Task Running....\n\n"

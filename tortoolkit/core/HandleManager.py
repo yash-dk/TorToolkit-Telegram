@@ -279,7 +279,7 @@ async def handle_status_command(e):
         await create_status_menu(e)
 
 async def handle_u_status_command(e):
-    await create_status_user_menu(e)
+    await StatusManager().generate_central_update(e, e.sender_id)
 
 
 async def speed_handler(e):
