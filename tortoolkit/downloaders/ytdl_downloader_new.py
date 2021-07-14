@@ -529,7 +529,6 @@ class YTDLDownloader(BaseTask):
         
     
     def progress_update(self, progress):
-        print("updated")
         if self._cancel_msg is not None:
             if self._updb.get_cancel_status(self._cancel_msg.chat_id, self._cancel_msg.id):
                 print("canceled")
