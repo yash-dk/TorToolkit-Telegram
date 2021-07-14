@@ -17,6 +17,8 @@ class StatusManager():
         pass
 
     async def generate_central_update(self, cmd_msg = None):
+        # Default behaviour is that when all the tasks are completed 
+        # the message deletes itself.
         renew = False
         if cmd_msg is not None:
             self.CENTRAL_UPDATE["status_message"] = cmd_msg
@@ -105,5 +107,8 @@ class StatusManager():
     async def status_poller(self):
         torlog.info("Status polling started")
         while True:
-            await self.status_manager()
+            try:
+                await self.status_manager()
+            except Exception as e:
+                torlog.info("in status update "+str(e))
             await asyncio.sleep(get_val('EDIT_SLEEP_SECS'))
