@@ -68,8 +68,16 @@ class RcloneUploader(BaseTask):
             return False
 
         TtkUpload().register_upload(self._user_msg.chat_id, self._user_msg.id)
-        
+        iterator = 0
+
         while True:
+            iterator += 1
+            if iterator > 100:
+                # Fail safe condition
+                self._is_errored = True
+                self._error_reason = "Canceled Rclone Upload"
+                return False
+            
             if os.path.isdir(path):
                 # handle dirs
                 new_dest_base = os.path.join(dest_base,os.path.basename(path))
