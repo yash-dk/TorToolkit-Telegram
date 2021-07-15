@@ -130,7 +130,12 @@ class Aria2Downloader(BaseTask):
             if not complete:
                 if not file.error_message:             
                     self._update_info = file
-
+                    
+                    if (file.completed_length/(1024*1024*1024)) > get_val("MAX_DL_LINK_SIZE"):
+                        self._is_errored = True
+                        self._error_reason = "The direct link is oversized."
+                        return False
+                    
                 else:
                     self._is_errored = True
                     self._error_reason = file.error_message

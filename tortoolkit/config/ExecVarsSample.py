@@ -81,6 +81,9 @@ except:
         # Try beta ytdl download if errored turn this off
         ENABLE_BETA_YOUTUBE_DL = True
 
+        # Max size direct link
+        MAX_DL_LINK_SIZE = 10
+
         # SA Account Enable/Disable. Read the readme.md before using this feature.
         ENABLE_SA_SUPPORT_FOR_GDRIVE = False
         SA_FOLDER_ID = ""
