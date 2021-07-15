@@ -654,7 +654,9 @@ async def about_me(message):
         "11.Major project structure change.\n"
         "12.Change the web server interface.\n"
         "13.Add ability to access downloaded data on the server from web server.\n"
-        "14.Major changes will prevail soon.\n"
+        "15.Mega Limits added Direct Leech Limites added.\n"
+        "16.Mega folder/file leech disable.\n"
+        "17.Major re write and many features.\n"
     )
 
     await message.reply(msg,parse_mode="html")

@@ -90,7 +90,8 @@ class RcloneUploader(BaseTask):
                 # spawn a process # attempt 1 # test 2
                 rclone_pr = subprocess.Popen(
                     rclone_copy_cmd,
-                    stdout=subprocess.PIPE
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
                 )
                 self._rclone_pr = rclone_pr
                 rcres = await self.rclone_process_update()
