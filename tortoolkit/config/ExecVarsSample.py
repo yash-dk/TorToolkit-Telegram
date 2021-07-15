@@ -49,6 +49,9 @@ except:
         MEGA_API = ""
         MEGA_UNAME = None
         MEGA_PASS = None
+        ALLOW_MEGA_FOLDER = True
+        ALLOW_MEGA_FILES = True
+        MAX_MEGA_LIMIT = 10
 
         # qBittorrent Config
         # TODO add port, retry to ints

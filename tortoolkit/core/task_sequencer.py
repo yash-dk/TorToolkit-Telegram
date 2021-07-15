@@ -125,6 +125,16 @@ class TaskSequence:
             data = self._entity_message.data.decode("UTF-8")
             data = data.split("|")
             up_dest = data[4]
+
+            if up_dest=="tg":
+                if not get_val("LEECH_ENABLED"):
+                    await self._user_msg.reply("Leech to Telegram is disabled by admin.")
+                    return
+            else:
+                if not get_val("RCLONE_ENABLED"):
+                    await self._user_msg.reply("Leech to Rclone Drive is disabled by admin.")
+                    return
+
             if get_val("ENABLE_BETA_YOUTUBE_DL"):
                 ytdl_obj = PYTDLControllerNew(self._entity_message, self._user_msg)
             else:
@@ -184,7 +194,18 @@ class TaskSequence:
             
             elif "mega.nz" in raw_text:
                 if get_val("MEGA_ENABLE"):
-                    return MegaController(raw_text, self._user_msg)
+                    if ("folder" in raw_text or "/#F!" in raw_text) and get_val("ALLOW_MEGA_FOLDER"):
+                        return MegaController(raw_text, self._user_msg)
+                    else:
+                        await self._user_msg.reply("Mega folder leeching is disabled by admin.")
+                    
+                    if get_val("ALLOW_MEGA_FILES"):
+                        return MegaController(raw_text, self._user_msg)
+                    else:
+                        await self._user_msg.reply("Mega file leeching is disabled by admin.")
+
+                    await self._user_msg.reply("Mega folder/file leeching is disabled by admin.")
+                    return None
                 else:
                     await self._user_msg.reply("Mega leeching is disabled by admin.")
                     return None
