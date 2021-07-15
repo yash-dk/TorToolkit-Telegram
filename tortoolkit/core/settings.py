@@ -272,6 +272,17 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
             rmess = await e.reply(header+"\nIts recommended to lock the group before setting vars.\n",parse_mode="html",buttons=menu,link_preview=False)
     elif submenu == "rclonemenu":
         rcval = await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
+        if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE"):
+            def_drive = get_val("DEF_RCLONE_DRIVE")
+            if def_drive == "sas_acc":
+                prev = yes
+            else:
+                prev = ""
+            
+            menu.append(
+                [KeyboardButtonCallback(f"{prev} LOADED SAS",f"settings change_drive sas_acc {session_id}")]
+            )
+
         if rcval != "None":
             # create a all drives menu
             if rcval == "Custom file is loaded.":

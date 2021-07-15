@@ -81,6 +81,14 @@ except:
         # Try beta ytdl download if errored turn this off
         ENABLE_BETA_YOUTUBE_DL = True
 
+        # SA Account Enable/Disable. Read the readme.md before using this feature.
+        ENABLE_SA_SUPPORT_FOR_GDRIVE = False
+        SA_FOLDER_ID = ""
+        SA_TD_ID = ""
+        SA_ACCOUNTS_FOLDER = ""
+
+        SA_ACCOUNT_NUMBER = 0
+
         # Name of the RCLONE drive from the config
         DEF_RCLONE_DRIVE = ""
 

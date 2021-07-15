@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
+from posix import listdir
 from sys import path
 from ..core.base_task import BaseTask
 from ..core.getVars import get_val
@@ -17,6 +18,7 @@ from ..utils.size import calculate_size
 from requests.utils import requote_uri
 from ..status.rclone_status import RcloneStatus
 from ..status.status_manager import StatusManager
+from ..database.dbhandler import TorToolkitDB
 
 
 torlog = logging.getLogger(__name__)
@@ -39,14 +41,21 @@ class RcloneUploader(BaseTask):
     async def execute(self):
         path = self._path
         upload_db = TtkUpload()
-        conf_path = await self.get_config()
+        dest_drive = get_val("DEF_RCLONE_DRIVE")
+        print("desttt", dest_drive)
+        if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE") and dest_drive == "sas_acc":
+            print("in sas")
+            conf_path = await self.gen_sa_rc_file()
+        else:
+            print("not in sas")
+            conf_path = await self.get_config()
+        
         if conf_path is None:
             torlog.info("The config file not found.")
             self._is_errored = True
             self._error_reason = "The config file not found"
             return False
         
-        dest_drive = get_val("DEF_RCLONE_DRIVE")
         dest_base = get_val("RCLONE_BASE_DIR")
         
 
@@ -60,94 +69,176 @@ class RcloneUploader(BaseTask):
 
         TtkUpload().register_upload(self._user_msg.chat_id, self._user_msg.id)
         
-        if os.path.isdir(path):
-            # handle dirs
-            new_dest_base = os.path.join(dest_base,os.path.basename(path))
-            # buffer size needs more testing though #todo
-            if get_val("RSTUFF"):
-                rclone_copy_cmd = [get_val("RSTUFF"),'copy',f'--config={conf_path}',str(path),f'{dest_drive}:{new_dest_base}','-f','- *.!qB','--buffer-size=1M','-P']
+        while True:
+            if os.path.isdir(path):
+                # handle dirs
+                new_dest_base = os.path.join(dest_base,os.path.basename(path))
+                # buffer size needs more testing though #todo
+                if get_val("RSTUFF"):
+                    rclone_copy_cmd = [get_val("RSTUFF"),'copy',f'--config={conf_path}',str(path),f'{dest_drive}:{new_dest_base}','-f','- *.!qB','--buffer-size=1M','-P']
+                else:
+                    rclone_copy_cmd = ['rclone','copy',f'--config={conf_path}',str(path),f'{dest_drive}:{new_dest_base}','-f','- *.!qB','--buffer-size=1M','-P']
+
+                # spawn a process # attempt 1 # test 2
+                rclone_pr = subprocess.Popen(
+                    rclone_copy_cmd,
+                    stdout=subprocess.PIPE
+                )
+                self._rclone_pr = rclone_pr
+                rcres = await self.rclone_process_update()
+
+                is_rate_limit = False
+                blank = 0
+                if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE"):
+                    while True:
+                        data = rclone_pr.stderr.readline().decode()
+                        data = data.strip()
+                        if data == "":
+                            blank += 1
+                            if blank == 5:
+                                self._is_completed = True
+                                self._is_done = True
+                                break
+                        else:
+                            mat = re.findall(".*User.*Rate.*(Limit|Quota).*Exceeded.*", data, re.IGNORECASE)
+                            if mat is not None:
+                                if len(mat) > 0:
+                                    is_rate_limit = True
+                                    torlog.info("Current account limit reached now changing the SA account.")
+                                    await self.gen_sa_rc_file(change=True)
+                                    break
+                
+                if rcres is False and not is_rate_limit:
+                    self._is_errored = True
+                    self._error_reason = "Canceled Rclone Upload"
+                    rclone_pr.kill()
+                    return False
+                    
+
+                torlog.info("Upload complete")
+                gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path)
+                torlog.info(f"Upload folder id :- {gid}")
+                
+                folder_link = f"https://drive.google.com/folderview?id={gid[0]}"
+
+                
+                gd_index = get_val("GD_INDEX_URL")
+                index_link = None
+                if gd_index:
+                    index_link = "{}/{}/".format(gd_index.strip("/"), gid[1])
+                    index_link = requote_uri(index_link)
+                    torlog.info("index link "+str(index_link))
+                    
+
+                ul_size = calculate_size(path)
+                #transfer[0] += ul_size
+                self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(ul_size, os.path.basename(path))
+                TtkUpload().deregister_upload(self._user_msg.chat_id, self._user_msg.id)
+                if not is_rate_limit:
+                    return folder_link, index_link
+
             else:
-                rclone_copy_cmd = ['rclone','copy',f'--config={conf_path}',str(path),f'{dest_drive}:{new_dest_base}','-f','- *.!qB','--buffer-size=1M','-P']
+                new_dest_base = dest_base
+                # buffer size needs more testing though #todo
+                if get_val("RSTUFF"):
+                    rclone_copy_cmd = [get_val("RSTUFF"),'copy',f'--config={conf_path}',str(path),f'{dest_drive}:{new_dest_base}','-f','- *.!qB','--buffer-size=1M','-P']
+                else:
+                    rclone_copy_cmd = ['rclone','copy',f'--config={conf_path}',str(path),f'{dest_drive}:{new_dest_base}','-f','- *.!qB','--buffer-size=1M','-P']
 
-            # spawn a process # attempt 1 # test 2
-            rclone_pr = subprocess.Popen(
-                rclone_copy_cmd,
-                stdout=subprocess.PIPE
-            )
-            self._rclone_pr = rclone_pr
-            rcres = await self.rclone_process_update()
-            
-            if rcres is False:
-                self._is_errored = True
-                self._error_reason = "Canceled Rclone Upload"
-                rclone_pr.kill()
-                return False
+                # spawn a process # attempt 1 # test 2
+                rclone_pr = subprocess.Popen(
+                    rclone_copy_cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                self._rclone_pr = rclone_pr
+                rcres = await self.rclone_process_update()
                 
+                # Check for errors
+                is_rate_limit = False
+                blank = 0
+                if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE"):
+                    while True:
+                        data = rclone_pr.stderr.readline().decode()
+                        data = data.strip()
+                        if data == "":
+                            blank += 1
+                            if blank == 5:
+                                self._is_completed = True
+                                self._is_done = True
+                                break
+                        else:
+                            mat = re.findall(".*User.*Rate.*(Limit|Quota).*Exceeded.*", data, re.IGNORECASE)
+                            if mat is not None:
+                                if len(mat) > 0:
+                                    is_rate_limit = True
+                                    torlog.info("Current account limit reached now changing the SA account.")
+                                    await self.gen_sa_rc_file(change=True)
+                                    break
 
-            torlog.info("Upload complete")
-            gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path)
-            torlog.info(f"Upload folder id :- {gid}")
-            
-            folder_link = f"https://drive.google.com/folderview?id={gid[0]}"
 
-            
-            gd_index = get_val("GD_INDEX_URL")
-            index_link = None
-            if gd_index:
-                index_link = "{}/{}/".format(gd_index.strip("/"), gid[1])
-                index_link = requote_uri(index_link)
-                torlog.info("index link "+str(index_link))
-                
+                if rcres is False and not is_rate_limit:
+                    self._is_errored = True
+                    self._error_reason = "Canceled Rclone Upload"
+                    rclone_pr.kill()
+                    return False
 
-            ul_size = calculate_size(path)
-            #transfer[0] += ul_size
-            self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(ul_size, os.path.basename(path))
-            TtkUpload().deregister_upload(self._user_msg.chat_id, self._user_msg.id)
-            return folder_link, index_link
+                torlog.info("Upload complete")
+                gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path,False)
+                torlog.info(f"Upload folder id :- {gid}")
 
+                file_link = f"https://drive.google.com/file/d/{gid[0]}/view"
+                gd_index = get_val("GD_INDEX_URL")
+                index_link = None
+
+                if gd_index:
+                    index_link = "{}/{}".format(gd_index.strip("/"), gid[1])
+                    index_link = requote_uri(index_link)
+                    torlog.info("index link "+str(index_link))
+                    
+
+                ul_size = calculate_size(path)
+                #transfer[0] += ul_size
+                self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(ul_size, os.path.basename(path))
+                TtkUpload().deregister_upload(self._user_msg.chat_id, self._user_msg.id) # deregister the upload here
+                if not is_rate_limit:
+                    return file_link, index_link
+
+    async def gen_sa_rc_file(self, change=False):
+        sas_number = get_val("SA_ACCOUNT_NUMBER")
+        sa_td_id = get_val("SA_TD_ID")
+        sa_folder_id = get_val("SA_FOLDER_ID")
+
+        if sa_td_id != "":
+            content = "[sas_acc]\n" \
+                      "type = drive\n" \
+                      "scope = drive\n" \
+                      "team_drive = {}\n".format(sa_td_id)
+        elif sa_folder_id != "":
+            content = "[sas_acc]\n" \
+                      "type = drive\n" \
+                      "scope = drive\n" \
+                      "root_folder_id = {}\n".format(sa_folder_id)
         else:
-            new_dest_base = dest_base
-            # buffer size needs more testing though #todo
-            if get_val("RSTUFF"):
-                rclone_copy_cmd = [get_val("RSTUFF"),'copy',f'--config={conf_path}',str(path),f'{dest_drive}:{new_dest_base}','-f','- *.!qB','--buffer-size=1M','-P']
-            else:
-                rclone_copy_cmd = ['rclone','copy',f'--config={conf_path}',str(path),f'{dest_drive}:{new_dest_base}','-f','- *.!qB','--buffer-size=1M','-P']
-
-            # spawn a process # attempt 1 # test 2
-            rclone_pr = subprocess.Popen(
-                rclone_copy_cmd,
-                stdout=subprocess.PIPE
-            )
-            self._rclone_pr = rclone_pr
-            rcres = await self.rclone_process_update()
-            
-            if rcres is False:
-                self._is_errored = True
-                self._error_reason = "Canceled Rclone Upload"
-                rclone_pr.kill()
-                return False
-
-            torlog.info("Upload complete")
-            gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path,False)
-            torlog.info(f"Upload folder id :- {gid}")
-
-            file_link = f"https://drive.google.com/file/d/{gid[0]}/view"
-            gd_index = get_val("GD_INDEX_URL")
-            index_link = None
-
-            if gd_index:
-                index_link = "{}/{}".format(gd_index.strip("/"), gid[1])
-                index_link = requote_uri(index_link)
-                torlog.info("index link "+str(index_link))
-                
-
-            ul_size = calculate_size(path)
-            #transfer[0] += ul_size
-            self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(ul_size, os.path.basename(path))
-            TtkUpload().deregister_upload(self._user_msg.chat_id, self._user_msg.id) # deregister the upload here
-            return file_link, index_link
-
+            raise Exception("SA Enabled but not configured correctly as no sa teamdrive id or folder is provided.")
         
+        sa_folder = get_val("SA_ACCOUNTS_FOLDER")
+        if os.path.exists(sa_folder) and os.path.isdir(sa_folder):
+            total_sas = len(os.listdir(sa_folder))
+            if change:
+                sas_number = (sas_number+1) % total_sas
+                TorToolkitDB().set_variable("SA_ACCOUNT_NUMBER", sas_number)
+
+            content += f"service_account_file = {sa_folder}/{sas_number}.json\n"
+            with open("sasrc.conf","w") as rcfile:
+                rcfile.write(content)
+            torlog.info(f"Using the SAS with number {sas_number}")
+            return "sasrc.conf"
+        else:
+            raise Exception("SA Accounts folder path not found or incorrect.")
+        
+
+
     async def rclone_process_update(self):
         blank=0
         sleeps = False
