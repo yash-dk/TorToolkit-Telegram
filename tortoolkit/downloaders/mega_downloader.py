@@ -16,6 +16,7 @@ import os
 torlog = logging.getLogger(__name__)
 
 class MegaDownloader(BaseTask):
+    CLI_LIST = []
     def __init__(self, link, from_user_id):
         super().__init__()
         self._client = None 
@@ -27,6 +28,12 @@ class MegaDownloader(BaseTask):
 
     
     async def init_mega_client(self, return_pr=False):
+        if len(self.CLI_LIST) > 0:
+            if return_pr:
+                return self.CLI_LIST[1]
+            else:
+                return self.CLI_LIST[0]
+        
         # TODO add var for the port for the mega client.
         if self._client is None and self._process is None:
             MEGA_API = get_val("MEGA_API")
@@ -61,8 +68,10 @@ class MegaDownloader(BaseTask):
                     torlog.error("Mega login failed.")
                     torlog.info("Started in anon mode.")
 
-            self._client = mega_client 
+            self._client = mega_client
             self._process = pr
+            self.CLI_LIST.append(mega_client)
+            self.CLI_LIST.append(pr)
         
         if return_pr:
             return self._process
