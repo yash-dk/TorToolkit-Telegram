@@ -75,10 +75,12 @@ class MegaDownloader(BaseTask):
         path = os.path.join(os.getcwd(), "Downloads", str(time.time()).replace(".",""))
         pathlib.Path(path).mkdir(parents=True, exist_ok=True) 
         dl_add_info = mega_client.addDl(self._link, path)
+        
         self._gid  = dl_add_info["gid"]
-        self._path = dl_add_info["dir"]
         
         dl_info = mega_client.getDownloadInfo(dl_add_info["gid"])
+        
+        self._path = os.path.join(dl_add_info["dir"], dl_info["name"])
         
         self._update_info = dl_info
 

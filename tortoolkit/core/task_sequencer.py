@@ -194,18 +194,19 @@ class TaskSequence:
             
             elif "mega.nz" in raw_text:
                 if get_val("MEGA_ENABLE"):
-                    if ("folder" in raw_text or "/#F!" in raw_text) and get_val("ALLOW_MEGA_FOLDER"):
-                        return MegaController(raw_text, self._user_msg)
-                    else:
-                        await self._user_msg.reply("Mega folder leeching is disabled by admin.")
+                    if ("folder" in raw_text or "/#F!" in raw_text): 
+                        if get_val("ALLOW_MEGA_FOLDER"):
+                            return MegaController(raw_text, self._user_msg)
+                        else:
+                            await self._user_msg.reply("Mega folder leeching is disabled by admin.")
+                            return
                     
                     if get_val("ALLOW_MEGA_FILES"):
                         return MegaController(raw_text, self._user_msg)
                     else:
                         await self._user_msg.reply("Mega file leeching is disabled by admin.")
+                        return
 
-                    await self._user_msg.reply("Mega folder/file leeching is disabled by admin.")
-                    return None
                 else:
                     await self._user_msg.reply("Mega leeching is disabled by admin.")
                     return None
