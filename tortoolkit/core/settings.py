@@ -106,6 +106,9 @@ async def handle_setting_callback(e):
         # this is menu
         mmes = await e.get_message()
         await handle_settings(mmes,True,"\nWelcome to Rclone Config Menu. TD= Team Drive, ND= Normal Drive",submenu="rclonemenu",session_id=session_id)
+    elif cmd[1] == "meganzmenu":
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,"\nWelcome to Mega.nz Config Menu.",submenu="meganzmenu",session_id=session_id)
     elif cmd[1] == "mainmenu":
         # this is menu
         mmes = await e.get_message()
@@ -222,6 +225,49 @@ async def handle_setting_callback(e):
         SessionVars.update_var("USETTINGS_IN_PRIVATE",val)
         mmes = await e.get_message()
         await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Allow USETTINGS IN PRIVATE.</b></u>","ctrlacts",session_id=session_id)
+    
+    elif cmd[1] == "meganzenable":
+        await e.answer("Done.")
+        if cmd[2] == "true":
+            val = True
+        else:
+            val = False
+        db.set_variable("MEGA_ENABLE",val)
+        SessionVars.update_var("MEGA_ENABLE",val)
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Mega Enabled.</b></u>","meganzmenu",session_id=session_id)
+    elif cmd[1] == "megafolder":
+        await e.answer("Done.")
+        if cmd[2] == "true":
+            val = True
+        else:
+            val = False
+        db.set_variable("ALLOW_MEGA_FOLDER",val)
+        SessionVars.update_var("ALLOW_MEGA_FOLDER",val)
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Mega Folder Enabled.</b></u>","meganzmenu",session_id=session_id)
+    elif cmd[1] == "megsfiles":
+        await e.answer("Done.")
+        if cmd[2] == "true":
+            val = True
+        else:
+            val = False
+        db.set_variable("ALLOW_MEGA_FILES",val)
+        SessionVars.update_var("ALLOW_MEGA_FILES",val)
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Mega Files Enabled.</b></u>","meganzmenu",session_id=session_id)
+    
+    elif cmd[1] == "maxmeganzsize":
+        # what will a general manager require
+        # answer message, type handler, value 
+        await e.answer("Type the new value for MAX Mega SIZE. Note that integer is expected.",alert=True)
+
+        mmes = await e.get_message()
+        await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
+        val = await get_value(e)
+        
+        await general_input_manager(e,mmes,"MAX_MEGA_LIMIT","int",val,db,"meganzmenu")
+
     elif cmd[1] == "metainfo":
         await e.reply("Add @metainforobot to your group to get the metadata easily.")
     elif cmd[1] == "selfdest":
@@ -259,6 +305,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
         await get_int_variable("EDIT_SLEEP_SECS",menu,"editsleepsec",session_id)
         await get_int_variable("STATUS_DEL_TOUT",menu,"statusdeltime",session_id)
         #await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
+        await get_sub_menu("☁️ Open Mega.nz Menu ☁️","meganzmenu",session_id,menu)
         await get_sub_menu("☁️ Open Rclone Menu ☁️","rclonemenu",session_id,menu)
         await get_sub_menu("🕹️ Control Actions 🕹️","ctrlacts",session_id,menu)
         menu.append(
@@ -336,7 +383,19 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
         )
         if edit:
             rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
-
+    elif submenu == "meganzmenu":
+        await get_bool_variable("MEGA_ENABLE","Enable mega.nz leech.",menu,"meganzenable",session_id)
+        await get_bool_variable("ALLOW_MEGA_FOLDER","Enable folder leech.",menu,"megafolder",session_id)
+        await get_bool_variable("ALLOW_MEGA_FILES","Enable files leech.",menu,"megsfiles",session_id)
+        await get_int_variable("MAX_MEGA_LIMIT",menu,"maxmeganzsize",session_id)
+        
+        await get_sub_menu("Go Back ⬅️","mainmenu",session_id,menu)
+        menu.append(
+            [KeyboardButtonCallback("Close Menu",f"settings selfdest {session_id}".encode("UTF-8"))]
+        )
+        if edit:
+            rmess = await e.edit(header+"\nIts recommended to lock the group before setting vars.\n"+msg,parse_mode="html",buttons=menu,link_preview=False)
+        
 async def handle_time_cmd():
     herstr = ""
     gho = [104,
