@@ -31,8 +31,7 @@ class Aria2Status(BaseStatus):
                 await self._update_message.edit(msg, parse_mode="html", buttons=[KeyboardButtonCallback("Cancel Direct Leech",data=data.encode("UTF-8"))])
         
         if get_msg:
-            return msg
-
+            return msg, data
     async def create_message(self):
         downloading_dir_name = "N/A"
         try:

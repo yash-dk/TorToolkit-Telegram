@@ -52,6 +52,7 @@ class TelegramUploader(BaseTask):
         self._updb = TtkUpload()
         self.files_dict = {}
         self._user_db = UserDB()
+        self._update_message = None
         
 
     async def execute(self):
@@ -866,6 +867,9 @@ class TelegramUploader(BaseTask):
                 else:
                     num += 1
         return num
+
+    async def get_update_message(self):
+        return self._update_message
 
     def cancel(self, is_admin=False):
         self._is_canceled = True

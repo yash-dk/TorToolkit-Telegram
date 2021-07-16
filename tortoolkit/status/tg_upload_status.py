@@ -13,11 +13,16 @@ class TGUploadStatus(BaseStatus):
 
         self._up_task = await self._downloader.get_update()
         msg = "Telegram UP Task Running."
+        up_msg = await self._downloader.get_update_message()
+        data = "..."
+        if up_msg is not None:
+            data = "upcancel {} {} {}".format(up_msg.chat_id,up_msg.id,self.sender_id)
+        
         if self._up_task is not None:
             msg = await self.create_message()
         
         if get_msg:
-            return msg
+            return msg, data
         return
 
     async def create_message(self):

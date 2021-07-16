@@ -31,7 +31,7 @@ class YTDLStatus(BaseStatus):
                 await self._update_message.edit(await self.create_message(), parse_mode="html", buttons=[KeyboardButtonCallback("Cancel upload.",data.encode("UTF-8"))])
             
         if get_msg:
-            return msg
+            return msg, data
 
     async def create_message(self):
         

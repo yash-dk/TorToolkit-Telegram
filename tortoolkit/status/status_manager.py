@@ -3,6 +3,8 @@
 
 import logging
 import asyncio
+
+from telethon.tl.types import KeyboardButtonCallback
 from ..core.getVars import get_val
 from telethon.errors import MessageNotModifiedError
 
@@ -21,9 +23,9 @@ class StatusManager():
         # the message deletes itself.
         renew = False
         if sender_id is not None:
-            update_list = await self.get_update_list(sender_id)
+            update_list, butts = await self.get_update_list(sender_id)
             for i in update_list: 
-                await cmd_msg.reply(i, parse_mode="html")
+                await cmd_msg.reply(i, parse_mode="html", buttons=butts)
             
             return
 
@@ -32,7 +34,7 @@ class StatusManager():
             renew = True
 
         if self.CENTRAL_UPDATE.get("status_message", None) is not None:
-            update_list = await self.get_update_list()
+            update_list, butts = await self.get_update_list()
             if self.CENTRAL_UPDATE.get("prev_len", 0) == 0 or renew:
                 for i in self.CENTRAL_UPDATE.get("update_message",[]):
                     await i.delete()
@@ -46,7 +48,7 @@ class StatusManager():
                 self.CENTRAL_UPDATE["update_message"] = []
                 
                 for i in update_list:
-                    srmsg = await self.CENTRAL_UPDATE["status_message"].reply(i, parse_mode="html")
+                    srmsg = await self.CENTRAL_UPDATE["status_message"].reply(i, parse_mode="html", buttons=butts)
                     self.CENTRAL_UPDATE["update_message"].append(srmsg)
                     await asyncio.sleep(1.1)
             elif self.CENTRAL_UPDATE.get("prev_len") != len(update_list):
@@ -54,13 +56,13 @@ class StatusManager():
                     await i.delete()
                 
                 for i in update_list:
-                    srmsg = await self.CENTRAL_UPDATE["status_message"].reply(i, parse_mode="html")
+                    srmsg = await self.CENTRAL_UPDATE["status_message"].reply(i, parse_mode="html", buttons=butts)
                     self.CENTRAL_UPDATE["update_message"].append(srmsg)
                     await asyncio.sleep(1.1)
             elif self.CENTRAL_UPDATE.get("prev_len") == len(update_list):
                 for i,j in zip(self.CENTRAL_UPDATE["update_message"], update_list):
                     try:
-                        await i.edit(j, parse_mode="html")
+                        await i.edit(j, parse_mode="html", buttons=butts)
                     except MessageNotModifiedError:
                         pass
                     await asyncio.sleep(0.5)
@@ -80,21 +82,49 @@ class StatusManager():
                         torlog.exception("This was unexpected.")
                     await asyncio.sleep(1.1)
 
+    def get_num(no):
+        nums = ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
+        numstr = ""
+
+        if no <= 9:
+            return nums[no]
+        else:
+            for i in str(no):
+                numstr += nums[int(i)]
+
+        return numstr
+
     async def get_update_list(self, sender_id = None):
         msg_list = []
         curr_msg = ""
+        butts = []
+        local_row = []
+        counter = 1
         for i in self.ALL_STATUS:
             if i.is_active and not i.is_inactive:
                 try:
                     try:
                         if sender_id is not None:
                             if str(i.get_sender_id()) == str(sender_id):
-                                temp_msg = await i.update_now(True)
+                                temp_msg, temp_but = await i.update_now(True)
+                                local_row.append(KeyboardButtonCallback(self.get_num(counter), temp_but))
+                                counter += 1
                         else:
-                            temp_msg = await i.update_now(True)
+                            temp_msg, temp_but = await i.update_now(True)
+                            local_row.append(KeyboardButtonCallback(self.get_num(counter), temp_but))
+                            counter += 1
+                    
                     except:
                         torlog.exception("in update")
                         temp_msg = "Unknown Task Running....\n\n"
+                        counter += 1
+                    
+                    temp_msg = self.get_num(counter) + " " + temp_msg
+                    
+                    if len(local_row) >= 4:
+                        butts.append(local_row)
+                        local_row = []
+                    
                     if (len(temp_msg) + len(curr_msg) > 4000):
                         msg_list.append(curr_msg)
                         curr_msg = temp_msg
@@ -104,10 +134,13 @@ class StatusManager():
                 except:
                     pass
         
+        if local_row != []:
+            butts.append(local_row)
+
         if curr_msg != "":
             msg_list.append(curr_msg)
         
-        return msg_list
+        return msg_list, butts
             
 
     def add_status(self, status):
