@@ -16,7 +16,7 @@ class TGUploadStatus(BaseStatus):
         up_msg = await self._downloader.get_update_message()
         data = "..."
         if up_msg is not None:
-            data = "upcancel {} {} {}".format(up_msg.chat_id,up_msg.id,self.sender_id)
+            data = "upcancel {} {} {}".format(up_msg.chat_id,up_msg.id,self._sender_id)
         
         if self._up_task is not None:
             msg = await self.create_message()
