@@ -34,6 +34,7 @@ async def aria_start():
     aria2_daemon_start_cmd.append(f"--bt-stop-timeout=100")
     aria2_daemon_start_cmd.append(f"--max-tries=10")
     aria2_daemon_start_cmd.append(f"--retry-wait=2")
+    aria2_daemon_start_cmd.append(f"--check-certificate=false")
     aria2_daemon_start_cmd.append(f"--use-head=false")
     #
     torlog.debug(aria2_daemon_start_cmd)
