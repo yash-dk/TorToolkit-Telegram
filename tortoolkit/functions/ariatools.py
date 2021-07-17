@@ -35,7 +35,6 @@ async def aria_start():
     aria2_daemon_start_cmd.append(f"--max-tries=10")
     aria2_daemon_start_cmd.append(f"--retry-wait=2")
     aria2_daemon_start_cmd.append(f"--use-head=false")
-    aria2_daemon_start_cmd.append(f"--check-certificate=false")
     #
     torlog.debug(aria2_daemon_start_cmd)
     #
