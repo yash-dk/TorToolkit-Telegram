@@ -285,7 +285,7 @@ class RcloneUploader(BaseTask):
                     return False
                 
                 sleeps=False
-                await asyncio.sleep(2)
+                await asyncio.sleep(5)
                 process.stdout.flush()
     
     async def get_glink(self, drive_name,drive_base,ent_name,conf_path,isdir=True):
