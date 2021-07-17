@@ -505,7 +505,7 @@ class QbitController:
         if self._is_file:
             self._update_message = await self._user_msg.reply("Downloading the torrent file.")
             
-            torrent = await self._entity_msg.download()
+            torrent = await self._entity_msg.download_media()
             self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_file)
             
             await self._qbit_task.register_torrent()
