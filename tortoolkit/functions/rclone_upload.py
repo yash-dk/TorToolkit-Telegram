@@ -92,7 +92,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         )
         gd_index = get_val("GD_INDEX_URL")
         if gd_index:
-            index_link = "{}/{}/".format(gd_index.strip("/"), gid[1])
+            index_link = "{}/{}/?a=view".format(gd_index.strip("/"), gid[1])
             index_link = requote_uri(index_link)
             torlog.info("index link "+str(index_link))
             buttons.append(
@@ -143,7 +143,7 @@ async def rclone_upload(path,message,user_msg,dest_drive,dest_base,edit_time,con
         )
         gd_index = get_val("GD_INDEX_URL")
         if gd_index:
-            index_link = "{}/{}".format(gd_index.strip("/"), gid[1])
+            index_link = "{}/{}?a=view".format(gd_index.strip("/"), gid[1])
             index_link = requote_uri(index_link)
             torlog.info("index link "+str(index_link))
             buttons.append(
