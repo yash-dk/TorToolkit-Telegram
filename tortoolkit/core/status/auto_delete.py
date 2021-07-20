@@ -1,7 +1,9 @@
-from ... import to_del
-from ..getVars import get_val  
 import asyncio
 import time
+
+from ... import to_del
+from ..getVars import get_val
+
 
 async def del_status():
     while True:
@@ -12,5 +14,5 @@ async def del_status():
                 to_del.remove(i)
 
             await asyncio.sleep(1)
-        
+
         await asyncio.sleep(4)

@@ -2,16 +2,19 @@
 # (c) YashDK [yash-dk@github]
 # (c) modified by AmirulAndalib [amirulandalib@github]
 
-from .status import Status, QBTask
+import logging
+import os
+import re
+
+from telethon.errors.rpcerrorlist import FloodWaitError, MessageNotModifiedError
+
 from ..getVars import get_val
-import os, re, logging
-from telethon.errors.rpcerrorlist import MessageNotModifiedError, FloodWaitError
+from .status import Status
 
 torlog = logging.getLogger(__name__)
 
 
 class TGUploadTask(Status):
-    
     def __init__(self, task):
         super().__init__()
         self.Tasks.append(self)
@@ -36,7 +39,7 @@ class TGUploadTask(Status):
 
     async def set_message(self, message):
         self._message = message
-    
+
     async def set_original_message(self, omess):
         self._omess = omess
 
@@ -49,14 +52,14 @@ class TGUploadTask(Status):
     async def add_a_dir(self, path):
         await self.dl_files(path)
 
-    async def dl_files(self, path = None):
+    async def dl_files(self, path=None):
         if path is None:
             path = await self._dl_task.get_path()
-        
+
         if os.path.isfile(path):
             self._files += 1
             return
-        
+
         files = self._files
         dirs = self._dirs
         for _, d, f in os.walk(path, topdown=False):
@@ -64,7 +67,7 @@ class TGUploadTask(Status):
                 files += 1
             for _ in d:
                 dirs += 1
-        
+
         # maybe will add blacklisting of Extensions
         self._files = files
         self._dirs = dirs
@@ -75,39 +78,34 @@ class TGUploadTask(Status):
         self._current_file = str(name)
 
     async def create_message(self):
-        msg = "<b>Uploading:- </b> <code>{}</code>\n".format(
-            self._current_file
-        )
+        msg = "<b>Uploading:- </b> <code>{}</code>\n".format(self._current_file)
         prg = 0
         try:
-            prg = self._uploaded_files/self._files
+            prg = self._uploaded_files / self._files
 
-        except ZeroDivisionError:pass
-        msg += "<b>Progress:- </b> {} - {}%\n".format(
-            self.progress_bar(prg),
-            prg*100
-        )
+        except ZeroDivisionError:
+            pass
+        msg += "<b>Progress:- </b> {} - {}%\n".format(self.progress_bar(prg), prg * 100)
         msg += "<b>Files:- </b> {} of {} done.\n".format(
-            self._uploaded_files,
-            self._files
+            self._uploaded_files, self._files
         )
         msg += "<b>Using Engine:- </b> <code>TG Upload</code>\n"
         return msg
 
     def progress_bar(self, percentage):
-        """Returns a progress bar for download
-        """
-        #percentage is on the scale of 0-1
+        """Returns a progress bar for download"""
+        # percentage is on the scale of 0-1
         comp = get_val("COMPLETED_STR")
         ncomp = get_val("REMAINING_STR")
         pr = ""
 
-        for i in range(1,11):
-            if i <= int(percentage*10):
+        for i in range(1, 11):
+            if i <= int(percentage * 10):
                 pr += comp
             else:
                 pr += ncomp
         return pr
+
 
 class RCUploadTask(Status):
     def __init__(self, task):
@@ -127,42 +125,43 @@ class RCUploadTask(Status):
 
     async def get_original_message(self):
         return self._omess
-    
+
     async def get_sender_id(self):
         return self._omess.sender_id
 
     async def set_message(self, message):
         self._message = message
-    
-    async def refresh_info(self,msg):
+
+    async def refresh_info(self, msg):
         # The rclone is process dependent so cant be updated here.
         self._upmsg = msg
 
     async def create_message(self):
-        mat = re.findall("Transferred:.*ETA.*",self._upmsg)
-        nstr = mat[0].replace("Transferred:","")
+        mat = re.findall("Transferred:.*ETA.*", self._upmsg)
+        nstr = mat[0].replace("Transferred:", "")
         nstr = nstr.strip()
         nstr = nstr.split(",")
         prg = nstr[1].strip("% ")
-        prg = "Progress:- {} - {}%".format(self.progress_bar(prg),prg)
-        progress = "<b>Uploaded:- {} \n{} \nSpeed:- {} \nETA:- {}</b> \n<b>Using Engine:- </b><code>RCLONE</code>".format(nstr[0],prg,nstr[2],nstr[3].replace("ETA",""))
+        prg = "Progress:- {} - {}%".format(self.progress_bar(prg), prg)
+        progress = "<b>Uploaded:- {} \n{} \nSpeed:- {} \nETA:- {}</b> \n<b>Using Engine:- </b><code>RCLONE</code>".format(
+            nstr[0], prg, nstr[2], nstr[3].replace("ETA", "")
+        )
         return progress
 
-    def progress_bar(self,percentage):
-        """Returns a progress bar for download
-        """
-        #percentage is on the scale of 0-1
+    def progress_bar(self, percentage):
+        """Returns a progress bar for download"""
+        # percentage is on the scale of 0-1
         comp = get_val("COMPLETED_STR")
         ncomp = get_val("REMAINING_STR")
         pr = ""
 
         try:
-            percentage=int(percentage)
+            percentage = int(percentage)
         except:
             percentage = 0
 
-        for i in range(1,11):
-            if i <= int(percentage/10):
+        for i in range(1, 11):
+            if i <= int(percentage / 10):
                 pr += comp
             else:
                 pr += ncomp
@@ -171,10 +170,10 @@ class RCUploadTask(Status):
     async def update_message(self):
         progress = await self.create_message()
         if not self._prev_cont == progress:
-            #kept just in case
+            # kept just in case
             self._prev_cont = progress
             try:
-                await self._message.edit(progress,parse_mode="html")
+                await self._message.edit(progress, parse_mode="html")
             except MessageNotModifiedError as e:
                 torlog.debug("{}".format(e))
             except FloodWaitError as e:
@@ -185,7 +184,7 @@ class RCUploadTask(Status):
     async def is_active(self):
         return self._active
 
-    async def set_inactive(self, error = None):
+    async def set_inactive(self, error=None):
         self._active = False
         if error is not None:
             self._error = error

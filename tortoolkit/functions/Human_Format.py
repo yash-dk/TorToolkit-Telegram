@@ -2,11 +2,11 @@
 # (c) YashDK [yash-dk@github]
 # (c) modified by AmirulAndalib [amirulandalib@github]
 
-from datetime import datetime,timedelta
+from datetime import timedelta
 
-def human_readable_bytes(value, digits= 2, delim= "", postfix=""):
-    """Return a human-readable file size.
-    """
+
+def human_readable_bytes(value, digits=2, delim="", postfix=""):
+    """Return a human-readable file size."""
     if value is None:
         return None
     chosen_unit = "B"
@@ -18,12 +18,11 @@ def human_readable_bytes(value, digits= 2, delim= "", postfix=""):
             break
     return f"{value:.{digits}f}" + delim + chosen_unit + postfix
 
-def human_readable_timedelta(seconds, precision = 0):
-    """Return a human-readable time delta as a string.
-    """
+
+def human_readable_timedelta(seconds, precision=0):
+    """Return a human-readable time delta as a string."""
     pieces = []
     value = timedelta(seconds=seconds)
-    
 
     if value.days:
         pieces.append(f"{value.days}d")

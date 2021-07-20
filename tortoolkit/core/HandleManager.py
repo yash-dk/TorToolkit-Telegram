@@ -2,226 +2,253 @@
 # (c) YashDK [yash-dk@github]
 # (c) modified by AmirulAndalib [amirulandalib@github]
 
-from telethon import TelegramClient,events 
-from telethon import __version__ as telever
+import asyncio as aio
+import logging
+import os
+import re
+import shutil
+import time
+from functools import partial
+
+import psutil
 from pyrogram import __version__ as pyrover
+from telethon import TelegramClient
+from telethon import __version__ as telever
+from telethon import events
 from telethon.tl.types import KeyboardButtonCallback
-from ..consts.ExecVarsSample import ExecVars
+
+from tortoolkit import __version__
+
+from .. import tor_db, upload_db, uptime, user_db, var_db
 from ..core.getCommand import get_command
 from ..core.getVars import get_val
 from ..core.speedtest import get_speed
-from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files, get_transfer
-from ..functions.tele_upload import upload_a_file,upload_handel
 from ..functions import Human_Format
-from .database_handle import TtkUpload,TtkTorrents, TorToolkitDB
-from .settings import handle_settings,handle_setting_callback
-from .user_settings import handle_user_settings, handle_user_setting_callback
-from functools import partial
-from ..functions.rclone_upload import get_config,rclone_driver
 from ..functions.admin_check import is_admin
-from .. import upload_db, var_db, tor_db, user_db, uptime
-import asyncio as aio
-import re,logging,time,os,psutil,shutil
-from tortoolkit import __version__
-from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
 from ..functions.instadl import _insta_post_downloader
+from ..functions.Leech_Module import (
+    cancel_torrent,
+    check_link,
+    get_status,
+    get_transfer,
+    pause_all,
+    purge_all,
+    resume_all,
+)
+from ..functions.rclone_upload import get_config
+from ..functions.tele_upload import upload_a_file
+from .settings import handle_setting_callback, handle_settings
+from .ttk_ytdl import (
+    handle_ytdl_callbacks,
+    handle_ytdl_command,
+    handle_ytdl_file_download,
+    handle_ytdl_playlist,
+    handle_ytdl_playlist_down,
+)
+from .user_settings import handle_user_setting_callback, handle_user_settings
+
 torlog = logging.getLogger(__name__)
-from .status.status import Status
-from .status.menu import create_status_menu, create_status_user_menu
 import signal
+
 from PIL import Image
 
+from .status.menu import create_status_menu, create_status_user_menu
+from .status.status import Status
+
+
 def add_handlers(bot: TelegramClient):
-    #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
-    
+    # bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
+
     bot.add_event_handler(
         handle_leech_command,
-        events.NewMessage(pattern=command_process(get_command("LEECH")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("LEECH")), chats=get_val("ALD_USR")
+        ),
     )
-    
+
     bot.add_event_handler(
         handle_purge_command,
-        events.NewMessage(pattern=command_process(get_command("PURGE")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("PURGE")), chats=get_val("ALD_USR")
+        ),
     )
-    
+
     bot.add_event_handler(
         handle_pauseall_command,
-        events.NewMessage(pattern=command_process(get_command("PAUSEALL")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("PAUSEALL")), chats=get_val("ALD_USR")
+        ),
     )
-    
+
     bot.add_event_handler(
         handle_resumeall_command,
-        events.NewMessage(pattern=command_process(get_command("RESUMEALL")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("RESUMEALL")), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
         handle_status_command,
-        events.NewMessage(pattern=command_process(get_command("STATUS")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("STATUS")), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
         handle_u_status_command,
-        events.NewMessage(pattern=command_process(get_command("USTATUS")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("USTATUS")), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
         handle_settings_command,
-        events.NewMessage(pattern=command_process(get_command("SETTINGS")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("SETTINGS")), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
         handle_exec_message_f,
-        events.NewMessage(pattern=command_process(get_command("EXEC")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("EXEC")), chats=get_val("ALD_USR")
+        ),
     )
-    
+
     bot.add_event_handler(
         upload_document_f,
-        events.NewMessage(pattern=command_process(get_command("UPLOAD")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("UPLOAD")), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
         handle_ytdl_command,
-        events.NewMessage(pattern=command_process(get_command("YTDL")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("YTDL")), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
         handle_ytdl_playlist,
-        events.NewMessage(pattern=command_process(get_command("PYTDL")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("PYTDL")), chats=get_val("ALD_USR")
+        ),
     )
-    
+
     bot.add_event_handler(
         about_me,
-        events.NewMessage(pattern=command_process(get_command("ABOUT")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("ABOUT")), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
         get_logs_f,
-        events.NewMessage(pattern=command_process(get_command("GETLOGS")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("GETLOGS")), chats=get_val("ALD_USR")
+        ),
     )
-    
+
     bot.add_event_handler(
         handle_test_command,
-        events.NewMessage(pattern="/test",
-        chats=get_val("ALD_USR"))
+        events.NewMessage(pattern="/test", chats=get_val("ALD_USR")),
     )
 
     bot.add_event_handler(
         handle_server_command,
-        events.NewMessage(pattern=command_process(get_command("SERVER")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("SERVER")), chats=get_val("ALD_USR")
+        ),
     )
-    
+
     bot.add_event_handler(
         set_password_zip,
-        events.NewMessage(pattern=command_process("/setpass"),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process("/setpass"), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
         handle_user_settings_,
-        events.NewMessage(pattern=command_process(get_command("USERSETTINGS")))
+        events.NewMessage(pattern=command_process(get_command("USERSETTINGS"))),
     )
 
     bot.add_event_handler(
         _insta_post_downloader,
-        events.NewMessage(pattern=command_process(get_command("INSTADL")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("INSTADL")), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
-        start_handler,
-        events.NewMessage(pattern=command_process(get_command("START")))
+        start_handler, events.NewMessage(pattern=command_process(get_command("START")))
     )
 
     bot.add_event_handler(
         clear_thumb_cmd,
-        events.NewMessage(pattern=command_process(get_command("CLRTHUMB")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("CLRTHUMB")), chats=get_val("ALD_USR")
+        ),
     )
 
     bot.add_event_handler(
         set_thumb_cmd,
-        events.NewMessage(pattern=command_process(get_command("SETTHUMB")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("SETTHUMB")), chats=get_val("ALD_USR")
+        ),
     )
-# REMOVED HEROKU BLOCK
+    # REMOVED HEROKU BLOCK
     bot.add_event_handler(
         speed_handler,
-        events.NewMessage(pattern=command_process(get_command("SPEEDTEST")),
-        chats=get_val("ALD_USR"))
+        events.NewMessage(
+            pattern=command_process(get_command("SPEEDTEST")), chats=get_val("ALD_USR")
+        ),
     )
 
-
-    signal.signal(signal.SIGINT, partial(term_handler,client=bot))
-    signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
+    signal.signal(signal.SIGINT, partial(term_handler, client=bot))
+    signal.signal(signal.SIGTERM, partial(term_handler, client=bot))
     bot.loop.run_until_complete(booted(bot))
 
-    #*********** Callback Handlers *********** 
-    
+    # *********** Callback Handlers ***********
+
     bot.add_event_handler(
-        callback_handler_canc,
-        events.CallbackQuery(pattern="torcancel")
+        callback_handler_canc, events.CallbackQuery(pattern="torcancel")
+    )
+
+    bot.add_event_handler(handle_settings_cb, events.CallbackQuery(pattern="setting"))
+
+    bot.add_event_handler(handle_upcancel_cb, events.CallbackQuery(pattern="upcancel"))
+
+    bot.add_event_handler(handle_pincode_cb, events.CallbackQuery(pattern="getpin"))
+
+    bot.add_event_handler(
+        handle_ytdl_callbacks, events.CallbackQuery(pattern="ytdlsmenu")
     )
 
     bot.add_event_handler(
-        handle_settings_cb,
-        events.CallbackQuery(pattern="setting")
+        handle_ytdl_callbacks, events.CallbackQuery(pattern="ytdlmmenu")
     )
 
     bot.add_event_handler(
-        handle_upcancel_cb,
-        events.CallbackQuery(pattern="upcancel")
+        handle_ytdl_file_download, events.CallbackQuery(pattern="ytdldfile")
     )
 
     bot.add_event_handler(
-        handle_pincode_cb,
-        events.CallbackQuery(pattern="getpin")
+        handle_ytdl_playlist_down, events.CallbackQuery(pattern="ytdlplaylist")
     )
 
     bot.add_event_handler(
-        handle_ytdl_callbacks,
-        events.CallbackQuery(pattern="ytdlsmenu")
+        handle_user_setting_callback, events.CallbackQuery(pattern="usetting")
+    )
+    bot.add_event_handler(
+        handle_server_command, events.CallbackQuery(pattern="fullserver")
     )
 
-    bot.add_event_handler(
-        handle_ytdl_callbacks,
-        events.CallbackQuery(pattern="ytdlmmenu")
-    )
-    
-    bot.add_event_handler(
-        handle_ytdl_file_download,
-        events.CallbackQuery(pattern="ytdldfile")
-    )
-    
-    bot.add_event_handler(
-        handle_ytdl_playlist_down,
-        events.CallbackQuery(pattern="ytdlplaylist")
-    )
-
-    bot.add_event_handler(
-        handle_user_setting_callback,
-        events.CallbackQuery(pattern="usetting")
-    )
-    bot.add_event_handler(
-        handle_server_command,
-        events.CallbackQuery(pattern="fullserver")
-    )
 
 # REMOVED HEROKU BLOCK
-#*********** Handlers Below ***********
+# *********** Handlers Below ***********
+
 
 async def handle_leech_command(e):
     if not e.is_reply:
@@ -229,78 +256,94 @@ async def handle_leech_command(e):
     else:
         rclone = False
         tsp = time.time()
-        buts = [[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
+        buts = [[KeyboardButtonCallback("To Telegram", data=f"leechselect tg {tsp}")]]
         if await get_config() is not None:
             buts.append(
-                [KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")]
+                [KeyboardButtonCallback("To Drive", data=f"leechselect drive {tsp}")]
             )
         # tsp is used to split the callbacks so that each download has its own callback
         # cuz at any time there are 10-20 callbacks linked for leeching XD
-           
+
         buts.append(
-                [KeyboardButtonCallback("Upload in a ZIP.[Toggle]", data=f"leechzip toggle {tsp}")]
+            [
+                KeyboardButtonCallback(
+                    "Upload in a ZIP.[Toggle]", data=f"leechzip toggle {tsp}"
+                )
+            ]
         )
         buts.append(
-                [KeyboardButtonCallback("Extract from Archive.[Toggle]", data=f"leechzipex toggleex {tsp}")]
+            [
+                KeyboardButtonCallback(
+                    "Extract from Archive.[Toggle]", data=f"leechzipex toggleex {tsp}"
+                )
+            ]
         )
-        
-        conf_mes = await e.reply(f"First click if you want to zip the contents or extract as an archive (only one will work at a time) then...\n\n<b>Choose where to upload your files:-</b>\nThe files will be uploaded to default destination: <b>{get_val('DEFAULT_TIMEOUT')}</b> after 60 sec of no action by user.</u>\n\n<b>Supported archives to extract:</b>\nzip, 7z, tar, gzip2, iso, wim, rar, tar.gz, tar.bz2",parse_mode="html",buttons=buts)
+
+        conf_mes = await e.reply(
+            f"First click if you want to zip the contents or extract as an archive (only one will work at a time) then...\n\n<b>Choose where to upload your files:-</b>\nThe files will be uploaded to default destination: <b>{get_val('DEFAULT_TIMEOUT')}</b> after 60 sec of no action by user.</u>\n\n<b>Supported archives to extract:</b>\nzip, 7z, tar, gzip2, iso, wim, rar, tar.gz, tar.bz2",
+            parse_mode="html",
+            buttons=buts,
+        )
 
         # zip check in background
-        ziplist = await get_zip_choice(e,tsp)
-        zipext = await get_zip_choice(e,tsp,ext=True)
-        
-        # blocking leech choice 
-        choice = await get_leech_choice(e,tsp)
-        
+        ziplist = await get_zip_choice(e, tsp)
+        zipext = await get_zip_choice(e, tsp, ext=True)
+
+        # blocking leech choice
+        choice = await get_leech_choice(e, tsp)
+
         # zip check in backgroud end
-        await get_zip_choice(e,tsp,ziplist,start=False)
-        await get_zip_choice(e,tsp,zipext,start=False,ext=True)
+        await get_zip_choice(e, tsp, ziplist, start=False)
+        await get_zip_choice(e, tsp, zipext, start=False, ext=True)
         is_zip = ziplist[1]
         is_ext = zipext[1]
-        
-        
+
         # Set rclone based on choice
         if choice == "drive":
             rclone = True
         else:
             rclone = False
-        
+
         await conf_mes.delete()
 
         if rclone:
             if get_val("RCLONE_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext, conf_mes)
+                await check_link(e, rclone, is_zip, is_ext, conf_mes)
             else:
-                await e.reply("<b>DRIVE IS DISABLED BY THE ADMIN</b>",parse_mode="html")
+                await e.reply(
+                    "<b>DRIVE IS DISABLED BY THE ADMIN</b>", parse_mode="html"
+                )
         else:
             if get_val("LEECH_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext, conf_mes)
+                await check_link(e, rclone, is_zip, is_ext, conf_mes)
             else:
-                await e.reply("<b>TG LEECH IS DISABLED BY THE ADMIN</b>",parse_mode="html")
+                await e.reply(
+                    "<b>TG LEECH IS DISABLED BY THE ADMIN</b>", parse_mode="html"
+                )
 
 
-async def get_leech_choice(e,timestamp):
+async def get_leech_choice(e, timestamp):
     # abstract for getting the confirm in a context
 
-    lis = [False,None]
-    cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
-    
-# REMOVED HEROKU BLOCK
+    lis = [False, None]
+    cbak = partial(
+        get_leech_choice_callback, o_sender=e.sender_id, lis=lis, ts=timestamp
+    )
 
+    # REMOVED HEROKU BLOCK
 
     e.client.add_event_handler(
-        #lambda e: test_callback(e,lis),
+        # lambda e: test_callback(e,lis),
         cbak,
-        events.CallbackQuery(pattern="leechselect")
+        events.CallbackQuery(pattern="leechselect"),
     )
 
     start = time.time()
     defleech = get_val("DEFAULT_TIMEOUT")
 
     while not lis[0]:
-        if (time.time() - start) >= 60: #TIMEOUT_SEC:
-            
+        if (time.time() - start) >= 60:  # TIMEOUT_SEC:
+
             if defleech == "leech":
                 return "tg"
             elif defleech == "rclone":
@@ -312,122 +355,129 @@ async def get_leech_choice(e,timestamp):
         await aio.sleep(1)
 
     val = lis[1]
-    
+
     e.client.remove_event_handler(cbak)
 
     return val
 
-async def get_zip_choice(e,timestamp, lis=None,start=True, ext=False):
+
+async def get_zip_choice(e, timestamp, lis=None, start=True, ext=False):
     # abstract for getting the confirm in a context
     # creating this functions to reduce the clutter
     if lis is None:
         lis = [None, None, None]
-    
+
     if start:
-        cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
+        cbak = partial(
+            get_leech_choice_callback, o_sender=e.sender_id, lis=lis, ts=timestamp
+        )
         lis[2] = cbak
         if ext:
-            e.client.add_event_handler(
-                cbak,
-                events.CallbackQuery(pattern="leechzipex")
-            )
+            e.client.add_event_handler(cbak, events.CallbackQuery(pattern="leechzipex"))
         else:
-            e.client.add_event_handler(
-                cbak,
-                events.CallbackQuery(pattern="leechzip")
-            )
+            e.client.add_event_handler(cbak, events.CallbackQuery(pattern="leechzip"))
         return lis
     else:
         e.client.remove_event_handler(lis[2])
 
 
-async def get_leech_choice_callback(e,o_sender,lis,ts):
+async def get_leech_choice_callback(e, o_sender, lis, ts):
     # handle the confirm callback
 
     if o_sender != e.sender_id:
         return
     data = e.data.decode().split(" ")
-    if data [2] != str(ts):
+    if data[2] != str(ts):
         return
-    
+
     lis[0] = True
     if data[1] == "toggle":
         # encompasses the None situation too
-        print("data ",lis)
+        print("data ", lis)
         if lis[1] is True:
             await e.answer("Will Not be zipped", alert=True)
-            lis[1] = False 
+            lis[1] = False
         else:
             await e.answer("Will be zipped", alert=True)
             lis[1] = True
     elif data[1] == "toggleex":
-        print("exdata ",lis)
+        print("exdata ", lis)
         # encompasses the None situation too
         if lis[1] is True:
             await e.answer("It will not be extracted.", alert=True)
-            lis[1] = False 
+            lis[1] = False
         else:
-            await e.answer("If it is a Archive it will be extracted. Further in you can set password to extract the ZIP.", alert=True)
+            await e.answer(
+                "If it is a Archive it will be extracted. Further in you can set password to extract the ZIP.",
+                alert=True,
+            )
             lis[1] = True
     else:
         lis[1] = data[1]
-    
 
-#add admin checks here - done
+
+# add admin checks here - done
 async def handle_purge_command(e):
-    if await is_admin(e.client,e.sender_id,e.chat_id):
+    if await is_admin(e.client, e.sender_id, e.chat_id):
         await purge_all(e)
     else:
         await e.delete()
 
+
 # REMOVED HEROKU BLOCK
 
+
 async def handle_pauseall_command(e):
-    if await is_admin(e.client,e.sender_id,e.chat_id):
+    if await is_admin(e.client, e.sender_id, e.chat_id):
         await pause_all(e)
     else:
         await e.delete()
 
+
 async def handle_resumeall_command(e):
-    if await is_admin(e.client,e.sender_id,e.chat_id):
+    if await is_admin(e.client, e.sender_id, e.chat_id):
         await resume_all(e)
     else:
         await e.delete()
 
+
 async def handle_settings_command(e):
-    if await is_admin(e.client,e.sender_id,e.chat_id):
+    if await is_admin(e.client, e.sender_id, e.chat_id):
         await handle_settings(e)
     else:
         await e.delete()
+
 
 async def handle_status_command(e):
     cmds = e.text.split(" ")
     if len(cmds) > 1:
         if cmds[1] == "all":
-            await get_status(e,True)
+            await get_status(e, True)
         else:
             await get_status(e)
     else:
         await create_status_menu(e)
 
+
 async def handle_u_status_command(e):
     await create_status_user_menu(e)
-        
+
+
 async def speed_handler(e):
-    if await is_admin(e.client,e.sender_id,e.chat_id):
+    if await is_admin(e.client, e.sender_id, e.chat_id):
         await get_speed(e)
 
-    
+
 async def handle_test_command(e):
     pass
-    
 
 
 async def handle_settings_cb(e):
-    if await is_admin(e.client,e.sender_id,e.chat_id):
+    if await is_admin(e.client, e.sender_id, e.chat_id):
         await handle_setting_callback(e)
     else:
-        await e.answer("⚠️ WARN ⚠️ Dont Touch Admin Settings.",alert=True)
+        await e.answer("⚠️ WARN ⚠️ Dont Touch Admin Settings.", alert=True)
+
 
 async def handle_upcancel_cb(e):
     db = upload_db
@@ -437,23 +487,26 @@ async def handle_upcancel_cb(e):
     data = data.split(" ")
 
     if str(e.sender_id) == data[3]:
-        db.cancel_download(data[1],data[2])
-        await e.answer("Upload has been canceled ;)",alert=True)
+        db.cancel_download(data[1], data[2])
+        await e.answer("Upload has been canceled ;)", alert=True)
     elif e.sender_id in get_val("ALD_USR"):
-        db.cancel_download(data[1],data[2])
-        await e.answer("UPLOAD CANCELED IN ADMIN MODE XD ;)",alert=True)
+        db.cancel_download(data[1], data[2])
+        await e.answer("UPLOAD CANCELED IN ADMIN MODE XD ;)", alert=True)
     else:
-        await e.answer("Can't Cancel others upload 😡",alert=True)
+        await e.answer("Can't Cancel others upload 😡", alert=True)
 
 
 async def callback_handler_canc(e):
     # TODO the msg can be deleted
-    #mes = await e.get_message()
-    #mes = await mes.get_reply_message()
-    
+    # mes = await e.get_message()
+    # mes = await mes.get_reply_message()
 
     torlog.debug(f"Here the sender _id is {e.sender_id}")
-    torlog.debug("here is the allower users list {} {}".format(get_val("ALD_USR"),type(get_val("ALD_USR"))))
+    torlog.debug(
+        "here is the allower users list {} {}".format(
+            get_val("ALD_USR"), type(get_val("ALD_USR"))
+        )
+    )
 
     data = e.data.decode("utf-8").split(" ")
     torlog.debug("data is {}".format(data))
@@ -464,11 +517,10 @@ async def callback_handler_canc(e):
     if data[1] == "aria2":
         is_aria = True
         data.remove("aria2")
-    
+
     if data[1] == "megadl":
         is_mega = True
         data.remove("megadl")
-    
 
     if data[2] == str(e.sender_id):
         hashid = data[1]
@@ -476,15 +528,15 @@ async def callback_handler_canc(e):
         torlog.info(f"Hashid :- {hashid}")
 
         await cancel_torrent(hashid, is_aria, is_mega)
-        await e.answer("Leech has been canceled ;)",alert=True)
+        await e.answer("Leech has been canceled ;)", alert=True)
     elif e.sender_id in get_val("ALD_USR"):
         hashid = data[1]
         hashid = hashid.strip("'")
-        
+
         torlog.info(f"Hashid :- {hashid}")
-        
+
         await cancel_torrent(hashid, is_aria, is_mega)
-        await e.answer("Leech has been canceled in ADMIN MODE XD ;)",alert=True)
+        await e.answer("Leech has been canceled in ADMIN MODE XD ;)", alert=True)
     else:
         await e.answer("Can't Cancel others leech 😡", alert=True)
 
@@ -495,7 +547,6 @@ async def handle_exec_message_f(e):
     message = e
     client = e.client
     if await is_admin(client, message.sender_id, message.chat_id, force_owner=True):
-        PROCESS_RUN_TIME = 100
         cmd = message.text.split(" ", maxsplit=1)[1]
 
         reply_to_id = message.id
@@ -503,9 +554,7 @@ async def handle_exec_message_f(e):
             reply_to_id = message.reply_to_msg_id
 
         process = await aio.create_subprocess_shell(
-            cmd,
-            stdout=aio.subprocess.PIPE,
-            stderr=aio.subprocess.PIPE
+            cmd, stdout=aio.subprocess.PIPE, stderr=aio.subprocess.PIPE
         )
         stdout, stderr = await process.communicate()
         e = stderr.decode()
@@ -526,7 +575,7 @@ async def handle_exec_message_f(e):
                 entity=message.chat_id,
                 file="exec.text",
                 caption=cmd,
-                reply_to=reply_to_id
+                reply_to=reply_to_id,
             )
             os.remove("exec.text")
             await message.delete()
@@ -535,52 +584,52 @@ async def handle_exec_message_f(e):
     else:
         await message.reply("Only for owner")
 
+
 async def handle_pincode_cb(e):
     data = e.data.decode("UTF-8")
     data = data.split(" ")
-    
+
     if str(e.sender_id) == data[2]:
         db = tor_db
         passw = db.get_password(data[1])
-        if isinstance(passw,bool):
+        if isinstance(passw, bool):
             await e.answer("torrent expired download has been started now.")
         else:
-            await e.answer(f"Your Pincode is {passw}",alert=True)
+            await e.answer(f"Your Pincode is {passw}", alert=True)
 
-        
     else:
-        await e.answer("It's not your torrent.",alert=True)
+        await e.answer("It's not your torrent.", alert=True)
+
 
 async def upload_document_f(message):
     if get_val("REST11"):
         return
-    imsegd = await message.reply(
-        "processing ..."
-    )
-    imsegd = await message.client.get_messages(message.chat_id,ids=imsegd.id)
-    if await is_admin(message.client, message.sender_id, message.chat_id, force_owner=True):
+    imsegd = await message.reply("processing ...")
+    imsegd = await message.client.get_messages(message.chat_id, ids=imsegd.id)
+    if await is_admin(
+        message.client, message.sender_id, message.chat_id, force_owner=True
+    ):
         if " " in message.text:
             recvd_command, local_file_name = message.text.split(" ", 1)
             recvd_response = await upload_a_file(
-                local_file_name,
-                imsegd,
-                False,
-                upload_db
+                local_file_name, imsegd, False, upload_db
             )
-            #torlog.info(recvd_response)
+            # torlog.info(recvd_response)
     else:
         await message.reply("Only for owner")
     await imsegd.delete()
 
+
 async def get_logs_f(e):
-    if await is_admin(e.client,e.sender_id,e.chat_id, force_owner=True):
+    if await is_admin(e.client, e.sender_id, e.chat_id, force_owner=True):
         e.text += " torlog.txt"
         await upload_document_f(e)
     else:
         await e.delete()
 
+
 async def set_password_zip(message):
-    #/setpass message_id password
+    # /setpass message_id password
     data = message.raw_text.split(" ")
     passdata = message.client.dl_passwords.get(int(data[1]))
     if passdata is None:
@@ -592,16 +641,19 @@ async def set_password_zip(message):
             message.client.dl_passwords[int(data[1])][1] = data[2]
             await message.reply(f"Password updated successfully.")
         else:
-            await message.reply(f"Cannot update the password this is not your download.")
+            await message.reply(
+                f"Cannot update the password this is not your download."
+            )
+
 
 async def start_handler(event):
     msg = "Hello This is TorToolkitX running on heroku an instance of <a href='https://github.com/XcodersHub/TorToolkitX'>This Repo</a>. Try the repo for yourself and dont forget to put a STAR and fork."
     await event.reply(msg, parse_mode="html")
 
+
 def progress_bar(percentage):
-    """Returns a progress bar for download
-    """
-    #percentage is on the scale of 0-1
+    """Returns a progress bar for download"""
+    # percentage is on the scale of 0-1
     comp = get_val("COMPLETED_STR")
     ncomp = get_val("REMAINING_STR")
     pr = ""
@@ -610,16 +662,17 @@ def progress_bar(percentage):
         return "NaN"
 
     try:
-        percentage=int(percentage)
+        percentage = int(percentage)
     except:
         percentage = 0
 
-    for i in range(1,11):
-        if i <= int(percentage/10):
+    for i in range(1, 11):
+        if i <= int(percentage / 10):
             pr += comp
         else:
             pr += ncomp
     return pr
+
 
 async def handle_server_command(message):
     print(type(message))
@@ -662,7 +715,7 @@ async def handle_server_command(message):
         cpupercent = psutil.cpu_percent()
     except:
         cpupercent = "N/A"
-    
+
     try:
         # Storage
         usage = shutil.disk_usage("/")
@@ -673,7 +726,6 @@ async def handle_server_command(message):
         totaldsk = "N/A"
         useddsk = "N/A"
         freedsk = "N/A"
-
 
     try:
         upb, dlb = await get_transfer()
@@ -712,11 +764,10 @@ async def handle_server_command(message):
         await message.edit(msg, parse_mode="html", buttons=None)
     else:
         try:
-            storage_percent = round((usage.used/usage.total)*100,2)
+            storage_percent = round((usage.used / usage.total) * 100, 2)
         except:
             storage_percent = 0
 
-        
         msg = (
             f"<b>BOT UPTIME:-</b> {diff}\n\n"
             f"CPU Utilization: {progress_bar(cpupercent)} - {cpupercent}%\n\n"
@@ -727,7 +778,11 @@ async def handle_server_command(message):
             f"Transfer Download:- {dlb}\n"
             f"Transfer Upload:- {upb}\n"
         )
-        await message.reply(msg, parse_mode="html", buttons=[[KeyboardButtonCallback("Get detailed stats.","fullserver")]])
+        await message.reply(
+            msg,
+            parse_mode="html",
+            buttons=[[KeyboardButtonCallback("Get detailed stats.", "fullserver")]],
+        )
 
 
 async def about_me(message):
@@ -738,7 +793,7 @@ async def about_me(message):
     else:
         rclone_cfg = "Rclone Config is loaded"
 
-    val1  = get_val("RCLONE_ENABLED")
+    val1 = get_val("RCLONE_ENABLED")
     if val1 is not None:
         if val1:
             rclone = "Rclone enabled by admin."
@@ -747,7 +802,7 @@ async def about_me(message):
     else:
         rclone = "N/A"
 
-    val1  = get_val("LEECH_ENABLED")
+    val1 = get_val("LEECH_ENABLED")
     if val1 is not None:
         if val1:
             leen = "Leech command enabled by admin."
@@ -755,7 +810,6 @@ async def about_me(message):
             leen = "Leech command disabled by admin."
     else:
         leen = "N/A"
-
 
     diff = time.time() - uptime
     diff = Human_Format.human_readable_timedelta(diff)
@@ -792,7 +846,7 @@ async def about_me(message):
         "<b>13.Fixed Heroku Stuff.</b>\n"
     )
 
-    await message.reply(msg,parse_mode="html")
+    await message.reply(msg, parse_mode="html")
 
 
 async def set_thumb_cmd(e):
@@ -800,7 +854,7 @@ async def set_thumb_cmd(e):
     if thumb_msg is None:
         await e.reply("Reply to a photo or photo as a document.")
         return
-    
+
     if thumb_msg.document is not None or thumb_msg.photo is not None:
         value = await thumb_msg.download_media()
     else:
@@ -809,11 +863,11 @@ async def set_thumb_cmd(e):
 
     try:
         im = Image.open(value)
-        im.convert("RGB").save(value,"JPEG")
+        im.convert("RGB").save(value, "JPEG")
         im = Image.open(value)
-        im.thumbnail((320,320), Image.ANTIALIAS)
-        im.save(value,"JPEG")
-        with open(value,"rb") as fi:
+        im.thumbnail((320, 320), Image.ANTIALIAS)
+        im.save(value, "JPEG")
+        with open(value, "rb") as fi:
             data = fi.read()
             user_db.set_thumbnail(data, e.sender_id)
         os.remove(value)
@@ -821,17 +875,24 @@ async def set_thumb_cmd(e):
         torlog.exception("Set Thumb")
         await e.reply("Errored in setting thumbnail.")
         return
-    
+
     try:
         os.remove(value)
-    except:pass
+    except:
+        pass
 
-    user_db.set_var("DISABLE_THUMBNAIL",False, str(e.sender_id))
-    await e.reply("Thumbnail set. try using /usettings to get more control. Can be used in private too.")
+    user_db.set_var("DISABLE_THUMBNAIL", False, str(e.sender_id))
+    await e.reply(
+        "Thumbnail set. try using /usettings to get more control. Can be used in private too."
+    )
+
 
 async def clear_thumb_cmd(e):
-    user_db.set_var("DISABLE_THUMBNAIL",True, str(e.sender_id))
-    await e.reply("Thumbnail disabled. Try using /usettings to get more control. Can be used in private too.")
+    user_db.set_var("DISABLE_THUMBNAIL", True, str(e.sender_id))
+    await e.reply(
+        "Thumbnail disabled. Try using /usettings to get more control. Can be used in private too."
+    )
+
 
 async def handle_user_settings_(message):
     if not message.sender_id in get_val("ALD_USR"):
@@ -840,8 +901,10 @@ async def handle_user_settings_(message):
 
     await handle_user_settings(message)
 
+
 def term_handler(signum, frame, client):
     torlog.info("TERM RECEIVD")
+
     async def term_async():
         omess = None
         st = Status().Tasks
@@ -856,22 +919,25 @@ def term_handler(signum, frame, client):
                 chat_id = int(chat_id)
             else:
                 chat_id = omess.chat_id
-            
+
             sender = await i.get_sender_id()
             msg += f"<a href='tg://user?id={sender}'>REBOOT</a> - <a href='https://t.me/c/{chat_id}/{omess.id}'>Task</a>\n"
-        
+
         if omess is not None:
             await omess.respond(msg, parse_mode="html")
         exit(0)
 
     client.loop.run_until_complete(term_async())
 
+
 async def booted(client):
     chats = get_val("ALD_USR")
     for i in chats:
         try:
             await client.send_message(i, "The bot is booted and is ready to use.")
-        except Exception as e:
+        except Exception:
             torlog.info(f"Not found the entity {i}")
+
+
 def command_process(command):
-    return re.compile(command,re.IGNORECASE)
+    return re.compile(command, re.IGNORECASE)

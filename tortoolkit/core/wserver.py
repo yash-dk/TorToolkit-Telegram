@@ -2,12 +2,14 @@
 # (c) YashDK [yash-dk@github]
 # (c) modified by AmirulAndalib [amirulandalib@github]
 
-from aiohttp import web
+import asyncio
+import logging
+
 import qbittorrentapi as qba
+from aiohttp import web
+
 from . import nodes
 from .database_handle import TtkTorrents
-import asyncio,logging,os,traceback
-import os, time
 
 torlog = logging.getLogger(__name__)
 
@@ -128,7 +130,7 @@ TorToolKitX Torrent Files
 """
 
 
-@routes.get('/tortk/files/{hash_id}')
+@routes.get("/tortk/files/{hash_id}")
 async def list_torrent_contents(request):
     # not using templates cuz wanted to keem things in one file, might change in future #todo
     torr = request.match_info["hash_id"]
@@ -136,41 +138,43 @@ async def list_torrent_contents(request):
     gets = request.query
 
     if not "pin_code" in gets.keys():
-        rend_page = code_page.replace("{form_url}",f"/tortk/files/{torr}")
-        return web.Response(text=rend_page,content_type='text/html')
+        rend_page = code_page.replace("{form_url}", f"/tortk/files/{torr}")
+        return web.Response(text=rend_page, content_type="text/html")
 
-    
-    client = qba.Client(host="localhost",port="8090",username="admin",password="adminadmin")
+    client = qba.Client(
+        host="localhost", port="8090", username="admin", password="adminadmin"
+    )
     client.auth_log_in()
     try:
-      res = client.torrents_files(torrent_hash=torr)
+        res = client.torrents_files(torrent_hash=torr)
     except qba.NotFound404Error:
-      raise web.HTTPNotFound()
+        raise web.HTTPNotFound()
 
-    
-    # Central object is not used its Acknowledged 
+    # Central object is not used its Acknowledged
     db = TtkTorrents()
     passw = db.get_password(torr)
-    if isinstance(passw,bool):
-          raise web.HTTPNotFound()
+    if isinstance(passw, bool):
+        raise web.HTTPNotFound()
     pincode = passw
     if gets["pin_code"] != pincode:
         return web.Response(text="Incorrect pin code")
 
-    
     par = nodes.make_tree(res)
-    
-    cont = ["",0]
-    nodes.create_list(par,cont)
 
-    rend_page = page.replace("{My_content}",cont[0])
-    rend_page = rend_page.replace("{form_url}",f"/tortk/files/{torr}?pin_code={pincode}")
+    cont = ["", 0]
+    nodes.create_list(par, cont)
+
+    rend_page = page.replace("{My_content}", cont[0])
+    rend_page = rend_page.replace(
+        "{form_url}", f"/tortk/files/{torr}?pin_code={pincode}"
+    )
     client.auth_log_out()
-    return web.Response(text=rend_page,content_type='text/html')
-    
+    return web.Response(text=rend_page, content_type="text/html")
+
+
 # this will be a depri if causes more traffic
 # mostly will not as internal routing
-async def re_verfiy(paused,resumed,client,torr):
+async def re_verfiy(paused, resumed, client, torr):
     paused = paused.strip()
     resumed = resumed.strip()
     if paused:
@@ -179,10 +183,10 @@ async def re_verfiy(paused,resumed,client,torr):
         resumed = resumed.split("|")
     k = 0
     while True:
-        
+
         res = client.torrents_files(torrent_hash=torr)
         verify = True
-        
+
         for i in res:
             if str(i.id) in paused:
                 if i.priority == 0:
@@ -198,19 +202,24 @@ async def re_verfiy(paused,resumed,client,torr):
                     verify = False
                     break
 
-
         if not verify:
             torlog.info("Reverification Failed :- correcting stuff")
             # reconnect and issue the request again
             client.auth_log_out()
-            client = qba.Client(host="localhost",port="8090",username="admin",password="adminadmin")
+            client = qba.Client(
+                host="localhost", port="8090", username="admin", password="adminadmin"
+            )
             client.auth_log_in()
             try:
-                client.torrents_file_priority(torrent_hash=torr,file_ids=paused,priority=0)
+                client.torrents_file_priority(
+                    torrent_hash=torr, file_ids=paused, priority=0
+                )
             except:
                 torlog.error("Errored in reverification paused")
             try:
-                client.torrents_file_priority(torrent_hash=torr,file_ids=resumed,priority=1)
+                client.torrents_file_priority(
+                    torrent_hash=torr, file_ids=resumed, priority=1
+                )
             except:
                 torlog.error("Errored in reverification resumed")
             client.auth_log_out()
@@ -223,18 +232,19 @@ async def re_verfiy(paused,resumed,client,torr):
     return True
 
 
-
-@routes.post('/tortk/files/{hash_id}')
+@routes.post("/tortk/files/{hash_id}")
 async def set_priority(request):
     torr = request.match_info["hash_id"]
-    client = qba.Client(host="localhost",port="8090",username="admin",password="adminadmin")
+    client = qba.Client(
+        host="localhost", port="8090", username="admin", password="adminadmin"
+    )
     client.auth_log_in()
 
     data = await request.post()
     resume = ""
     pause = ""
     data = dict(data)
-    
+
     for i in data.keys():
         if i.find("filenode") != -1:
             node_no = i.split("_")[-1]
@@ -243,63 +253,76 @@ async def set_priority(request):
                 resume += f"{node_no}|"
             else:
                 pause += f"{node_no}|"
-            
+
     pause = pause.strip("|")
     resume = resume.strip("|")
     torlog.info(f"Paused {pause} of {torr}")
     torlog.info(f"Resumed {resume} of {torr}")
-    
+
     try:
-        client.torrents_file_priority(torrent_hash=torr,file_ids=pause,priority=0)
+        client.torrents_file_priority(torrent_hash=torr, file_ids=pause, priority=0)
     except qba.NotFound404Error:
         raise web.HTTPNotFound()
     except:
         torlog.info("Errored in paused")
-    
+
     try:
-        client.torrents_file_priority(torrent_hash=torr,file_ids=resume,priority=1)
+        client.torrents_file_priority(torrent_hash=torr, file_ids=resume, priority=1)
     except qba.NotFound404Error:
         raise web.HTTPNotFound()
     except:
         torlog.info("Errored in resumed")
 
     await asyncio.sleep(2)
-    if not await re_verfiy(pause,resume,client,torr):
+    if not await re_verfiy(pause, resume, client, torr):
         torlog.error("The torrent choose errored reverification failed")
     client.auth_log_out()
     return await list_torrent_contents(request)
 
-@routes.get('/')
+
+@routes.get("/")
 async def homepage(request):
-    return web.Response(text="<h1>🤗TorToolkitX webserver is Up and Running successfully🟢</h1>\n<h2>⚡See TorToolkitX on <a href=\"https://github.com/XcodersHub/TorToolkitX\">@GitHub</a></h2>\n<h2>🥲Join XcodersHub <a href=\"https://t.me/XcodersHub\">TG channel</a></h2>",content_type="text/html")
+    return web.Response(
+        text='<h1>🤗TorToolkitX webserver is Up and Running successfully🟢</h1>\n<h2>⚡See TorToolkitX on <a href="https://github.com/XcodersHub/TorToolkitX">@GitHub</a></h2>\n<h2>🥲Join XcodersHub <a href="https://t.me/XcodersHub">TG channel</a></h2>',
+        content_type="text/html",
+    )
+
 
 async def e404_middleware(app, handler):
-  async def middleware_handler(request):
-      try:
-          response = await handler(request)
-          if response.status == 404:
-              return web.Response(text="<h1>404: Page not found</h2><br><h3>TorToolKitX</h3>",content_type="text/html")
-          return response
-      except web.HTTPException as ex:
-          if ex.status == 404:
-              return web.Response(text="<h1>404: Page not found</h2><br><h3>TorToolKitX</h3>",content_type="text/html")
-          raise
-  return middleware_handler
+    async def middleware_handler(request):
+        try:
+            response = await handler(request)
+            if response.status == 404:
+                return web.Response(
+                    text="<h1>404: Page not found</h2><br><h3>TorToolKitX</h3>",
+                    content_type="text/html",
+                )
+            return response
+        except web.HTTPException as ex:
+            if ex.status == 404:
+                return web.Response(
+                    text="<h1>404: Page not found</h2><br><h3>TorToolKitX</h3>",
+                    content_type="text/html",
+                )
+            raise
+
+    return middleware_handler
+
 
 async def start_server():
-# REMOVED HEROKU BLOCK
-    
+    # REMOVED HEROKU BLOCK
 
     app = web.Application(middlewares=[e404_middleware])
     app.add_routes(routes)
     return app
 
-async def start_server_async(port = 8080):
-# REMOVED HEROKU BLOCK
-    
+
+async def start_server_async(port=8080):
+    # REMOVED HEROKU BLOCK
+
     app = web.Application(middlewares=[e404_middleware])
     app.add_routes(routes)
     runner = web.AppRunner(app)
     await runner.setup()
-    #todo provide the config for the host and port for vps only
-    await web.TCPSite(runner,"0.0.0.0",port).start()
+    # todo provide the config for the host and port for vps only
+    await web.TCPSite(runner, "0.0.0.0", port).start()
