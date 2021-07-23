@@ -57,7 +57,7 @@ async def upload_handel(
     # logging.info("Uploading Now:- {}".format(path))
 
     if os.path.isdir(path):
-        logging.info("Uplaoding the directory:- {}".format(path))
+        logging.info("Uploading the directory:- {}".format(path))
 
         directory_contents = os.listdir(path)
         directory_contents.sort()
@@ -72,7 +72,7 @@ async def upload_handel(
 
         try:
             message = await message.edit(
-                "{}\nFound **{}** files for this download.".format(
+                "{}\n**Found {} files for this Telegram Upload**".format(
                     message.text, len(directory_contents)
                 )
             )
@@ -147,13 +147,13 @@ async def upload_handel(
 
             if ftype == "video":
                 todel = await message.reply(
-                    "**FILE LAGRE THEN THRESHOLD, SPLITTING NOW...**\n`Using Algo FFMPEG VIDEO SPLIT`"
+                    "**FILE LARGER THAN 2GB, SPLITTING NOW...**\n**Using Algo FFMPEG VIDEO SPLIT**"
                 )
                 split_dir = await vids_helpers.split_file(path, get_val("TG_UP_LIMIT"))
                 await todel.delete()
             else:
                 todel = await message.reply(
-                    "**FILE LAGRE THEN THRESHOLD, SPLITTING NOW...**\n`Using Algo FFMPEG ZIP SPLIT`"
+                    "**FILE LARGER THAN 2GB, SPLITTING NOW...**\n**`Using Algo FFMPEG ZIP SPLIT`**"
                 )
                 split_dir = await zip7_utils.split_in_zip(path, get_val("TG_UP_LIMIT"))
                 await todel.delete()
@@ -507,7 +507,7 @@ async def upload_single_file(
         force_docs = get_val("FORCE_DOCUMENTS")
 
     # Avoid Flood in Express
-    await asyncio.sleep(5)
+    await asyncio.sleep(15)
 
     metadata = extractMetadata(createParser(path))
 
