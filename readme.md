@@ -264,6 +264,7 @@ Steps:-
     ytdl - Donwload YouTube Video
     pytdl - Download YouTube Playlist
     about - About the bot
+    ustatus -  To See Your Active Tasks
     status - Status of all the downloads
     server - Get server status
     usettings - User Settings (private also)
@@ -276,6 +277,7 @@ Steps:-
     resumeall - Resume all torrents⚠️ Admin Only
     purge - Delete all torrents ⚠️ Admin Only
     getlogs - Get the robot logs ⚠️ Admin Only
+     
 
 # Credits
 [AmirulAndalib](https://github.com/AmirulAndalib) for modding
