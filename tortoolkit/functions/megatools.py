@@ -75,7 +75,7 @@ async def megadl(link, update_msg, user_msg):
         ]:
             if dl_info["state"] == constants.State.TYPE_STATE_COMPLETED:
                 await dl_task.set_done()
-                await update_msg.edit("Download Complete.")
+                await update_msg.edit("**Download Complete**.")
                 await asyncio.sleep(2)
                 return dl_task
             try:

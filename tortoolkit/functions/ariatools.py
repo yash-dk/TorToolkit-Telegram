@@ -229,10 +229,10 @@ async def check_progress_for_dl(
             )
         else:
             await event.edit(
-                f"Download completed: `{file.name}` - (`{file.total_length_string()}`)",
+                f"**Download completed:** `{file.name}`\n\n**Size:** `{file.total_length_string()}`",
                 buttons=None,
             )
-            return True, "Download Complete"
+            return True, "**Download Complete**"
     except aria2p.client.ClientException as e:
         if " not found" in str(e) or "'file'" in str(e):
             fname = "N/A"

@@ -542,8 +542,6 @@ async def callback_handler_canc(e):
 
 
 async def handle_exec_message_f(e):
-    if get_val("REST11"):
-        return
     message = e
     client = e.client
     if await is_admin(client, message.sender_id, message.chat_id, force_owner=True):
@@ -602,8 +600,6 @@ async def handle_pincode_cb(e):
 
 
 async def upload_document_f(message):
-    if get_val("REST11"):
-        return
     imsegd = await message.reply("processing ...")
     imsegd = await message.client.get_messages(message.chat_id, ids=imsegd.id)
     if await is_admin(
