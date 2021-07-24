@@ -486,9 +486,7 @@ async def handle_ext_zip(path, rmess, omess):
     if password is not None:
         password = password[1]
     start = time.time()
-    await rmess.edit(
-        f"{rmess.text}\n\n**Trying to Extract the archive..**"
-    )
+    await rmess.edit(f"{rmess.text}\n\n**Trying to Extract the archive..**")
     wrong_pwd = False
 
     while True:
