@@ -348,7 +348,7 @@ async def update_progress(
                     await task.set_path(savepath)
                     await task.set_done()
                     await message.edit(
-                        "Download completed: `{}` - (`{}`)\nTo path: `{}`".format(
+                        "Download completed: `{}` - (`{}`)\n\nTo path: `{}`".format(
                             tor_info.name,
                             human_readable_bytes(tor_info.total_size),
                             tor_info.save_path,
