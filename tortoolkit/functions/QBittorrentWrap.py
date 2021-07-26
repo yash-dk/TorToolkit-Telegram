@@ -348,7 +348,7 @@ async def update_progress(
                     await task.set_path(savepath)
                     await task.set_done()
                     await message.edit(
-                        "**Download completed:** `{}`\n\n**Size:**`{}`\n\n**To path:** `{}`".format(
+                        "**Download completed:** `{}`\n\n**Size:** `{}`\n\n**To path:** `{}`".format(
                             tor_info.name,
                             human_readable_bytes(tor_info.total_size),
                             tor_info.save_path,
@@ -366,7 +366,7 @@ async def update_progress(
         except Exception as e:
             torlog.error("{}\n\n{}\n\nn{}".format(e, traceback.format_exc(), tor_info))
             try:
-                await message.edit("Error occure {}".format(e), buttons=None)
+                await message.edit("Error occurred {}".format(e), buttons=None)
             except:
                 pass
             return False
@@ -574,7 +574,7 @@ async def register_torrent(entity, message, user_msg=None, magnet=False, file=Fa
         torlog.info(torrent)
 
         if torrent.progress == 1:
-            await message.edit("The provided torrent was already completly downloaded.")
+            await message.edit("The provided torrent was already downloaded.")
             return True
         else:
             pincode = randint(1000, 9999)
