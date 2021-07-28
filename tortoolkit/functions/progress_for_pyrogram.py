@@ -86,6 +86,6 @@ async def progress_for_pyrogram(
                     caption="**Uploading:** `{}`\n{}".format(ud_type, tmp),
                     reply_markup=markup,
                 )
-            await asyncio.sleep(1)
+            await asyncio.sleep(16)
         except:
             pass
