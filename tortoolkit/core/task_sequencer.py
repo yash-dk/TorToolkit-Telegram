@@ -32,6 +32,10 @@ class TaskSequence:
     async def execute(self):
         if self._task_type == self.LEECH:
             choices = await self.get_leech_choices()
+            
+            if choices is None:
+                return
+
             torlog.info(choices)
 
             if not choices["rclone"]:
@@ -231,7 +235,12 @@ class TaskSequence:
     async def get_leech_choices(self):
         rclone = False
         tsp = time.time()
-        buts = [[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
+        buts = []
+        if get_val("LEECH_ENABLED"):
+            buts.append([KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")])
+        elif not get_val("RCLONE_ENABLED"):
+            await self._user_msg.reply("Leeching is fully disabled by Admin.")
+            return None
 
         if await RcloneUploader(None, None).get_config() is not None and get_val("RCLONE_ENABLED"):
             buts.append(
