@@ -233,7 +233,7 @@ class TaskSequence:
         tsp = time.time()
         buts = [[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
 
-        if await RcloneUploader(None, None).get_config() is not None:
+        if await RcloneUploader(None, None).get_config() is not None and get_val("RCLONE_ENABLED"):
             buts.append(
                 [KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")]
             )
