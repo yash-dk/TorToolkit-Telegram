@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
+import megasdkrestclient
 from ..core.base_task import BaseTask
 import logging
 from ..core.getVars import get_val
@@ -82,8 +83,14 @@ class MegaDownloader(BaseTask):
         mega_client = await self.init_mega_client()
 
         path = os.path.join(os.getcwd(), "Downloads", str(time.time()).replace(".",""))
-        pathlib.Path(path).mkdir(parents=True, exist_ok=True) 
-        dl_add_info = mega_client.addDl(self._link, path)
+        pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+        
+        try:
+            dl_add_info = mega_client.addDl(self._link, path)
+        except errors.MegaSdkRestClientException as e:
+            self._error_reason = str(dict(e.message)["message"]).title()
+            self._is_errored = True
+            return
         
         self._gid  = dl_add_info["gid"]
         
