@@ -35,7 +35,7 @@ async def create_status_menu(event):
     row = []
     Buttons = []
 
-    msg = "Currently Running:- \nClick on the task No. that you want to cancel.\n"
+    msg = "<b>Currently Running:-<b/>\n<b>Click on the task No. that you want to cancel.</b>\n\n"
     for i in tasks.Tasks:
         if await i.is_active():
 
@@ -104,7 +104,7 @@ async def create_status_user_menu(event):
     Buttons = []
 
     msg = (
-        "Currently Running: For You- \nClick on the task No. that you want to cancel.\n"
+        "<b>Currently Running: For You:-</b> \n<b>Click on the task No. that you want to cancel.</b>\n\n"
     )
     for i in tasks.Tasks:
         if await i.is_active():
