@@ -61,9 +61,17 @@ except:
         QBIT_PASS = "adminadmin"
         QBIT_MAX_RETRIES = 2
 
-        # The base direcory to which the files will be upload if using RCLONE
-        RCLONE_BASE_DIR = "/"
+        # Gdrive Config
+        GDRIVE_BASE_DIR = "/"
 
+        # Onedrive Config
+        ONEDRIVE_BASE_DIR = "/"
+        ONEDRIVE_BASE_FOLDER_URL = ""
+        ONEDRIVE_INDEX_URL = ""
+
+        # The base direcory to which the files will be upload if using RCLONE for other engine than GDRIVE/ONEDRIVE
+        RCLONE_BASE_DIR = "/"
+        
         # This value will be considered only if Rclone is True - this may be defied now ;)
         # Cuz at least one needs to be Ture at a time either RCLONE or Leech.
         LEECH_ENABLED = True

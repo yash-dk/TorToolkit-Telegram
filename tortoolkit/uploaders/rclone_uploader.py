@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
+from configparser import ConfigParser
 from posix import listdir
 from sys import path
 from ..core.base_task import BaseTask
@@ -14,6 +15,7 @@ import asyncio
 import json
 import time
 import re
+from urllib import parse
 from ..utils.size import calculate_size
 from requests.utils import requote_uri
 from ..status.rclone_status import RcloneStatus
@@ -56,9 +58,33 @@ class RcloneUploader(BaseTask):
             self._error_reason = "The config file not found"
             return False
         
-        dest_base = get_val("RCLONE_BASE_DIR")
-        
+        conf = ConfigParser()
+        conf.read(conf_path)
+        is_gdrive = False
+        is_odrive = False
+        is_general = False
+        general_drive_name = ""
 
+        for i in conf.sections():
+            if dest_drive == str(i):
+                if conf[i]["type"] == "drive":
+                    is_gdrive = True
+                    dest_base = get_val("GDRIVE_BASE_DIR")
+                    torlog.info("Google Drive Upload Detected.")
+                elif conf[i]["type"] == "onedrive":
+                    is_odrive = True
+                    dest_base = get_val("ONEDRIVE_BASE_DIR")
+                    torlog.info("OneDrive Upload Detected.")
+                else:
+                    is_general = True
+                    general_drive_name = conf[i]["type"]
+                    dest_base = get_val("RCLONE_BASE_DIR")
+                    torlog.info(f"{general_drive_name} Upload Detected.")
+                break
+        
+        
+        
+        ul_size = calculate_size(path)
         # this function will need a driver for him :o
 
         if not os.path.exists(path):
@@ -98,7 +124,8 @@ class RcloneUploader(BaseTask):
 
                 is_rate_limit = False
                 blank = 0
-                if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE"):
+
+                if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE") and is_gdrive:
                     while True:
                         data = rclone_pr.stderr.readline().decode()
                         data = data.strip()
@@ -125,23 +152,46 @@ class RcloneUploader(BaseTask):
                     
 
                 torlog.info("Upload complete")
-                gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path)
-                torlog.info(f"Upload folder id :- {gid}")
                 
-                folder_link = f"https://drive.google.com/folderview?id={gid[0]}"
-
-                
-                gd_index = get_val("GD_INDEX_URL")
-                index_link = None
-                if gd_index:
-                    index_link = "{}/{}/".format(gd_index.strip("/"), gid[1])
-                    index_link = requote_uri(index_link)
-                    torlog.info("index link "+str(index_link))
+                if is_gdrive:
+                    gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path)
+                    torlog.info(f"Upload folder id :- {gid}")
                     
+                    folder_link = f"https://drive.google.com/folderview?id={gid[0]}"
 
-                ul_size = calculate_size(path)
-                #transfer[0] += ul_size
-                self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(ul_size, os.path.basename(path))
+                    
+                    gd_index = get_val("GD_INDEX_URL")
+                    index_link = None
+
+                    if gd_index:
+                        index_link = "{}/{}/".format(gd_index.strip("/"), gid[1])
+                        index_link = requote_uri(index_link)
+                        torlog.info("index link "+str(index_link))
+                    
+                    #transfer[0] += ul_size
+                    self._error_reason = "Uploaded Size:- {}\nUPLOADED FOLDER :-<code>{}</code>\nTo Google Drive.".format(ul_size, os.path.basename(path))
+                
+                elif is_odrive:
+                    if ".sharepoint.com/" in get_val("ONEDRIVE_BASE_FOLDER_URL"):
+                        folder_link = get_val("ONEDRIVE_BASE_FOLDER_URL") +  parse.quote("/"+os.path.basename(path))
+                    else:
+                        gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path)
+                        ids = gid[1].split("#")
+                        folder_link = "https://onedrive.live.com/?cid={}&id={}".format(ids[0], ids[1])
+                    od_index = get_val("ONEDRIVE_INDEX_URL")
+                    index_link = None
+
+                    if od_index:
+                        index_link = "{}/{}/".format(od_index.strip("/"), parse.quote(os.path.basename(path)))
+                        index_link = requote_uri(index_link)
+                        torlog.info("index link "+str(index_link))
+                    self._error_reason = "Uploaded Size:- {}\nUPLOADED FOLDER :-<code>{}</code>\nTo OneDrive.".format(ul_size, os.path.basename(path))
+                elif is_general:
+                    folder_link = "http://localhost"
+                    index_link = None
+
+                    self._error_reason = "Uploaded Size:- {}\nUPLOADED FOLDER :-<code>{}</code>\nTo {}.".format(ul_size, os.path.basename(path), general_drive_name)
+                
                 TtkUpload().deregister_upload(self._user_msg.chat_id, self._user_msg.id)
                 if not is_rate_limit:
                     return folder_link, index_link
@@ -166,7 +216,7 @@ class RcloneUploader(BaseTask):
                 # Check for errors
                 is_rate_limit = False
                 blank = 0
-                if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE"):
+                if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE") and is_gdrive:
                     while True:
                         data = rclone_pr.stderr.readline().decode()
                         data = data.strip()
@@ -193,22 +243,50 @@ class RcloneUploader(BaseTask):
                     return False
 
                 torlog.info("Upload complete")
-                gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path,False)
-                torlog.info(f"Upload folder id :- {gid}")
+                if is_gdrive:
+                    gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path,False)
+                    torlog.info(f"Upload folder id :- {gid}")
 
-                file_link = f"https://drive.google.com/file/d/{gid[0]}/view"
-                gd_index = get_val("GD_INDEX_URL")
-                index_link = None
+                    file_link = f"https://drive.google.com/file/d/{gid[0]}/view"
+                    gd_index = get_val("GD_INDEX_URL")
+                    index_link = None
 
-                if gd_index:
-                    index_link = "{}/{}".format(gd_index.strip("/"), gid[1])
-                    index_link = requote_uri(index_link)
-                    torlog.info("index link "+str(index_link))
+                    if gd_index:
+                        index_link = "{}/{}".format(gd_index.strip("/"), gid[1])
+                        index_link = requote_uri(index_link)
+                        torlog.info("index link "+str(index_link))
+                        
+
                     
+                    #transfer[0] += ul_size
+                    self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Google Drive.".format(ul_size, os.path.basename(path))
 
-                ul_size = calculate_size(path)
-                #transfer[0] += ul_size
-                self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo Drive.".format(ul_size, os.path.basename(path))
+                elif is_odrive:
+                    base_url = get_val("ONEDRIVE_BASE_FOLDER_URL")
+                    if ".sharepoint.com/" in base_url:
+                        file_link = base_url +  parse.quote("/"+os.path.basename(path))
+                        file_link = "{}&parent={}".format(file_link, base_url.split("?id=")[-1])
+
+                    else:
+                        gid = await self.get_glink(dest_drive,dest_base,os.path.basename(path),conf_path)
+                        ids = gid[1].split("#")
+                        file_link = "https://onedrive.live.com/?cid={}&id={}".format(ids[0], ids[1])
+
+                    od_index = get_val("ONEDRIVE_INDEX_URL")
+                    index_link = None
+
+                    if od_index:
+                        index_link = "{}/{}".format(od_index.strip("/"), parse.quote(os.path.basename(path)))
+                        index_link = requote_uri(index_link)
+                        torlog.info("index link "+str(index_link))
+                    
+                    self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo OneDrive.".format(ul_size, os.path.basename(path))
+                elif is_general:
+                    file_link = "http://localhost"
+                    index_link = None
+
+                    self._error_reason = "Uploaded Size:- {}\nUPLOADED FILE :-<code>{}</code>\nTo {}.".format(ul_size, os.path.basename(path), general_drive_name)
+
                 TtkUpload().deregister_upload(self._user_msg.chat_id, self._user_msg.id) # deregister the upload here
                 if not is_rate_limit:
                     return file_link, index_link

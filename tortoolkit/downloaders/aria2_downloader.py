@@ -25,6 +25,7 @@ class Aria2Downloader(BaseTask):
         self._new_file_name = new_file_name 
         self._aloop = asyncio.get_event_loop()
         self._gid = 0
+        self._update_info = None
 
     async def get_client(self):
         
