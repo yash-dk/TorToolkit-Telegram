@@ -464,7 +464,7 @@ class RcloneController:
         status_msg.set_inactive()
         
         if self._rclone_up.is_errored:
-            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._rclone_up.get_error_reason()))
+            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._rclone_up.get_error_reason()), parse_mode="html")
         else:
             drive_link, index_link = res 
             # Add the logic to edit the message with the url buttons here only if the task was successful :)
