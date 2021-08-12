@@ -108,18 +108,18 @@ class StatusManager():
                             if str(i.get_sender_id()) == str(sender_id):
                                 temp_msg, temp_but = await i.update_now(True)
                                 local_row.append(KeyboardButtonCallback(self.get_num(counter), temp_but))
-                                counter += 1
+                                
                         else:
                             temp_msg, temp_but = await i.update_now(True)
                             local_row.append(KeyboardButtonCallback(self.get_num(counter), temp_but))
-                            counter += 1
                     
                     except:
                         torlog.exception("in update")
                         temp_msg = "Unknown Task Running....\n\n"
-                        counter += 1
+                        
                     
                     temp_msg = self.get_num(counter) + " " + temp_msg
+                    counter += 1
                     
                     if len(local_row) >= 4:
                         butts.append(local_row)
