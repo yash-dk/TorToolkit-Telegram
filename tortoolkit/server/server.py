@@ -300,6 +300,8 @@ async def e404_middleware(app, handler):
 routes.static('/static', os.path.join(os.getcwd(),"tortoolkit", "server", "static"))
 dirs_open = os.environ.get("ENABLE_WEB_FILES_VIEW",ExecVars.ENABLE_WEB_FILES_VIEW)
 if dirs_open:
+  os.makedirs("Downloads", exist_ok=True)
+  os.makedirs("userdata", exist_ok=True)
   routes.static('/downloads', os.path.join(os.getcwd(), "Downloads"),show_index=True)
   routes.static('/userdata', os.path.join(os.getcwd(), "userdata"), show_index=True)
 
