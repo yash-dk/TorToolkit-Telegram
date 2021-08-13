@@ -20,7 +20,7 @@ qbittorrent-api==2020.7.7
 requests==2.24.0
 rsa==4.7
 six==1.15.0
-Telethon==1.20
+Telethon==1.23.0
 TgCrypto==1.2.2
 torrentool==1.1.0
 urllib3==1.25.10
@@ -28,7 +28,7 @@ yarl==1.5.1
 youtube-dl
 instaloader==4.6
 natsort==7.1.0
-Pyrogram==1.1.13
+Pyrogram==1.2.9
 lxml
 beautifulsoup4>=4.8.2,<4.8.10
 speedtest-cli
