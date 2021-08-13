@@ -33,18 +33,22 @@ class RcloneUploader(BaseTask):
             self.eta = eta
             self.prg = prg
 
-    def __init__(self, path, user_msg):
+    def __init__(self, path, user_msg, dest_drive=None):
         super().__init__()
         self._path = path
         self._user_msg = user_msg
         self._rclone_pr = None
         self._current_update = None
+        self._dest_drive = dest_drive
 
     async def execute(self):
         path = self._path
         upload_db = TtkUpload()
-        dest_drive = get_val("DEF_RCLONE_DRIVE")
-        print("desttt", dest_drive)
+        if self._dest_drive is None:
+            dest_drive = get_val("DEF_RCLONE_DRIVE")
+        else:
+            dest_drive = self._dest_drive
+        
         if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE") and dest_drive == "sas_acc":
             print("in sas")
             conf_path = await self.gen_sa_rc_file()
@@ -442,11 +446,12 @@ class RcloneUploader(BaseTask):
         return self._error_reason
 
 class RcloneController:
-    def __init__(self, path, user_msg, previous_task_msg = None) -> None:
+    def __init__(self, path, user_msg, previous_task_msg = None, dest_drive = None) -> None:
         self._path = path
         self._user_msg = user_msg
         self._previous_task_msg = previous_task_msg
         self._update_msg = None
+        self._dest_drive = dest_drive
 
     async def execute(self):
         if self._previous_task_msg is not None:
@@ -454,7 +459,7 @@ class RcloneController:
         else:
             self._update_msg = await self._user_msg.reply("Starting the rclone upload.")
         
-        self._rclone_up = RcloneUploader(self._path, self._user_msg)
+        self._rclone_up = RcloneUploader(self._path, self._user_msg, self._dest_drive)
 
         status_msg = RcloneStatus(self, self._rclone_up, self._user_msg.sender_id)
         StatusManager().add_status(status_msg)

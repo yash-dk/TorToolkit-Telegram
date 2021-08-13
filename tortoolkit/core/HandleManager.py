@@ -21,8 +21,6 @@ import re,logging,time,os,psutil,shutil
 from tortoolkit import __version__
 from ..downloaders.ytdl_downloader import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_playlist
 torlog = logging.getLogger(__name__)
-from .status.status import Status
-from .status.menu import create_status_menu, create_status_user_menu
 import signal
 from PIL import Image
 from .task_sequencer import TaskSequence
@@ -709,10 +707,13 @@ async def handle_user_settings_(message):
     await handle_user_settings(message)
 
 def term_handler(signum, frame, client):
+    # TODO needs rework
+    return
+    
     torlog.info("TERM RECEIVD")
     async def term_async():
         omess = None
-        st = Status().Tasks
+        #st = Status().Tasks
         msg = "Bot Rebooting Re Add your Tasks\n\n"
         for i in st:
             if not await i.is_active():

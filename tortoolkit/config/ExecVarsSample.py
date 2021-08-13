@@ -72,6 +72,9 @@ except:
         # The base direcory to which the files will be upload if using RCLONE for other engine than GDRIVE/ONEDRIVE
         RCLONE_BASE_DIR = "/"
         
+        # Set this value to show all the remotes while leeching
+        SHOW_REMOTE_LIST = False
+        
         # This value will be considered only if Rclone is True - this may be defied now ;)
         # Cuz at least one needs to be Ture at a time either RCLONE or Leech.
         LEECH_ENABLED = True

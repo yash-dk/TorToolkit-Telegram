@@ -5,7 +5,6 @@ from tortoolkit.core.HandleManager import add_handlers
 from tortoolkit.core.getVars import get_val
 import logging,asyncio
 from tortoolkit.server.server import start_server_async
-from tortoolkit.core.status.auto_delete import del_status
 from pyrogram import Client
 from .status.status_manager import StatusManager
 try:
@@ -52,7 +51,6 @@ if __name__ == "__main__":
 
     status_mgr = StatusManager()
 
-    ttkbot.loop.create_task(del_status())
     ttkbot.loop.create_task(status_mgr.status_poller())
 
     if get_val("IS_VPS"):

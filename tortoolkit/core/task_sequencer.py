@@ -1,3 +1,4 @@
+from configparser import ConfigParser
 from functools import partial
 import os
 import time
@@ -28,6 +29,7 @@ class TaskSequence:
         self._user_msg = user_msg
         self._entity_message = entity_message
         self._task_type = task_type
+        self._dest_drive = None
 
     async def execute(self):
         if self._task_type == self.LEECH:
@@ -91,7 +93,7 @@ class TaskSequence:
                 # temp:
                 print(files)
             else:
-                rcloneup = RcloneController(dl_path, self._user_msg, prev_update_message)            
+                rcloneup = RcloneController(dl_path, self._user_msg, prev_update_message, self._dest_drive)            
                 await rcloneup.execute()
         
         elif self._task_type == self.YTDL:
@@ -122,7 +124,7 @@ class TaskSequence:
                 # temp:
                 print(files)
             else:
-                rcloneup = RcloneController(dl_path, self._user_msg, self._entity_message)            
+                rcloneup = RcloneController(dl_path, self._user_msg, self._entity_message, self._dest_drive)            
                 await rcloneup.execute()
         
         elif self._task_type == self.PYTDL:
@@ -153,7 +155,7 @@ class TaskSequence:
                 # temp:
                 print(files)
             else:
-                rcloneup = RcloneController(dl_path, self._user_msg, self._entity_message)            
+                rcloneup = RcloneController(dl_path, self._user_msg, self._entity_message, self._dest_drive)            
                 await rcloneup.execute()
 
         
@@ -242,10 +244,25 @@ class TaskSequence:
             await self._user_msg.reply("Leeching is fully disabled by Admin.")
             return None
 
-        if await RcloneUploader(None, None).get_config() is not None and get_val("RCLONE_ENABLED"):
-            buts.append(
-                [KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")]
-            )
+        rcl_config = await RcloneUploader(None, None).get_config()
+        if rcl_config is not None and get_val("RCLONE_ENABLED"):
+            if get_val("SHOW_REMOTE_LIST"):
+                conf = ConfigParser()
+                conf.read(rcl_config)
+                for j in conf.sections():
+
+                    if "team_drive" in list(conf[j]):
+                        buts.append(
+                            [KeyboardButtonCallback(f"{j} - TD",f"leechselect drive {tsp} {j}")]
+                        )
+                    else:
+                        buts.append(
+                            [KeyboardButtonCallback(f"{j} - ND",f"leechselect drive {tsp} {j}")]
+                        )
+            else:
+                buts.append(
+                    [KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")]
+                )
         # tsp is used to split the callbacks so that each download has its own callback
         # cuz at any time there are 10-20 callbacks linked for leeching XD
            
@@ -383,3 +400,5 @@ class TaskSequence:
                 lis[1] = True
         else:
             lis[1] = data[1]
+            if len(data) == 4:
+                self._dest_drive = data[3]

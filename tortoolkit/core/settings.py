@@ -18,6 +18,7 @@ TIMEOUT_SEC = 60
 # this file will contian all the handlers and code for settings
 # code can be more modular i think but not bothering now
 # todo make the code more modular
+
 no = "❌"
 yes = "✅"
 # Central object is not used its Acknowledged 
@@ -257,6 +258,17 @@ async def handle_setting_callback(e):
         mmes = await e.get_message()
         await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Mega Files Enabled.</b></u>","meganzmenu",session_id=session_id)
     
+    elif cmd[1] == "remotelist":
+        await e.answer("Done.")
+        if cmd[2] == "true":
+            val = True
+        else:
+            val = False
+        db.set_variable("SHOW_REMOTE_LIST",val)
+        SessionVars.update_var("SHOW_REMOTE_LIST",val)
+        mmes = await e.get_message()
+        await handle_settings(mmes,True,f"<b><u>Changed the value to {val} of Show rmeote list.</b></u>","rclonemenu",session_id=session_id)
+    
     elif cmd[1] == "maxmeganzsize":
         # what will a general manager require
         # answer message, type handler, value 
@@ -331,7 +343,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
 
         if rcval != "None":
             # create a all drives menu
-            if rcval == "Custom file is loaded.":
+            if "Custom file is loaded." in rcval:
                 db = tordb
                 _, fdata = db.get_variable("RCLONE_CONFIG")
                 
@@ -343,6 +355,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
                 
                 conf = configparser.ConfigParser()
                 conf.read(path)
+                
                 #menu.append([KeyboardButton("Choose a default drive from below")])
                 def_drive = get_val("DEF_RCLONE_DRIVE")
 
@@ -359,8 +372,9 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
                         menu.append(
                             [KeyboardButtonCallback(f"{prev}{j} - ND",f"settings change_drive {j} {session_id}")]
                         )
-
+        await get_bool_variable("SHOW_REMOTE_LIST", "Show all remotes while leech.", menu, "remotelist", session_id)
         await get_sub_menu("Go Back ⬅️","mainmenu",session_id,menu)
+        #await get_bool_variable("SHOW_REMOTE_LIST","Show remote in main menu.",  menu, "remotelist", session_id)
         menu.append(
             [KeyboardButtonCallback("Close Menu",f"settings selfdest {session_id}".encode("UTF-8"))]
         )
@@ -574,7 +588,7 @@ async def get_string_variable(var_name,menu,callback_name,session_id):
         db = tordb
         _, val1 = db.get_variable(var_name)
         if val1 is not None:
-            val = "Custom file is loaded."
+            val = "Custom file is loaded. (Click to load another)"
         else:
             val = "Click here to load RCLONE config."
         
