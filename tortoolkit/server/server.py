@@ -276,7 +276,8 @@ async def set_priority(request):
 
 @routes.get('/')
 async def homepage(request):
-  response = aiohttp_jinja2.render_template("index.html", request,context={"err404":False, "dirs_open":ExecVars.ENABLE_WEB_FILES_VIEW})
+  dirs_open = os.environ.get("ENABLE_WEB_FILES_VIEW",ExecVars.ENABLE_WEB_FILES_VIEW)
+  response = aiohttp_jinja2.render_template("index.html", request,context={"err404":False, "dirs_open": dirs_open})
   return response
 
 async def e404_middleware(app, handler):
@@ -284,19 +285,21 @@ async def e404_middleware(app, handler):
       try:
           response = await handler(request)
           if response.status == 404:
-              err404 = aiohttp_jinja2.render_template("index.html", request,context={"err404":True, "dirs_open":ExecVars.ENABLE_WEB_FILES_VIEW})
+              dirs_open = os.environ.get("ENABLE_WEB_FILES_VIEW",ExecVars.ENABLE_WEB_FILES_VIEW)
+              err404 = aiohttp_jinja2.render_template("index.html", request,context={"err404":True, "dirs_open":dirs_open})
               return err404
           return response
       except web.HTTPException as ex:
           if ex.status == 404:
-              err404 = aiohttp_jinja2.render_template("index.html", request,context={"err404":True, "dirs_open":ExecVars.ENABLE_WEB_FILES_VIEW})
+              dirs_open = os.environ.get("ENABLE_WEB_FILES_VIEW",ExecVars.ENABLE_WEB_FILES_VIEW)
+              err404 = aiohttp_jinja2.render_template("index.html", request,context={"err404":True, "dirs_open":dirs_open})
               return err404
           raise
   return middleware_handler
 
 routes.static('/static', os.path.join(os.getcwd(),"tortoolkit", "server", "static"))
-
-if ExecVars.ENABLE_WEB_FILES_VIEW:
+dirs_open = os.environ.get("ENABLE_WEB_FILES_VIEW",ExecVars.ENABLE_WEB_FILES_VIEW)
+if dirs_open:
   routes.static('/downloads', os.path.join(os.getcwd(), "Downloads"),show_index=True)
   routes.static('/userdata', os.path.join(os.getcwd(), "userdata"), show_index=True)
 
