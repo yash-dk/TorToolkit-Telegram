@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-import megasdkrestclient
 from ..core.base_task import BaseTask
 import logging
 from ..core.getVars import get_val
@@ -13,6 +12,7 @@ import asyncio
 import time
 import pathlib
 import os
+from functools import partial
 
 torlog = logging.getLogger(__name__)
 
@@ -26,6 +26,7 @@ class MegaDownloader(BaseTask):
         self._from_user_id = from_user_id
         self._update_info = None
         self._gid = 0
+        self._aloop = asyncio.get_event_loop()
 
     
     async def init_mega_client(self, return_pr=False):
@@ -86,7 +87,7 @@ class MegaDownloader(BaseTask):
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
         
         try:
-            dl_add_info = mega_client.addDl(self._link, path)
+            dl_add_info = await self._aloop.run_in_executor(None, partial(mega_client.addDl,self._link, path))
         except errors.MegaSdkRestClientException as e:
             self._error_reason = str(dict(e.message)["message"]).title()
             self._is_errored = True
@@ -94,14 +95,14 @@ class MegaDownloader(BaseTask):
         
         self._gid  = dl_add_info["gid"]
         
-        dl_info = mega_client.getDownloadInfo(dl_add_info["gid"])
+        dl_info = await self._aloop.run_in_executor(None, partial(mega_client.getDownloadInfo,dl_add_info["gid"]))
         
         self._path = os.path.join(dl_add_info["dir"], dl_info["name"])
         
         self._update_info = dl_info
 
         while True:
-            dl_info = mega_client.getDownloadInfo(dl_add_info["gid"])
+            dl_info = await self._aloop.run_in_executor(None, partial(mega_client.getDownloadInfo, dl_add_info["gid"]))
             if (dl_info["total_length"]/(1024*1024*1024)) > get_val("MAX_MEGA_LIMIT"):
                 await self.remove_mega_dl(self._gid) 
                 self._is_errored = True
@@ -130,7 +131,7 @@ class MegaDownloader(BaseTask):
     
     async def remove_mega_dl(self, gid):
         mega_client = await self.init_mega_client()
-        mega_client.cancelDl(gid)
+        await self._aloop.run_in_executor(None, partial(mega_client.cancelDl,gid))
 
     def get_gid(self):
         return self._gid
