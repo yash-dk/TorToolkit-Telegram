@@ -119,7 +119,7 @@ class TaskSequence:
                 return
             
             if up_dest == "tg":
-                teleup = TelegramUploader(dl_path, self._user_msg, self._entity_message)
+                teleup = TelegramUploader(dl_path, self._user_msg, await self._entity_message.get_message())
                 files = await teleup.execute()
                 # temp:
                 print(files)
@@ -150,7 +150,7 @@ class TaskSequence:
                 return
             
             if up_dest == "tg":
-                teleup = TelegramUploader(dl_path, self._user_msg, self._entity_message)
+                teleup = TelegramUploader(dl_path, self._user_msg, await self._entity_message.get_message())
                 files = await teleup.execute()
                 # temp:
                 print(files)

@@ -154,8 +154,8 @@ def add_handlers(bot: TelegramClient):
     )
 
 
-    signal.signal(signal.SIGINT, partial(term_handler,client=bot))
-    signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
+    #signal.signal(signal.SIGINT, partial(term_handler,client=bot))
+    #signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
     bot.loop.run_until_complete(booted(bot))
 
     #*********** Callback Handlers *********** 

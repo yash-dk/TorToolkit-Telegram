@@ -57,6 +57,7 @@ class TelegramUploader(BaseTask):
 
     async def execute(self):
         if self._previous_task_msg is not None:
+            print("chat id",self._previous_task_msg.chat_id," id ",self._previous_task_msg.id)
             self._previous_task_msg = await self._client.get_messages(self._previous_task_msg.chat_id, ids=self._previous_task_msg.id)
             self._update_message = await self._previous_task_msg.edit("{}\nUploading files...".format(self._previous_task_msg.text))
         else:
