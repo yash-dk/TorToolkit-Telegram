@@ -578,7 +578,7 @@ class YTDLController:
             if res is False:
                 omess = await self.user_message.get_reply_message()
                 omess.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()), buttons=None)
-                await self.omess.reply("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
+                await self.user_message.reply("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
 
                 return res
             else:
@@ -757,7 +757,7 @@ class PYTDLController:
             if res is False:
                 omess = await self.user_message.get_reply_message()
                 await omess.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()), buttons=None)
-                await self.omess.reply("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
+                await self.user_message.reply("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
 
                 return res
             else:
