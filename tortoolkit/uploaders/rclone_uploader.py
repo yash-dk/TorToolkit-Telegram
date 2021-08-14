@@ -481,7 +481,7 @@ class RcloneController:
                 buttons.append([KeyboardButtonUrl("Index URL", index_link)])
             
             await self._update_msg.delete()
-            await self._user_msg.reply(self._rclone_up.get_error_reason(), buttons=buttons, parse_mode=True)
+            await self._user_msg.reply(self._rclone_up.get_error_reason(), buttons=buttons, parse_mode="html")
 
     async def get_update_message(self):
         return self._update_msg
