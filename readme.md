@@ -7,6 +7,7 @@ The bot gets started with minimum variables and others can be set as and when ne
 ## Use master/beta branch for stable performance.
 ## The Alpha branch is still in testing and is meant for testers. Soon a stable of this version will come out.
 
+
 ## For any help join this:- [TTKDISC](https://t.me/ttkdisc)
 
 ## Whats new
@@ -26,6 +27,7 @@ The bot gets started with minimum variables and others can be set as and when ne
 - Mega files/folders name fixed.
 - Mega files can be extracted.
 - Show all mirrors at the time of leech (option in rclone settings).
+- Deployment is still the same way.
 - Many more features will be documented (if i remember XD)
 
 Table of Content
