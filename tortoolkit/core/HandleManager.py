@@ -301,7 +301,7 @@ async def handle_upcancel_cb(e):
         await e.answer("Upload has been canceled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
         db.cancel_download(data[1],data[2])
-        await e.answer("UPLOAD CANCELED IN ADMIN MODE XD ;)",alert=True)
+        await e.answer("UPLOAD CANCELED IN ADMIN MODE ;)",alert=True)
     else:
         await e.answer("Can't Cancel others upload 😡",alert=True)
 
@@ -344,7 +344,7 @@ async def callback_handler_canc(e):
         torlog.info(f"Hashid :- {hashid}")
         
         await TaskSequence(None, None, None).cancel_task(hashid, is_aria, is_mega)
-        await e.answer("Leech has been canceled in ADMIN MODE XD ;)",alert=True)
+        await e.answer("Leech has been canceled in ADMIN MODE ;)",alert=True)
     
     else:
         await e.answer("Can't Cancel others leech 😡", alert=True)
@@ -404,7 +404,7 @@ async def handle_pincode_cb(e):
         db = tor_db
         passw = db.get_password(data[1])
         if isinstance(passw,bool):
-            await e.answer("torrent expired download has been started now.")
+            await e.answer("Torrent expired...download has been started now.")
         else:
             await e.answer(f"Your Pincode is {passw}",alert=True)
 

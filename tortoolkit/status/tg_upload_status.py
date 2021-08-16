@@ -12,7 +12,7 @@ class TGUploadStatus(BaseStatus):
     async def update_now(self, get_msg = False):
 
         self._up_task = await self._downloader.get_update()
-        msg = "Telegram UP Task Running."
+        msg = "Telegram UL Task Running."
         up_msg = await self._downloader.get_update_message()
         data = "..."
         if up_msg is not None:
@@ -35,7 +35,7 @@ class TGUploadStatus(BaseStatus):
         except:
             perc = 0
         
-        msg = f"<b>Overall TG UP progress:-<b>\n"
+        msg = f"<b>Overall TG UL progress:-<b>\n"
         msg += self.progress_bar(perc) + f" - {round(perc*100, 2)}\n"
         msg += f"<b>Uploading:</b> <code>{self._up_task.current_file}</code>\n"
         
