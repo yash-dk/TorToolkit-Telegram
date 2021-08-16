@@ -556,6 +556,8 @@ class TelegramUploader(BaseTask):
         sent_message = None
         start_time = time.time()
         #
+        thumb_image_path = None
+        
         if self._user_message is not None:
             dis_thumb = self._user_db.get_variable("DISABLE_THUMBNAIL", self._user_message.sender_id)
             if dis_thumb is False or dis_thumb is None:
