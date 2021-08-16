@@ -57,9 +57,9 @@ class RcloneUploader(BaseTask):
             conf_path = await self.get_config()
         
         if conf_path is None:
-            torlog.info("The config file not found.")
+            torlog.info("The rclone config file was not found.")
             self._is_errored = True
-            self._error_reason = "The config file not found"
+            self._error_reason = "The rclone config file was not found."
             return False
         
         conf = ConfigParser()
@@ -469,7 +469,7 @@ class RcloneController:
         status_msg.set_inactive()
         
         if self._rclone_up.is_errored:
-            await self._update_msg.edit("Your Task was unsccuessful. {}".format(self._rclone_up.get_error_reason()), parse_mode="html")
+            await self._update_msg.edit("Your Task was unsuccessful. {}".format(self._rclone_up.get_error_reason()), parse_mode="html")
         else:
             drive_link, index_link = res 
             # Add the logic to edit the message with the url buttons here only if the task was successful :)

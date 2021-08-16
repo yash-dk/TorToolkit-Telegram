@@ -59,9 +59,9 @@ class TelegramUploader(BaseTask):
         if self._previous_task_msg is not None:
             print("chat id",self._previous_task_msg.chat_id," id ",self._previous_task_msg.id)
             self._previous_task_msg = await self._client.get_messages(self._previous_task_msg.chat_id, ids=self._previous_task_msg.id)
-            self._update_message = await self._previous_task_msg.edit("{}\nUploading files...".format(self._previous_task_msg.text))
+            self._update_message = await self._previous_task_msg.edit("{}\nUploading the files...".format(self._previous_task_msg.text))
         else:
-            self._update_message = await self._user_message.reply("Uploading files...")
+            self._update_message = await self._user_message.reply("Uploading the files...")
 
         self._total_files = self.get_num_of_files(self._path)
         self._num_files = 0
@@ -176,7 +176,7 @@ class TelegramUploader(BaseTask):
         #logging.info("Uploading Now:- {}".format(path))
 
         if os.path.isdir(path):
-            logging.info("Uplaoding the directory:- {}".format(path))
+            logging.info("Uploading the directory:- {}".format(path))
 
             directory_contents = os.listdir(path)
             directory_contents.sort()
@@ -187,7 +187,7 @@ class TelegramUploader(BaseTask):
             except:pass
 
             try:
-                message = await message.edit("{}\nFound **{}** files for this download.".format(message.text,len(directory_contents)))
+                message = await message.edit("{}\n\n**Found** {} **files for this Telegram Upload**".format(message.text,len(directory_contents)))
             except:
                 torlog.warning("Too much folders will stop the editing of this message")
             
@@ -245,11 +245,11 @@ class TelegramUploader(BaseTask):
                     ftype = "unknown"
                 
                 if ftype == "video":    
-                    todel = await message.reply("**FILE LAGRE THEN THRESHOLD, SPLITTING NOW...**\n`Using Algo FFMPEG VIDEO SPLIT`") 
+                    todel = await message.reply("**FILE LARGER THAN 2GB, SPLITTING NOW...**\n**Using Algo FFMPEG VIDEO SPLIT**") 
                     split_dir = await video_helpers.split_file(path,get_val("TG_UP_LIMIT"))
                     await todel.delete()
                 else:
-                    todel = await message.reply("**FILE LAGRE THEN THRESHOLD, SPLITTING NOW...**\n`Using Algo FFMPEG ZIP SPLIT`") 
+                    todel = await message.reply("**FILE LARGER THAN 2GB, SPLITTING NOW...**\n**`Using Algo FFMPEG ZIP SPLIT`**") 
                     split_dir = await zip7_utils.split_in_zip(path,get_val("TG_UP_LIMIT"))
                     await todel.delete()
                 
@@ -374,7 +374,7 @@ class TelegramUploader(BaseTask):
         uploader_id = None
         if queue is not None:
             torlog.info(f"Waiting for the worker here for {file_name}")
-            msg = await msg.edit(f"{msg.text}\nWaiting for a uploaders to get free... ")
+            msg = await msg.edit(f"{msg.text}\nWaiting for uploaders to get free... ")
             uploader_id = await queue.get()
             torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
 
@@ -430,7 +430,7 @@ class TelegramUploader(BaseTask):
                     )
                 except VideoContentTypeInvalidError:
                     attrs, _ = get_attributes(opath,force_document=True)
-                    torlog.warning("Streamable file send failed fallback to document.")
+                    torlog.warning("Streamable file send failed fallbacked to document.")
                     out_msg = await msg.client.send_file(
                         msg.to_id,
                         file=path,
@@ -484,7 +484,7 @@ class TelegramUploader(BaseTask):
                     )
         except Exception as e:
             if str(e).find("cancel") != -1:
-                torlog.info("Canceled an upload lol")
+                torlog.info("Canceled an Upload")
                 await msg.edit(f"Failed to upload {e}", buttons=None)
             else:
                 torlog.exception("In Tele Upload")
@@ -578,9 +578,9 @@ class TelegramUploader(BaseTask):
              
             if queue is not None:
                 torlog.info(f"Waiting for the worker here for {file_name}")
-                message_for_progress_display = await message_for_progress_display.edit(f"{message_for_progress_display.text}\nWaiting for a uploaders to get free... ")
+                message_for_progress_display = await message_for_progress_display.edit(f"{message_for_progress_display.text}\nWaiting for uploaders to get free... ")
                 uploader_id = await queue.get()
-                torlog.info(f"Waiting over for the worker here for {file_name} aquired worker {uploader_id}")
+                torlog.info(f"Waiting over for the worker here for {file_name} acquired worker {uploader_id}")
             
             if ftype == "video" and not force_docs:
                 metadata = extractMetadata(createParser(path))
@@ -700,7 +700,7 @@ class TelegramUploader(BaseTask):
                     os.remove(thumb)
         except Exception as e:
             if str(e).find("cancel") != -1:
-                torlog.info("Canceled an upload lol")
+                torlog.info("Canceled an Upload")
                 try:
                     await message_for_progress_display.edit(f"Failed to upload {e}")
                 except:pass

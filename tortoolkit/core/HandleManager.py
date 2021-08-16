@@ -404,7 +404,7 @@ async def handle_pincode_cb(e):
         db = tor_db
         passw = db.get_password(data[1])
         if isinstance(passw,bool):
-            await e.answer("torrent expired download has been started now.")
+            await e.answer("Torrent expired...download has been started now.")
         else:
             await e.answer(f"Your Pincode is {passw}",alert=True)
 
