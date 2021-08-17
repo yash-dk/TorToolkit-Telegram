@@ -48,7 +48,7 @@ Following are some awesome features offered by this bot:-
 # Deployment
 
 ## ***Heroku***
-## For Heroku users New repo will come after Yash Khadse Is Free and Availble .. (But This repo will work on heroku)
+## For Heroku users New repo will come after Yash Khadse Is Free and Available .. (But This repo will work on heroku)
 [![Deploy](https://telegra.ph/file/e7d224c45cf1d106a28fa.png)](heroku-deployment.md)
 
 ## ***Zeet***
