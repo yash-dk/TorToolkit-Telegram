@@ -217,7 +217,7 @@ async def general_input_manager(e,mmes,var_name,datatype,value,sender_id,sub_men
                             #SessionVars.update_var("LEECH_ENABLED",True)
                         except Exception:
                             torlog.error(traceback.format_exc())
-                            await handle_user_settings(mmes,True,f"<b><u>The conf file is invalid check logs.</b></u>",sub_menu)
+                            await handle_user_settings(mmes,True,f"<b><u>The <code>rclone.conf</code> file is invalid check logs.</b></u>",sub_menu)
                             return
                     elif var_name == "THUMBNAIL":
                         try:
