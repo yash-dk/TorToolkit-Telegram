@@ -10,6 +10,7 @@ import traceback
 from datetime import datetime
 from functools import partial
 from random import randint
+import requests
 
 import qbittorrentapi as qba
 from telethon import events
@@ -48,20 +49,10 @@ async def get_client(
     # try to connect to the server :)
     try:
         await aloop.run_in_executor(None, client.auth_log_in)
-        torlog.info("Client connected successfully to the torrent server. :)")
-        await aloop.run_in_executor(
-            None,
-            client.application.set_preferences,
-            {
-                "disk_cache": 20,
-                "incomplete_files_ext": True,
-                "max_connec": 3000,
-                "max_connec_per_torrent": 300,
-                "async_io_threads": 6,
-            },
-        )
+        torlog.info("Client connected successfully to the torrent server. 😎")
+        
         torlog.debug(
-            "Setting the cache size to 20 incomplete_files_ext:True,max_connec:3000,max_connec_per_torrent:300,async_io_threads:6"
+            "Setting the cache size to 64 incomplete_files_ext:True,max_connec:3000,max_connec_per_torrent:300,async_io_threads:8"
         )
         return client
     except qba.LoginFailed as e:
@@ -666,7 +657,7 @@ async def get_confirm_callback(e, lis):
     raise events.StopPropagation()
 
 
-# quick asycn functions
+# quick async functions
 
 
 async def get_torrent_info(client, ehash=None):
