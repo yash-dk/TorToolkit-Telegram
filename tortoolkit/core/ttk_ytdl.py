@@ -61,7 +61,7 @@ async def cli_call(cmd: Union[str, List[str]]) -> Tuple[str, str]:
 
 
 async def get_yt_link_details(url: str) -> Union[Dict[str, str], None]:
-    cmd = "youtube-dl --no-warnings --youtube-skip-dash-manifest --dump-json"
+    cmd = "yt-dlp --no-warnings --youtube-skip-dash-manifest --dump-json"
     cmd = shlex.split(cmd)
     if "hotstar" in url:
         cmd.append("--geo-bypass-country")
@@ -336,13 +336,13 @@ async def handle_ytdl_file_download(e: MessageLike):
                                 is_audio = True
 
             if data[1].endswith("K"):
-                cmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{op_dir}/%(title)s.%(ext)s' {yt_url}"
+                cmd = f"yt-dlp -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{op_dir}/%(title)s.%(ext)s' {yt_url}"
 
             else:
                 if is_audio:
-                    cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]} -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+                    cmd = f"yt-dlp --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]} -o {op_dir}/%(title)s.%(ext)s {yt_url}"
                 else:
-                    cmd = f"youtube-dl --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
+                    cmd = f"yt-dlp --continue --embed-subs --no-warnings --hls-prefer-ffmpeg --prefer-ffmpeg -f {data[1]}+bestaudio[ext=m4a]/best -o {op_dir}/%(title)s.%(ext)s {yt_url}"
 
             out, err = await cli_call(cmd)
 
@@ -407,7 +407,7 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         return
     url = await e.get_reply_message()
     url = url.text.strip()
-    cmd = f"youtube-dl -i --flat-playlist --dump-single-json {url}"
+    cmd = f"yt-dlp -i --flat-playlist --dump-single-json {url}"
 
     tsp = time.time()
     buts = [[KeyboardButtonCallback("To Telegram", data=f"ytdlselect tg {tsp}")]]
@@ -553,7 +553,7 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
         url = pldata.get("webpage_url")
 
         if data[1].endswith("k"):
-            audcmd = f"youtube-dl -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
+            audcmd = f"yt-dlp -i --extract-audio --add-metadata --audio-format mp3 --audio-quality {data[1]} -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
             out, err = await cli_call(audcmd)
 
             ofiles = len(os.listdir(opdir))
@@ -581,9 +581,9 @@ async def handle_ytdl_playlist_down(e: MessageLike) -> None:
 
         else:
             if data[1] == "best":
-                vidcmd = f"youtube-dl -i --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
+                vidcmd = f"yt-dlp -i --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
             else:
-                vidcmd = f"youtube-dl -i --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4,height<={data[1]}]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
+                vidcmd = f"yt-dlp -i --continue --embed-subs --no-warnings --prefer-ffmpeg -f 'bestvideo[ext=mp4,height<={data[1]}]+bestaudio[ext=m4a]/best' -o '{opdir}/%(playlist_index)s - %(title)s.%(ext)s' {url}"
             out, err = await cli_call(vidcmd)
 
             ofiles = len(os.listdir(opdir))
