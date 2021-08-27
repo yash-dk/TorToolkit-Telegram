@@ -52,7 +52,7 @@ async def get_client(
         torlog.info("Client connected successfully to the torrent server. 😎")
         
         torlog.debug(
-            "Setting the cache size to 64 incomplete_files_ext:True,max_connec:3000,max_connec_per_torrent:300,async_io_threads:8"
+            "Setting the cache size to 64 incomplete_files_ext:True,max_connec:3000,max_connec_per_torrent:300,async_io_threads:6"
         )
         return client
     except qba.LoginFailed as e:

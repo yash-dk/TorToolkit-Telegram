@@ -1,12 +1,10 @@
-# [Join XcodersHub Group for DEMO](https://t.me/XcodersHubSupport)
-
 # TorToolkit Telegram
-So basically Tortoolkit is aimed to be the most versatile torrent leecher and yt-dlp bot for telegram. This bot is highly customizable and to customize this bot you don't need to restart the bot every time. 
+So basically Tortoolkit is aimed to be the most versatile torrent leecher and youtube-dl bot for telegram. This bot is highly customizable and to customize this bot you don't need to restart the bot every time. 
 The bot gets started with minimum variables and others can be set as and when needed using the /settings.
-## Use master branch if you encounter some issues and report the same.
-## Use beta branch if you want to try latest features.
 
-## For any help join this:- [Xcodershub](https://t.me/XcodersHub)
+## Use [Alpha](https://github.com/XcodersHub/TorToolkitX/tree/alpha) branch if you want to try latest features.
+
+## For any help join this:- [Xcodershub](https://t.me/XcodersHubChat)
 
 ## Whats new
 - MegaDL added
@@ -257,9 +255,12 @@ Steps:-
 - `USER_CAP_ENABLE` : Work in progress
 - `USER_CAP_LIMIT` : Work in progress
 
-- To modify QBT engine Preferences and QBT trackers ...Please check `qBittorrent.conf` in root of the repo..
+- `QBitTorrent Configurations`
+  - To modify QBT engine Preferences ... Please check `qBittorrent.conf` in root of the repo..
+  - To modify Trackers for QBT ... Please check `start.sh` file in root of the repo.. or [click here](https://github.com/XcodersHub/TorToolkitX/blob/master/start.sh#L2) to see.
 
-## **Rest Variables are not to be changed** 
+
+## **Rest Variables are not to be changed**
 
 ## Commands
 
@@ -283,9 +284,9 @@ Steps:-
      
 
 # Credits
-[AmirulAndalib](https://github.com/AmirulAndalib) for modding
+[Yash-DK](https://github.com/yash-dk) Owner of TorToolkit Repository
 
-[Yash-DK](https://github.com/yash-dk)
+[AmirulAndalib](https://github.com/AmirulAndalib) for modding
 
 [Lonami](https://github.com/LonamiWebs/Telethon/) for awesome Telethon
 
