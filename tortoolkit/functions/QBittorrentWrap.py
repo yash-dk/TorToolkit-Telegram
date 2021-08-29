@@ -10,7 +10,6 @@ import traceback
 from datetime import datetime
 from functools import partial
 from random import randint
-import requests
 
 import qbittorrentapi as qba
 from telethon import events
@@ -72,7 +71,7 @@ async def get_client(
                 port
             )
         )
-        cmd = f"qbittorrent-nox -d --webui-port={port}"
+        cmd = f"qbittorrent-nox -d --webui-port={port} --profile=."
         cmd = cmd.split(" ")
 
         subpr = await aio.create_subprocess_exec(
@@ -166,7 +165,7 @@ async def add_torrent_file(path, message):
 
         if len(ext_res) > 0:
             torlog.info(f"This torrent is in list {ext_res} {path} {ext_hash}")
-            await message.edit("This torrent is alreaded in the leech list.")
+            await message.edit("This torrent is already added in the leech list.")
             return False
 
         # hot fix for the below issue

@@ -1,5 +1,5 @@
 while true
 do
-    sleep 25m
+    sleep 12m
     wget -q -O/dev/null $BASE_URL_OF_BOT
 done
