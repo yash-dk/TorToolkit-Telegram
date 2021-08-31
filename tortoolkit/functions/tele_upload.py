@@ -285,11 +285,13 @@ async def upload_a_file(
         user_msg = await message.get_reply_message()
 
     # todo improve this uploading ✔️
+    os.rename(path,f'{os.path.dirname(path)}/@PM {os.path.basename(path)}')
+    path = f'{os.path.dirname(path)}/@PM {os.path.basename(path)}'
     file_name = ""
     file_name += os.path.basename(path)
     caption_str = ""
     caption_str += file_name
-    caption_str += "<br><b>@popcornmania</b>"
+    caption_str += ""
     metadata = extractMetadata(createParser(path))
 
     if metadata is not None:
@@ -488,7 +490,9 @@ async def upload_single_file(
         return None
 
     queue = message.client.exqueue
-
+    
+    os.rename(path,f'{os.path.dirname(path)}/@PM {os.path.basename(path)}')
+    path = f'{os.path.dirname(path)}/@PM {os.path.basename(path)}'
     file_name = ""
     file_name += os.path.basename(path)
     caption_str = ""
