@@ -285,11 +285,10 @@ async def upload_a_file(
         user_msg = await message.get_reply_message()
 
     # todo improve this uploading ✔️
-    file_name = os.path.basename(path)
+    file_name = "@PM "
+    file_name += os.path.basename(path)
     caption_str = ""
-    caption_str += "<code>"
     caption_str += file_name
-    caption_str += "</code>"
     metadata = extractMetadata(createParser(path))
 
     if metadata is not None:
