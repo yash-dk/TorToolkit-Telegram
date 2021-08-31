@@ -285,10 +285,11 @@ async def upload_a_file(
         user_msg = await message.get_reply_message()
 
     # todo improve this uploading ✔️
-    file_name = "@PM "
+    file_name = ""
     file_name += os.path.basename(path)
     caption_str = ""
     caption_str += file_name
+    caption_str += "<br><b>@popcornmania</b>"
     metadata = extractMetadata(createParser(path))
 
     if metadata is not None:
@@ -488,10 +489,11 @@ async def upload_single_file(
 
     queue = message.client.exqueue
 
-    file_name = "@PM "
+    file_name = ""
     file_name += os.path.basename(path)
     caption_str = ""
     caption_str += file_name
+    caption_str += "<br><b>@popcornmania</b>"
 
     if user_msg is None:
         user_msg = await message.get_reply_message()
