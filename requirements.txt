@@ -8,7 +8,7 @@ certifi==2020.6.20
 cffi==1.14.1
 chardet==3.0.4
 cryptg==0.2.post2
-gunicorn==20.0.4
+gunicorn
 hachoir==3.1.1
 Pillow>=8.1.1
 psutil==5.8.0
@@ -22,8 +22,8 @@ rsa==4.7
 six==1.15.0
 Telethon==1.20
 TgCrypto==1.2.2
-torrentool==1.1.0
-urllib3==1.25.10
+torrentool
+urllib3
 yarl==1.5.1
 yt-dlp
 instaloader==4.6
