@@ -3,6 +3,7 @@ try:
 except:
 
     class ExecVars:
+        PREFIX = "" # your prefix here
         # Set true if its VPS
         IS_VPS = False
 
