@@ -257,6 +257,8 @@ Steps:-
 
 - `QBitTorrent Configurations`
   - To modify QBT engine Preferences ... Please check `qBittorrent.conf` in root of the repo..
+  - To modify Trackers for QBT ... Please check `start.sh` file in root of the repo.. or [click here](https://github.com/XcodersHub/TorToolkitX/blob/master/start.sh#L2) to see.
+
 
 
 ## **Rest Variables are not to be changed**
