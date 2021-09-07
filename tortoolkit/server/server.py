@@ -659,7 +659,7 @@ async def re_verfiy(paused,resumed,client,torr):
         else:
             break
         k += 1
-        if k >= 4:
+        if k = 4:
             # avoid an infite loop here
             return False
     return True
