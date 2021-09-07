@@ -131,7 +131,7 @@ Steps:-
 
 	Assuming that you are in the directory where you clonned the repo
 	   
-    1. `cd TorToolkit-Telegram/tortoolkit/consts`
+    1. `cd TorToolkit-Telegram/tortoolkit/config`
 	2. `nano ExecVarsSample.py`
     3. Change the following:-
        1.  `API_HASH`
