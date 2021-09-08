@@ -14,7 +14,7 @@ class Extractor:
         self._user_message = user_message
 
     async def execute(self):
-        self._update_message = self._update_message.client.get_messages(self._update_message.chat_id,ids=self._update_message.id)
+        self._update_message = await self._update_message.client.get_messages(self._update_message.chat_id,ids=self._update_message.id)
 
         password = self._update_message.client.dl_passwords.get(self._user_message.id)
         if password is not None:
