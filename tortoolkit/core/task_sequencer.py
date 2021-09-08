@@ -69,7 +69,7 @@ class TaskSequence:
                     if extracted_path is not False:
                         dl_path = extracted_path
                 else:
-                    arch_obj = Archiver(dl_path,  prev_update_message, self._user_msg)
+                    arch_obj = Archiver(dl_path,  prev_update_message, self._user_msg,  not choices["rclone"])
                     archived_path = await arch_obj.execute()
                     if archived_path is not False:
                         dl_path = archived_path
@@ -82,7 +82,7 @@ class TaskSequence:
                         dl_path = extracted_path
                 
             elif choices["zip"]:
-                arch_obj = Archiver(dl_path,  prev_update_message, self._user_msg)
+                arch_obj = Archiver(dl_path,  prev_update_message, self._user_msg, not choices["rclone"])
                 archived_path = await arch_obj.execute()
                 if archived_path is not False:
                     dl_path = archived_path
