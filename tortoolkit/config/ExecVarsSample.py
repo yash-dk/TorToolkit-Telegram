@@ -60,6 +60,8 @@ except:
         QBIT_UNAME = "admin"
         QBIT_PASS = "adminadmin"
         QBIT_MAX_RETRIES = 2
+        ADD_CUSTOM_TRACKERS = True
+        TRACKER_SOURCE = "https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt"
 
         # Gdrive Config
         GDRIVE_BASE_DIR = "/"
