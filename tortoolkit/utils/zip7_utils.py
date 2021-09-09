@@ -110,7 +110,9 @@ def get_size(start_path = '.'):
 async def extract_archive(path, password=""):
     if os.path.exists(path):
         if os.path.isfile(path):
-            if str(path).endswith((".zip", "7z", "tar", "gzip2", "iso", "wim", "rar", "tar.gz","tar.bz2")):
+            valid_exts = (".zip", ".7z", ".tar", ".gzip2", ".iso", ".wim", ".rar", ".tar.gz",".tar.bz2")
+            if str(path).endswith(valid_exts):
+                
                 # check userdata
                 userpath = os.path.join(os.getcwd(), "userdata")
                 if not os.path.exists(userpath):
@@ -120,6 +122,10 @@ async def extract_archive(path, password=""):
                 os.mkdir(extpath)
                 
                 extpath = os.path.join(extpath,os.path.basename(path))
+                for i in valid_exts:
+                    li = extpath.rsplit(i, 1)
+                    extpath = "".join(li)
+
                 if not os.path.exists(extpath):
                     os.mkdir(extpath)
 

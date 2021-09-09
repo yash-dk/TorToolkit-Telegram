@@ -19,6 +19,7 @@ class Extractor:
         password = self._update_message.client.dl_passwords.get(self._user_message.id)
         if password is not None:
             password = password[1]
+        
         start = time.time()
         await self._update_message.edit(f"{self._update_message.text}\nTrying to Extract the archive with password: `{password}`")
         wrong_pwd = False
