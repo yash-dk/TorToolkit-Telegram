@@ -444,8 +444,7 @@ async def handle_resumeall_command(e):
 async def handle_settings_command(e):
     if await is_admin(e.client, e.sender_id, e.chat_id):
         await handle_settings(e)
-    else:
-        await e.delete()
+    await e.delete()
 
 
 async def handle_status_command(e):
@@ -457,10 +456,12 @@ async def handle_status_command(e):
             await get_status(e)
     else:
         await create_status_menu(e)
+    await e.delete()
 
 
 async def handle_u_status_command(e):
     await create_status_user_menu(e)
+    await e.delete()             
 
 
 async def speed_handler(e):
@@ -897,6 +898,7 @@ async def handle_user_settings_(message):
             return
 
     await handle_user_settings(message)
+    await e.delete()
 
 
 def term_handler(signum, frame, client):
