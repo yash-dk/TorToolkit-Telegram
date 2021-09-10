@@ -9,7 +9,7 @@
 
 
 
-### 👉Pre Requisites🥱
+### 👉Pre Requisites
 1️⃣ [Heroku Account](https://heroku.com) --- **mostly importantly needed for heroku api key and deployment**
 
 2️⃣ [Rclone Config](https://rclone.com) --- **Not Mandatory**  **but if you want the files to be uploaded to cloud you will need rclone config**
