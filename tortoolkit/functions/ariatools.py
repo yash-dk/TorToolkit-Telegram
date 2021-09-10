@@ -143,7 +143,7 @@ async def aria_dl(incoming_link, c_file_name, sent_message_to_update_tg_p, user_
     elif incoming_link.lower().endswith(".torrent"):
         # sagtus, err_message = await add_torrent(aria_instance, incoming_link)
         # sagtus, err_message = await add_url(aria_instance, incoming_link, c_file_name)
-        await ar_task.set_inactive("Cant download this .torrent file")
+        await ar_task.set_inactive("Can't download this .torrent file")
         return False, ar_task
     else:
         sagtus, err_message = await add_url(aria_instance, incoming_link, c_file_name)
@@ -184,7 +184,7 @@ async def aria_dl(incoming_link, c_file_name, sent_message_to_update_tg_p, user_
 
     if op is None:
         await ar_task.set_inactive(
-            "Known error. Nothing wrong here. You didnt follow instructions."
+            "Known error. Nothing wrong here. You didn't follow instructions."
         )
         return False, ar_task
     else:
@@ -219,8 +219,8 @@ async def check_progress_for_dl(
             else:
                 msg = file.error_message
                 await event.edit(f"`{msg}`", parse_mode="html", buttons=None)
-                torlog.error(f"The aria download faild due to this reason:- {msg}")
-                return False, f"The aria download faild due to this reason:- {msg}"
+                torlog.error(f"The aria download failed due to this reason:- {msg}")
+                return False, f"The aria download failed due to this reason:- {msg}"
             await asyncio.sleep(get_val("EDIT_SLEEP_SECS"))
 
             # TODO idk not intrested in using recursion here
