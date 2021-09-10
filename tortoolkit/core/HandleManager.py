@@ -898,7 +898,7 @@ async def handle_user_settings_(message):
             return
 
     await handle_user_settings(message)
-    await e.delete()
+    await message.delete()
 
 
 def term_handler(signum, frame, client):
