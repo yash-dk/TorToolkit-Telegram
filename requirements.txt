@@ -1,4 +1,4 @@
-aiohttp==3.7.4
+aiohttp
 anytree==2.8.0
 aria2p==0.9.1
 async-timeout==3.0.1
@@ -17,7 +17,7 @@ pyaes==1.6.1
 pyasn1==0.4.8
 pycparser==2.20
 qbittorrent-api
-requests==2.24.0
+requests
 rsa==4.7
 six==1.15.0
 Telethon==1.20
@@ -26,7 +26,7 @@ torrentool
 urllib3
 yarl==1.5.1
 yt-dlp
-instaloader==4.6
+instaloader
 natsort==7.1.0
 Pyrogram==1.1.13
 lxml

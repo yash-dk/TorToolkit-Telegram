@@ -126,7 +126,7 @@ async def create_quality_menu(
         return None, err
     else:
         unique_formats = dict()
-        for i in data.get("formats"):
+        for i in data.get("formats",[]):
             c_format = i.get("format_note")
             if c_format is None:
                 c_format = i.get("height")
@@ -237,7 +237,7 @@ async def handle_ytdl_callbacks(e: MessageLike):
                         )
                 else:
                     j = 0
-                    for i in ytdata.get("formats"):
+                    for i in ytdata.get("formats",[]):
                         c_format = i.get("format_note")
                         format_id = i.get("format_id")
                         height = i.get("format")
@@ -323,12 +323,12 @@ async def handle_ytdl_file_download(e: MessageLike):
                 data[1] = data[1].replace("xxother", "")
                 data[1] = int(data[1])
                 j = 0
-                for i in ytdata.get("formats"):
+                for i in ytdata.get("formats",[]):
                     if j == data[1]:
                         data[1] = i.get("format_id")
                     j += 1
             else:
-                for i in ytdata.get("formats"):
+                for i in ytdata.get("formats",[]):
                     if i.get("format_id") == data[1]:
                         print(i)
                         if i.get("acodec") is not None:
