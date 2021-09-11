@@ -1,4 +1,4 @@
-aiohttp==3.7.4
+aiohttp
 anytree==2.8.0
 aria2p==0.9.1
 async-timeout==3.0.1
@@ -8,7 +8,7 @@ certifi==2020.6.20
 cffi==1.14.1
 chardet==3.0.4
 cryptg==0.2.post2
-gunicorn==20.0.4
+gunicorn
 hachoir==3.1.1
 Pillow>=8.1.1
 psutil==5.8.0
@@ -16,17 +16,17 @@ psycopg2-binary==2.8.5
 pyaes==1.6.1
 pyasn1==0.4.8
 pycparser==2.20
-qbittorrent-api==2020.7.7
-requests==2.24.0
+qbittorrent-api
+requests
 rsa==4.7
 six==1.15.0
 Telethon==1.23.0
 TgCrypto==1.2.2
-torrentool==1.1.0
-urllib3==1.25.10
+torrentool
+urllib3
 yarl==1.5.1
 youtube-dl
-instaloader==4.6
+instaloader
 natsort==7.1.0
 Pyrogram==1.2.9
 lxml

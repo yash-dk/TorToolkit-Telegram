@@ -80,11 +80,6 @@ class QbittorrentDownloader(BaseTask):
                 tracker_data = ""
 
             qbaconf = {
-                "disk_cache":20,
-                "incomplete_files_ext":True,
-                "max_connec":3000,
-                "max_connec_per_torrent":300,
-                "async_io_threads":6,
                 "add_trackers_enabled":True,
                 "add_trackers":tracker_data
             }
@@ -95,7 +90,7 @@ class QbittorrentDownloader(BaseTask):
             return client
 
         except qba.LoginFailed as e:
-            torlog.exception("An errot occured invalid creds detected")
+            torlog.exception("An error occurred invalid creds detected")
             return None
 
         except qba.APIConnectionError:
@@ -104,7 +99,7 @@ class QbittorrentDownloader(BaseTask):
                 return None
             
             torlog.info("Oddly enough the qbittorrent server is not running.... Attempting to start at port {}".format(port))
-            cmd = f"qbittorrent-nox -d --webui-port={port}"
+            cmd = f"qbittorrent-nox -d --webui-port={port} --profile=."
             cmd = cmd.split(" ")
 
             subpr = await asyncio.create_subprocess_exec(*cmd,stderr=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE)
