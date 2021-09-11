@@ -285,11 +285,7 @@ async def upload_a_file(
         user_msg = await message.get_reply_message()
 
     # todo improve this uploading ✔️
-    prefix = get_val("PREFIX")
-    os.rename(path,f'{os.path.dirname(path)}/{prefix} {os.path.basename(path)}')
-    path = f'{os.path.dirname(path)}/{prefix} {os.path.basename(path)}'
-    file_name = ""
-    file_name += os.path.basename(path)
+    file_name = os.path.basename(path)
     caption_str = ""
     caption_str += "<code>"
     caption_str += file_name
@@ -492,15 +488,12 @@ async def upload_single_file(
         return None
 
     queue = message.client.exqueue
-    
-    prefix = get_val("PREFIX")
-    os.rename(path,f'{os.path.dirname(path)}/{prefix} {os.path.basename(path)}')
-    path = f'{os.path.dirname(path)}/{prefix} {os.path.basename(path)}'
-    file_name = ""
-    file_name += os.path.basename(path)
+
+    file_name = os.path.basename(path)
     caption_str = ""
+    caption_str += "<code>"
     caption_str += file_name
-    caption_str += ""
+    caption_str += "</code>"
 
     if user_msg is None:
         user_msg = await message.get_reply_message()
@@ -514,7 +507,7 @@ async def upload_single_file(
         force_docs = get_val("FORCE_DOCUMENTS")
 
     # Avoid Flood in Express
-    await asyncio.sleep(6)
+    await asyncio.sleep(15)
 
     metadata = extractMetadata(createParser(path))
 
