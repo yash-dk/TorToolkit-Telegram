@@ -2,12 +2,16 @@ import asyncio
 import os
 import re
 import shutil
+import logging
 
-from instaloader import Instaloader, LoginRequiredException, NodeIterator, Post, Profile
+from instaloader import Instaloader, LoginRequiredException, NodeIterator, Post, Profile, BadCredentialsException, TwoFactorAuthRequiredException, ConnectionException, TooManyRequestsException
 from natsort import natsorted
 from telethon.errors import FloodWaitError
 
 from ..core.thumb_manage import get_thumbnail
+from ..core.getVars import get_val
+
+torlog = logging.getLogger(__name__)
 
 # Thanks TO https://github.com/UsergeTeam/Userge/blob/alpha/userge/plugins/misc/instadl.py
 
@@ -157,10 +161,25 @@ async def _insta_post_downloader(message):
         save_metadata=False,
         compress_json=False,
     )
-    if False:
-        # add auth code here
-        pass
+    if get_val("INSTA_UNAME") is not None and get_val("INSTA_PASS") is not None:
+        login = True
     else:
+        login = False
+
+    if login:
+        try: 
+            insta.login(get_val("INSTA_UNAME"), get_val("INSTA_PASS"))
+            torlog.info("InstaDL running in Logged Mode")
+        except (
+            BadCredentialsException,
+            TwoFactorAuthRequiredException,
+            ConnectionException,
+            TooManyRequestsException,
+        ) as e:
+            await message.edit(f"**InstaDL ERROR:** " + str(e))
+            torlog.warning(str(e))
+    else:
+        torlog.info("Insta-DL running without credentials")
         await message.edit(
             "Login Credentials not found.\n`[NOTE]`: "
             "**Private stuff will not be downloaded**"

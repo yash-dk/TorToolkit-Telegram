@@ -52,6 +52,10 @@ except:
 
         # The base direcory to which the files will be upload if using RCLONE
         RCLONE_BASE_DIR = "/"
+        
+        # Instagram Credentials Stuff [( if you want InstaDL to work :)]
+        INSTA_UNAME = ""
+        INSTA_PASS = ""
 
         # This value will be considered only if Rclone is True - this may be defied now ;)
         # Cuz at least one needs to be Ture at a time either RCLONE or Leech.
