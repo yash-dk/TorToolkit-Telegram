@@ -76,6 +76,10 @@ except:
         # Max size of the torrent allowed
         MAX_TORRENT_SIZE = 10
 
+        # Custom Trackers for QBT..
+        ADD_CUSTOM_TRACKERS = True
+        TRACKER_SOURCE = "https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt"
+
         # Set this to your bot username if you want to add the username of your bot at the end of the commands like
         # /leech@TorToolkitBot so the value will be @TorToolkitBot
         BOT_CMD_POSTFIX = ""

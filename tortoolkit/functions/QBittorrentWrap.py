@@ -7,6 +7,7 @@ import logging
 import os
 import time
 import traceback
+import aiohttp
 from datetime import datetime
 from functools import partial
 from random import randint
@@ -49,7 +50,28 @@ async def get_client(
     try:
         await aloop.run_in_executor(None, client.auth_log_in)
         torlog.info("Client connected successfully to the torrent server. 😎")
-        
+        try:
+            if get_val("ADD_CUSTOM_TRACKERS"):
+
+                url = get_val("TRACKER_SOURCE")
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as resp:
+                        tracker_data = await resp.text()
+            else:
+                tracker_data = ""
+        except:
+            tracker_data = ""
+
+        qbt_trackers_confirmation = get_val("ADD_CUSTOM_TRACKERS")
+
+        await aloop.run_in_executor(
+            None,
+            client.application.set_preferences,
+            {
+                "add_trackers_enabled":qbt_trackers_confirmation,
+                "add_trackers":tracker_data
+            },
+        )
         torlog.debug(
             "Setting the cache size to 64 incomplete_files_ext:True,max_connec:3000,max_connec_per_torrent:300,async_io_threads:6"
         )

@@ -50,7 +50,8 @@ class VarHolder:
             "FORCE_DOCUMENTS",
             "LEECH_ENABLED",
             "RCLONE_ENABLED",
-            "USETTINGS_IN_PRIVATE",
+            "USETTINGS_IN_PRIVATE"
+            "ADD_CUSTOM_TRACKERS",
         ]
 
         if variable == "ALD_USR":
