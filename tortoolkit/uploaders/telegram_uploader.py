@@ -3,6 +3,7 @@
 
 import asyncio
 from functools import partial
+from ..utils.misc_utils import clear_stuff
 
 from pyrogram.types import InputMediaDocument, InputMediaVideo, InputMediaPhoto, InputMediaAudio, InlineKeyboardButton, InlineKeyboardMarkup
 from ..core.base_task import BaseTask
@@ -77,6 +78,7 @@ class TelegramUploader(BaseTask):
 
         status_mgr.set_inactive()
         await self.print_files()
+        await clear_stuff(self._path)
         
         return self.files_dict
 

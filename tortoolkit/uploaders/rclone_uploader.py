@@ -21,6 +21,7 @@ from requests.utils import requote_uri
 from ..status.rclone_status import RcloneStatus
 from ..status.status_manager import StatusManager
 from ..database.dbhandler import TorToolkitDB
+from ..utils.misc_utils import clear_stuff
 
 
 torlog = logging.getLogger(__name__)
@@ -468,6 +469,7 @@ class RcloneController:
         res = await self._rclone_up.execute()
         status_msg.set_inactive()
         
+        clear_stuff(self._path)
         if self._rclone_up.is_errored:
             await self._update_msg.edit("Your Task was unsuccessful. {}".format(self._rclone_up.get_error_reason()), parse_mode="html")
         else:
