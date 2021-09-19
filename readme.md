@@ -259,6 +259,12 @@ Steps:-
   - To modify QBT engine Preferences ... Please check `qBittorrent.conf` in root of the repo..
   - To modify Trackers for QBT ... Please check `start.sh` file in root of the repo.. or [click here](https://github.com/XcodersHub/TorToolkitX/blob/master/start.sh#L2) to see.
 
+- `Instagram Stuff`
+  - `INSTA_UNAME` it is for instagram login put your instagram username.
+  - `INSTA_PASS`  it is for instagram login put your instagram password.
+  - without credentials instagram wont work whether post is public or private.
+  - when passing passing instagram links to bot make sure it is like `https://www.instagram.com/p/CToApjNsHql/` or like `https://www.instagram.com/p/CToApjNsHql` dont pass any flags like `https://www.instagram.com/p/CToApjNsHql/?utm_medium=copy_link`....
+
 
 
 ## **Rest Variables are not to be changed**
