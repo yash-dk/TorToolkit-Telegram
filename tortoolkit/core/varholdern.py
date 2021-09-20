@@ -37,8 +37,34 @@ class VarHolder:
         #Get the variable form the env [overlap]
         #try:
         envval = os.environ.get(variable)
-        INTS = ["EDIT_SLEEP_SECS", "MAX_TORRENT_SIZE", "MAX_YTPLAYLIST_SIZE", "TG_UP_LIMIT", "API_ID", "STATUS_DEL_TOUT", "TOR_MAX_TOUT", "OWNER_ID", "QBIT_PORT", "QBIT_MAX_RETRIES", "SERVPORT","MAX_DL_LINK_SIZE"]
-        BOOLS = ["FORCE_DOCUMENTS", "LEECH_ENABLED", "RCLONE_ENABLED", "USETTINGS_IN_PRIVATE", "MEGA_ENABLE", "ENABLE_BETA_YOUTUBE_DL", "ENABLE_WEB_FILES_VIEW", "CENTRAL_UPDATE", "ENABLE_SA_SUPPORT_FOR_GDRIVE", "ADD_CUSTOM_TRACKERS"]
+        INTS = [
+            "EDIT_SLEEP_SECS", 
+            "MAX_TORRENT_SIZE", 
+            "MAX_YTPLAYLIST_SIZE", 
+            "TG_UP_LIMIT", 
+            "API_ID", 
+            "STATUS_DEL_TOUT", 
+            "TOR_MAX_TOUT", 
+            "OWNER_ID", 
+            "QBIT_PORT", 
+            "QBIT_MAX_RETRIES", 
+            "SERVPORT", 
+            "MAX_DL_LINK_SIZE"
+        ]
+        
+        BOOLS = [
+            "FORCE_DOCUMENTS", 
+            "LEECH_ENABLED", 
+            "RCLONE_ENABLED", 
+            "USETTINGS_IN_PRIVATE", 
+            "MEGA_ENABLE", 
+            "ENABLE_BETA_YOUTUBE_DL", 
+            "ENABLE_WEB_FILES_VIEW", 
+            "CENTRAL_UPDATE", 
+            "ENABLE_SA_SUPPORT_FOR_GDRIVE", 
+            "ADD_CUSTOM_TRACKERS", 
+            "USE_RAR_SPLIT"
+        ]
 
         if variable == "ALD_USR":
             if envval is not None:

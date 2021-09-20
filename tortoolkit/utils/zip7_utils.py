@@ -62,7 +62,7 @@ async def split_in_zip(path,size=None):
     else:
         return None
 
-async def add_to_zip(path, size = None, split = True):
+async def add_to_zip(path, size = None, split = True, use_rar=False):
     if os.path.exists(path):
         fname = os.path.basename(path)
         bdir = os.path.dirname(path)
@@ -82,9 +82,15 @@ async def add_to_zip(path, size = None, split = True):
 
         total_size = get_size(path)
         if total_size > size and split:
-            cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}" -v{size}m'
+            if use_rar:
+                cmd = f'rar a -m0 -v{size}m "{bdir}/{fname}.rar" "{path}"'
+            else:
+                cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}" -v{size}m'
         else:
-            cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}"'
+            if use_rar:
+                cmd = f'rar a -m0 "{bdir}/{fname}.rar" "{path}"'
+            else:
+                cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}"'
     
         _, err, rcode = await cli_call(cmd)
         
