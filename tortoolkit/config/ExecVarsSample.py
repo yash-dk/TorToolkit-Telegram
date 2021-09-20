@@ -108,6 +108,8 @@ except:
 
         SA_ACCOUNT_NUMBER = 0
 
+        UPTOBOX_TOKEN = ""
+
         # Name of the RCLONE drive from the config
         DEF_RCLONE_DRIVE = ""
 

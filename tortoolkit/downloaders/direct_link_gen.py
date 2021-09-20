@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
-
+# Thanks to slam-mirrorbot for some extractor logic in this file.
 import re
 import aiohttp
 import urllib.parse
 import logging
 from bs4 import BeautifulSoup
+from ..core.getVars import get_val
 from ..core.base_task import BaseTask
 
 torlog = logging.getLogger(__name__)
@@ -22,7 +23,8 @@ class DLGen(BaseTask):
             self._is_errored = True
             self._error_reason = "**ERROR:** Unsupported URL!"
             return False
-        
+        elif 'youtube.com' in url or 'youtu.be' in url:
+            return await self.youtube_in_leech()
         #mediafire.com
         elif 'mediafire.com' in url:
             return await self.mediafile_dl()
@@ -41,6 +43,10 @@ class DLGen(BaseTask):
         
         elif 'pixeldrain.com' in url:
             return await self.pixeldrain_dl()
+        
+        elif 'uptobox.com' in url:
+            return await self.uptobox_dl()
+        
         else:
             return False
     
@@ -157,3 +163,36 @@ class DLGen(BaseTask):
             self._is_errored = True
             self._error_reason = "**ERROR:** Cant't download, {}.".format(restext["value"])
             return False
+
+    async def youtube_in_leech(self):
+        self._is_errored = True
+        self._error_reason = "**ERROR:** Use ytdl/pytdl commands to download the Youtube links."
+        return False
+    
+    async def uptobox_dl(self):
+        try:
+            link = re.findall(r'\bhttps?://.*uptobox\.com\S+', self._url)[0]
+        except IndexError:
+            self._is_errored = True
+            self._error_reason = "**ERROR:** Cant't find download link."
+            return False
+        
+        if get_val("UPTOBOX_TOKEN") is None:
+            torlog.error('UPTOBOX_TOKEN not provided!')
+            dl_url = link
+        else:
+            try:
+                link = re.findall(r'\bhttp?://.*uptobox\.com/dl\S+', self._url)[0]
+                dl_url = link
+            except:
+                file_id = re.findall(r'\bhttps?://.*uptobox\.com/(\w+)', self._url)[0]
+                file_link = 'https://uptobox.com/api/link?token={}&file_code={}'.format(get_val("UPTOBOX_TOKEN"), file_id)
+                async with aiohttp.ClientSession() as ttksess:
+                    resp = await ttksess.get(file_link)
+                    result = await resp.text()        
+                
+                dl_url = result['data']['dlLink']
+        return dl_url
+
+# TODO
+# add the UPTOBOX_TOKEN in getvar 
