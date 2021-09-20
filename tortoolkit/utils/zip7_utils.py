@@ -83,12 +83,12 @@ async def add_to_zip(path, size = None, split = True, use_rar=False):
         total_size = get_size(path)
         if total_size > size and split:
             if use_rar:
-                cmd = f'rar a -m0 -v{size}m "{bdir}/{fname}.rar" "{path}"'
+                cmd = f'rar a -ep1 -m0 -v{size}m "{bdir}/{fname}.rar" "{path}"'
             else:
                 cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}" -v{size}m'
         else:
             if use_rar:
-                cmd = f'rar a -m0 "{bdir}/{fname}.rar" "{path}"'
+                cmd = f'rar a -ep1 -m0 "{bdir}/{fname}.rar" "{path}"'
             else:
                 cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}"'
     
