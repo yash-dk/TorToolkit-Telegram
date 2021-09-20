@@ -489,6 +489,7 @@ class YTDLDownloader(BaseTask):
                 ytdl_opts.update({
                     'logger':cloger,
                     'progress_hooks':[self.progress_update],
+                    'restrictfilenames': True
                 })
 
                 err = False
