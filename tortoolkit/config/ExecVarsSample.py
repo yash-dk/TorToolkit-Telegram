@@ -105,6 +105,7 @@ except:
         SA_FOLDER_ID = ""
         SA_TD_ID = ""
         SA_ACCOUNTS_FOLDER = ""
+        SA_ZIP_FILE = False
 
         SA_ACCOUNT_NUMBER = 0
 
