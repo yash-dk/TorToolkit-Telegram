@@ -3,6 +3,7 @@
 
 from configparser import ConfigParser
 from posix import listdir
+import shlex
 from sys import path
 from ..core.base_task import BaseTask
 from ..core.getVars import get_val
@@ -326,11 +327,23 @@ class RcloneUploader(BaseTask):
                 
                 if blob is not None:
                     fpath = os.path.join(os.getcwd(),"sa_files.zip")
+                    epath = os.path.join(os.getcwd(),"sa_files")
+                    
+                    os.makedirs(epath, exist_ok=True)
                     with open(fpath, "wb") as f:
                         f.write(blob)
                     print("file written")
-                    epath = await extract_archive("sa_files.zip")
+                    cmd = f'7z e -y "{fpath}" "-o{epath}"'
+                    cmd = shlex.split(cmd)
+                    process = await asyncio.create_subprocess_exec(
+                        *cmd,
+                        stderr=asyncio.subprocess.PIPE,
+                        stdout=asyncio.subprocess.PIPE
+                    )
+                    
+                    stdout, stderr = await process.communicate()
                     await clear_stuff(fpath)
+                    
                     sa_folder = epath
                 
             

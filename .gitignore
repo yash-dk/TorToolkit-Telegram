@@ -19,3 +19,4 @@ userdata/
 torlog.txt
 *.conf
 sa_accounts/
+sa_files*
