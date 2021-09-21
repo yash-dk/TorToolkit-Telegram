@@ -115,12 +115,19 @@ async def handle_setting_callback(e):
         mmes = await e.get_message()
         await handle_settings(mmes,True,session_id=session_id)
     elif cmd[1] == "rcloneconfig":
-        await e.answer("Sned the rclone config file which you have generated.",alert=True)
+        await e.answer("Send the rclone config file which you have generated.",alert=True)
         mmes = await e.get_message()
         await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
         val = await get_value(e,True)
         
         await general_input_manager(e,mmes,"RCLONE_CONFIG","str",val,db,"rclonemenu")
+    elif cmd[1] == "sasfileszip":
+        await e.answer("Send the SAS account zip that you have generated.",alert=True)
+        mmes = await e.get_message()
+        await mmes.edit(f"{mmes.raw_text}\n/ignore to go back",buttons=None)
+        val = await get_value(e,True)
+        
+        await general_input_manager(e,mmes,"SA_ACCOUNTS_FOLDER","str",val,db,"rclonemenu")
     elif cmd[1] == "change_drive":
         await e.answer(f"Changed default drive to {cmd[2]}.",alert=True)
         db.set_variable("DEF_RCLONE_DRIVE",cmd[2])
@@ -330,6 +337,7 @@ async def handle_settings(e,edit=False,msg="",submenu=None,session_id=None):
             rmess = await e.reply(header+"\nIts recommended to lock the group before setting vars.\n",parse_mode="html",buttons=menu,link_preview=False)
     elif submenu == "rclonemenu":
         rcval = await get_string_variable("RCLONE_CONFIG",menu,"rcloneconfig",session_id)
+        await get_string_variable("SA_ACCOUNTS_FOLDER",menu,"sasfileszip",session_id)
         if get_val("ENABLE_SA_SUPPORT_FOR_GDRIVE"):
             def_drive = get_val("DEF_RCLONE_DRIVE")
             if def_drive == "sas_acc":
@@ -450,6 +458,18 @@ async def general_input_manager(e,mmes,var_name,datatype,value,db,sub_menu):
                             torlog.error(traceback.format_exc())
                             await handle_settings(mmes,True,f"<b><u>The conf file is invalid check logs.</b></u>",sub_menu)
                             return
+                   
+                    elif var_name == "SA_ACCOUNTS_FOLDER":
+                        try:
+                            with open(value,"rb") as fi:
+                                data = fi.read()
+                                db.set_variable("SA_ACCOUNTS_FOLDER",0,True,data)
+                            os.remove(value)
+                        except:
+                            torlog.exception("In SA Accounts loading.")
+                            await handle_settings(mmes,True,f"<b><u>There was error loading your file. Send zip file.</b></u>",sub_menu)
+                            return
+                    
                     else:
                         db.set_variable(var_name,value)
                         SessionVars.update_var(var_name,value)
@@ -591,6 +611,14 @@ async def get_string_variable(var_name,menu,callback_name,session_id):
             val = "Custom file is loaded. (Click to load another)"
         else:
             val = "Click here to load RCLONE config."
+    
+    if var_name == "SA_ACCOUNTS_FOLDER":
+        db = tordb
+        _, val1 = db.get_variable(var_name)
+        if val1 is not None:
+            val = "SAS Accounts loaded."
+        else:
+            val = "SAS Accounts not loaded."
         
     msg = var_name + " " + str(val)
     menu.append(
