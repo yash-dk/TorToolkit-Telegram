@@ -138,7 +138,7 @@ async def extract_archive(path, password=""):
                 if str(path).endswith(("tar","tar.gz","tar.bz2")):
                     cmd = f'tar -xvf "{path}" -C "{extpath}" --warning=none'
                 else:
-                    cmd = f'7z e -y "{path}" "-o{extpath}" "-p{password}"'
+                    cmd = f'7z x -y "{path}" "-o{extpath}" "-p{password}"'
                 
                 out, err, rcode = await cli_call(cmd)
                 
