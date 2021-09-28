@@ -103,7 +103,7 @@ class MegaDownloader(BaseTask):
 
         while True:
             dl_info = await self._aloop.run_in_executor(None, partial(mega_client.getDownloadInfo, dl_add_info["gid"]))
-            if (dl_info["total_length"]/(1024*1024*1024)) > get_val("MAX_MEGA_LIMIT"):
+            if (float(dl_info["total_length"]/(1024*1024*1024))) > float(get_val("MAX_MEGA_LIMIT")):
                 await self.remove_mega_dl(self._gid) 
                 self._is_errored = True
                 self._error_reason = "The mega link is oversized."
