@@ -407,7 +407,7 @@ async def handle_ytdl_playlist(e: MessageLike) -> None:
         return
     url = await e.get_reply_message()
     url = url.text.strip()
-    cmd = f"yt-dlp -i --flat-playlist --dump-single-json {url}"
+    cmd = f"yt-dlp -i --flat-playlist --dump-single-json --no-warnings {url}"
 
     tsp = time.time()
     buts = [[KeyboardButtonCallback("To Telegram", data=f"ytdlselect tg {tsp}")]]
