@@ -122,6 +122,9 @@ except:
         # Max size of the torrent allowed
         MAX_TORRENT_SIZE = 10
 
+        # Max number of files allowed in leech to telegram
+        TG_LEECH_FILE_LIMIT = 300
+
         # Set this to your bot username if you want to add the username of your bot at the end of the commands like
         # /leech@TorToolkitBot so the value will be @TorToolkitBot
         BOT_CMD_POSTFIX = "" 

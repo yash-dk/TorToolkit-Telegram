@@ -36,6 +36,7 @@ class QbittorrentDownloader(BaseTask):
         self._is_file = is_file
         self._client = None
         self._ext_hash = None
+        self._files_finalized = False
         self._aloop = asyncio.get_event_loop()
         # This is a TG client
     
@@ -423,6 +424,20 @@ class QbittorrentDownloader(BaseTask):
                 self._error_reason = "Torrent oversized max size is {}. Try adding again and choose less files to download.".format(get_val("MAX_TORRENT_SIZE"))
                 await self.delete_this(tor_info.hash)
                 return False
+            
+            if self._files_finalized and get_val("TG_LEECH_FILE_LIMIT") != -1:
+                # get file count with priority 1
+                # which means they count to the total file count
+                final_file_count = sum(1 for file in tor_info.files if file.priority == 1)
+                if final_file_count > get_val("TG_LEECH_FILE_LIMIT"):
+                    self._is_errored = True
+                    self._error_reason = (
+                        "Torrent exceeded file limit, max leech file limit is {}.".format(get_val("TG_LEECH_FILE_LIMIT"))
+                        + " Try adding again and choose less files to download."
+                    )
+                    await self.delete_this(tor_info.hash)
+                    return False
+
             try:
 
                 if  tor_info.state == "metaDL":
@@ -655,6 +670,9 @@ class QbitController:
         val = lis[1]
         
         e.client.remove_event_handler(cbak)
+
+        # The files are finalized either by the user or it has been 180s
+        self._qbit_task._files_finalized = True
 
         return val
 
