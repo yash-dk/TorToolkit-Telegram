@@ -123,6 +123,8 @@ except:
         MAX_TORRENT_SIZE = 10
 
         # Max number of files allowed in leech to telegram
+        # Applies to all modes of leech Mega/DDL/Torrents
+        # Set as -1 to disable limit
         TG_LEECH_FILE_LIMIT = 300
 
         # Set this to your bot username if you want to add the username of your bot at the end of the commands like

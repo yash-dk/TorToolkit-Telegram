@@ -27,7 +27,7 @@ torlog = logging.getLogger(__name__)
 class QbittorrentDownloader(BaseTask):
 
 
-    def __init__(self, torrent, from_user_id, is_file = False):
+    def __init__(self, torrent, from_user_id, is_file = False, choices = {}):
         super().__init__()
         self._torrent = torrent
 
@@ -40,6 +40,8 @@ class QbittorrentDownloader(BaseTask):
         self._aloop = asyncio.get_event_loop()
         # This is a TG client
     
+        self._choices = choices
+
     def get_hash(self):
         return self._ext_hash
 
@@ -425,7 +427,10 @@ class QbittorrentDownloader(BaseTask):
                 await self.delete_this(tor_info.hash)
                 return False
             
-            if self._files_finalized and get_val("TG_LEECH_FILE_LIMIT") != -1:
+            if self._files_finalized \
+                and not self._choices.get('is_zip', False) \
+                and not self._choices.get('rclone', False) \
+                and get_val("TG_LEECH_FILE_LIMIT") != -1:
                 # get file count with priority 1
                 # which means they count to the total file count
                 final_file_count = sum(1 for file in tor_info.files if file.priority == 1)
@@ -522,12 +527,14 @@ class QbittorrentDownloader(BaseTask):
 
 class QbitController:
     all_tasks = []
-    def __init__(self, user_msg, entity_message, is_file = False, is_link = False):
+    def __init__(self, user_msg, entity_message, is_file = False, is_link = False,
+                    choices = {}):
         self._entity_msg = entity_message
         self._user_msg = user_msg
         self._is_file = is_file
         self._update_message = None
         self._is_link = is_link
+        self._choices = choices
 
     async def execute(self):
         
@@ -535,8 +542,8 @@ class QbitController:
             self._update_message = await self._user_msg.reply("Downloading the torrent file.")
             
             torrent = await self._entity_msg.download_media()
-            self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_file)
-            
+            self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_file, self._choices)
+
             await self._qbit_task.register_torrent()
 
             if  self._qbit_task.is_errored:
@@ -556,7 +563,7 @@ class QbitController:
                         await self._update_message.edit("Error got HTTP response code:- "+str(resp.status))
                         return False
             
-            self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_link)
+            self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_link, self._choices)
             
             await self._qbit_task.register_torrent()
 
@@ -567,7 +574,7 @@ class QbitController:
             self._update_message = await self._user_msg.reply("Scanning the magnet link.")
             
             torrent = self.get_magnets(self._entity_msg.raw_text.strip())
-            self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_file)
+            self._qbit_task = QbittorrentDownloader(torrent, self._user_msg.sender_id, self._is_file, self._choices)
 
             await self._qbit_task.register_torrent()
 

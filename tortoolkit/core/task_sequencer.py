@@ -50,7 +50,7 @@ class TaskSequence:
                     return
 
 
-            current_downloader = await self.get_downloader_leech()
+            current_downloader = await self.get_downloader_leech(choices)
             
             if current_downloader is None:
                 return
@@ -168,7 +168,7 @@ class TaskSequence:
         else:
             await QbittorrentDownloader(None, None).deregister_torrent(hashid)
 
-    async def get_downloader_leech(self):
+    async def get_downloader_leech(self, choices):
         if self._entity_message is None:
             return None
         
@@ -183,7 +183,7 @@ class TaskSequence:
                     return None
         
                 elif name.lower().endswith(".torrent"):
-                    return QbitController(self._user_msg, self._entity_message, is_file = True)
+                    return QbitController(self._user_msg, self._entity_message, is_file = True, choices=choices)
         
                 else:
                     await self._user_msg.reply("This is not a torrent file to leech from. Send <code>.torrent</code> file",parse_mode="html")
@@ -193,10 +193,10 @@ class TaskSequence:
             raw_text = self._entity_message.raw_text 
             
             if raw_text.lower().startswith("magnet:"):
-                return QbitController(self._user_msg, self._entity_message)
+                return QbitController(self._user_msg, self._entity_message, choices=choices)
             
             elif raw_text.lower().endswith(".torrent"):
-                return QbitController(self._user_msg, self._entity_message, is_link=True)
+                return QbitController(self._user_msg, self._entity_message, is_link=True, choices=choices)
             
             elif "mega.nz" in raw_text:
                 if get_val("MEGA_ENABLE"):
