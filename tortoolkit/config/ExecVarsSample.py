@@ -112,6 +112,7 @@ except:
         UPTOBOX_TOKEN = ""
 
         USE_RAR_SPLIT = False
+        FORCE_SPLIT_UPLOAD = False
 
         # Name of the RCLONE drive from the config
         DEF_RCLONE_DRIVE = ""

@@ -63,7 +63,8 @@ class VarHolder:
             "CENTRAL_UPDATE", 
             "ENABLE_SA_SUPPORT_FOR_GDRIVE", 
             "ADD_CUSTOM_TRACKERS", 
-            "USE_RAR_SPLIT"
+            "USE_RAR_SPLIT",
+            "FORCE_SPLIT_UPLOAD"
         ]
 
         if variable == "ALD_USR":
