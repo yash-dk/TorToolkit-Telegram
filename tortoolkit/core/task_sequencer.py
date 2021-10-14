@@ -81,7 +81,7 @@ class TaskSequence:
                     if extracted_path is not False:
                         dl_path = extracted_path
                 
-            elif choices["zip"]:
+            elif choices["zip"] or get_val("FORCE_SPLIT_UPLOAD"):
                 arch_obj = Archiver(dl_path,  prev_update_message, self._user_msg, not choices["rclone"])
                 archived_path = await arch_obj.execute()
                 if archived_path is not False:
