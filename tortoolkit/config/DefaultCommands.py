@@ -19,3 +19,4 @@ class Commands:
     SETTHUMB = "setthumb"
     CLRTHUMB = "clearthumb"
     SPEEDTEST = "speedtest"
+    CRLDATA = "cleardata"

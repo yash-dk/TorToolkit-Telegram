@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
+from datetime import datetime
+
+from telethon.client import buttons
 from ..uploaders.telegram_uploader import TelegramUploader
 from telethon import TelegramClient,events 
 from telethon import __version__ as telever
@@ -10,6 +13,7 @@ from ..core.getCommand import get_command
 from ..core.getVars import get_val
 from ..utils.speedtest import get_speed
 from ..utils import human_format
+from ..utils.misc_utils import clear_stuff
 from ..downloaders.qbittorrent_downloader import QbittorrentDownloader
 from .settings import handle_settings,handle_setting_callback
 from .user_settings import handle_user_settings, handle_user_setting_callback
@@ -153,6 +157,11 @@ def add_handlers(bot: TelegramClient):
         chats=get_val("ALD_USR"))
     )
 
+    bot.add_event_handler(
+        cleardata_handler,
+        events.NewMessage(pattern=command_process(get_command("CRLDATA")),
+        chats=get_val("ALD_USR"))
+    )
 
     #signal.signal(signal.SIGINT, partial(term_handler,client=bot))
     #signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
@@ -207,6 +216,10 @@ def add_handlers(bot: TelegramClient):
     bot.add_event_handler(
         handle_server_command,
         events.CallbackQuery(pattern="fullserver")
+    )
+    bot.add_event_handler(
+        cleardata_handler,
+        events.CallbackQuery(pattern="cleardata")
     )
 #*********** Handlers Below ***********
 
@@ -705,6 +718,26 @@ async def handle_user_settings_(message):
             return
 
     await handle_user_settings(message)
+
+async def cleardata_handler(e):
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        if isinstance(e, events.CallbackQuery.Event):
+            data = e.data.decode("UTF-8").split(" ")
+            if data[1] == "yes":
+                await e.answer("Clearing data.")
+                await e.edit("Cleared Data @ {}".format(datetime.now().strftime("%d-%B-%Y, %H:%M:%S")))
+                await clear_stuff("userdata")
+                await clear_stuff("Downloads")
+            else:
+                await e.answer("Aborting.")
+                await e.delete()
+        else:
+            buttons = [[KeyboardButtonCallback("Yes", data="cleardata yes"),KeyboardButtonCallback("No", data="cleardata no")]]
+            await e.reply("Are you sure you want to clear data?\n"
+                          "This will delete all your data, including your downloaded files and will affect any ongoing transfers.\n", buttons=buttons)
+    else:
+        await e.answer("⚠️ WARN ⚠️ Dont Touch Admin Settings.",alert=True)
+
 
 def term_handler(signum, frame, client):
     # TODO needs rework
