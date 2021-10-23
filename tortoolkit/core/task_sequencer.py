@@ -32,6 +32,14 @@ class TaskSequence:
         self._dest_drive = None
 
     async def execute(self):
+        if self._entity_message is None:
+            if len(self._user_msg.text.split(" ", 1)) == 2:
+                self._entity_message = self._user_msg
+                self._entity_message.text = self._user_msg.text.split(" ", 1)[1]
+            else:
+                await self._user_msg.reply("No Link Found.")
+                return
+                
         if self._task_type == self.LEECH:
             choices = await self.get_leech_choices()
             

@@ -224,12 +224,9 @@ def add_handlers(bot: TelegramClient):
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
-    if not e.is_reply:
-        await e.reply("Reply to a link or magnet")
-    else:
-        sequencer = TaskSequence(e, await e.get_reply_message(), TaskSequence.LEECH)
-        res = await sequencer.execute()
-        torlog.info("Sequencer out"+ str(res))
+    sequencer = TaskSequence(e, await e.get_reply_message(), TaskSequence.LEECH)
+    res = await sequencer.execute()
+    torlog.info("Sequencer out"+ str(res))
         
 
 #       ###### Qbittorrent Related ######
