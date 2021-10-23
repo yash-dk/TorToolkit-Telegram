@@ -51,6 +51,9 @@ class Aria2Downloader(BaseTask):
         aria2_daemon_start_cmd.append(f"--bt-stop-timeout=100")
         aria2_daemon_start_cmd.append(f"--max-tries=10")
         aria2_daemon_start_cmd.append(f"--retry-wait=2")
+        # TODO Rmove this when fixed...adding Cert check skip use to error with some cloudflare https traffic
+        aria2_daemon_start_cmd.append("--check-certificate=false")
+        
         #
         torlog.debug(aria2_daemon_start_cmd)
         #
