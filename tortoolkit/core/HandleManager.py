@@ -725,6 +725,8 @@ async def cleardata_handler(e):
                 await e.edit("Cleared Data @ {}".format(datetime.now().strftime("%d-%B-%Y, %H:%M:%S")))
                 await clear_stuff("userdata")
                 await clear_stuff("Downloads")
+                os.mkdir("Downloads")
+                os.mkdir("userdata")
             else:
                 await e.answer("Aborting.")
                 await e.delete()
