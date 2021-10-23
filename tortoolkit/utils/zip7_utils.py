@@ -47,7 +47,7 @@ async def split_in_zip(path,size=None):
                 size = 1900
             else:
                 size = int(size)
-                size = int(size/(1024*1024)) - 10 #for safe
+                size = int(size/(1024*1024))
             cmd = f'7z a -tzip -mx=0 "{bdir}/{fname}.zip" "{path}" -v{size}m '
 
             _, err, rcode = await cli_call(cmd)
