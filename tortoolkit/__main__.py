@@ -4,9 +4,9 @@ from telethon import TelegramClient
 from tortoolkit.core.HandleManager import add_handlers
 from tortoolkit.core.getVars import get_val
 import logging,asyncio
-from tortoolkit.core.wserver import start_server_async
-from tortoolkit.core.status.auto_delete import del_status
+from tortoolkit.server.server import start_server_async
 from pyrogram import Client
+from .status.status_manager import StatusManager
 try:
     from tortoolkit.functions.rstuff import get_rstuff
 except ImportError:pass
@@ -49,7 +49,9 @@ if __name__ == "__main__":
     # Associate the handlers
     add_handlers(ttkbot)
 
-    ttkbot.loop.create_task(del_status())
+    status_mgr = StatusManager()
+
+    ttkbot.loop.create_task(status_mgr.status_poller())
 
     if get_val("IS_VPS"):
         ttkbot.loop.run_until_complete(start_server_async(get_val("SERVPORT")))
@@ -60,3 +62,13 @@ if __name__ == "__main__":
     logging.info("THE BOT IS READY TO GOOOOOOO")
 
     ttkbot.run_until_disconnected()
+
+#import asyncio
+#from .downloaders.direct_link_gen import DLGen
+#
+#async def main():
+#    ...
+#
+#if __name__ == "__main__":
+#    loop = asyncio.get_event_loop()
+#    loop.run_until_complete(main())

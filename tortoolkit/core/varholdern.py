@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-from ..consts.ExecVarsSample import ExecVars
+from ..config.ExecVarsSample import ExecVars
 import os
 import logging
 import time
@@ -37,8 +37,35 @@ class VarHolder:
         #Get the variable form the env [overlap]
         #try:
         envval = os.environ.get(variable)
-        INTS = ["EDIT_SLEEP_SECS", "MAX_TORRENT_SIZE", "MAX_YTPLAYLIST_SIZE", "TG_UP_LIMIT", "API_ID", "STATUS_DEL_TOUT", "TOR_MAX_TOUT", "OWNER_ID"]
-        BOOLS = ["FORCE_DOCUMENTS", "LEECH_ENABLED", "RCLONE_ENABLED", "USETTINGS_IN_PRIVATE"]
+        INTS = [
+            "EDIT_SLEEP_SECS", 
+            "MAX_TORRENT_SIZE", 
+            "MAX_YTPLAYLIST_SIZE", 
+            "TG_UP_LIMIT", 
+            "API_ID", 
+            "STATUS_DEL_TOUT", 
+            "TOR_MAX_TOUT", 
+            "OWNER_ID", 
+            "QBIT_PORT", 
+            "QBIT_MAX_RETRIES", 
+            "SERVPORT", 
+            "MAX_DL_LINK_SIZE"
+        ]
+        
+        BOOLS = [
+            "FORCE_DOCUMENTS", 
+            "LEECH_ENABLED", 
+            "RCLONE_ENABLED", 
+            "USETTINGS_IN_PRIVATE", 
+            "MEGA_ENABLE", 
+            "ENABLE_BETA_YOUTUBE_DL", 
+            "ENABLE_WEB_FILES_VIEW", 
+            "CENTRAL_UPDATE", 
+            "ENABLE_SA_SUPPORT_FOR_GDRIVE", 
+            "ADD_CUSTOM_TRACKERS", 
+            "USE_RAR_SPLIT",
+            "FORCE_SPLIT_UPLOAD"
+        ]
 
         if variable == "ALD_USR":
             if envval is not None:
@@ -58,7 +85,7 @@ class VarHolder:
             val =  int(envval) if envval is not None else val
         elif variable in BOOLS:
             if envval is not None:
-                if not isinstance(val, bool):
+                if not isinstance(envval, bool):
                     if "true" in envval.lower():
                         val = True
                     else:

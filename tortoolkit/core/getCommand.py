@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
-from ..consts.DefaultCommands import Commands
+from ..config.DefaultCommands import Commands
 from ..core.getVars import get_val 
 import os,logging
 

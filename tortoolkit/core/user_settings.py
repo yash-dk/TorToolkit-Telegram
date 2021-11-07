@@ -6,7 +6,7 @@ from telethon import events
 from tortoolkit import SessionVars
 import asyncio as aio
 from .getVars import get_val
-from .database_handle import TorToolkitDB
+from ..database.dbhandler import TorToolkitDB
 from .. import user_db
 from functools import partial
 import time,os,configparser,logging,traceback
@@ -69,7 +69,7 @@ async def handle_user_setting_callback(e):
         await e.delete()
     elif cmd[1] == "change_drive":
         await e.answer(f"Changed default drive to {cmd[2]}.",alert=True)
-        user_db.set_var("DEF_RCLONE_DRIVE",str(cmd[2]), e.sender_id)
+        user_db.set_variable("DEF_RCLONE_DRIVE",str(cmd[2]), e.sender_id)
 
         await handle_user_settings(await e.get_message(),True,f"<b><u>Changed the default drive to {cmd[2]}</b></u>","rclonemenu",sender_id=sender_id)
     elif cmd[1] == "mainmenu":
@@ -83,7 +83,7 @@ async def handle_user_setting_callback(e):
         else:
             val = False
         
-        user_db.set_var("FORCE_DOCUMENTS",val, str(e.sender_id))
+        user_db.set_variable("FORCE_DOCUMENTS",val, str(e.sender_id))
         await handle_user_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of force documents.</b></u>",sender_id=sender_id)
     elif cmd[1] == "disablethumb":
         await e.answer("")
@@ -92,7 +92,7 @@ async def handle_user_setting_callback(e):
         else:
             val = False
         
-        user_db.set_var("DISABLE_THUMBNAIL",val, str(e.sender_id))
+        user_db.set_variable("DISABLE_THUMBNAIL",val, str(e.sender_id))
         await handle_user_settings(await e.get_message(),True,f"<b><u>Changed the value to {val} of disable thumbnail.</b></u>",sender_id=sender_id, submenu="thumbmenu")
 
 
@@ -134,7 +134,7 @@ async def handle_user_settings(e,edit=False,msg="",submenu=None,sender_id=None):
                 conf = configparser.ConfigParser()
                 conf.read(path)
                 #menu.append([KeyboardButton("Choose a default drive from below")])
-                def_drive = user_db.get_var("DEF_RCLONE_DRIVE", sender_id)
+                def_drive = user_db.get_variable("DEF_RCLONE_DRIVE", sender_id)
 
                 for j in conf.sections():
                     prev=""
@@ -206,7 +206,7 @@ async def general_input_manager(e,mmes,var_name,datatype,value,sender_id,sub_men
                             conf = configparser.ConfigParser()
                             conf.read(value)
                             for i in conf.sections():
-                                user_db.set_var("DEF_RCLONE_DRIVE",str(i), e.sender_id)
+                                user_db.set_variable("DEF_RCLONE_DRIVE",str(i), e.sender_id)
                                 break
                                 
                             with open(value,"rb") as fi:
@@ -217,7 +217,7 @@ async def general_input_manager(e,mmes,var_name,datatype,value,sender_id,sub_men
                             #SessionVars.update_var("LEECH_ENABLED",True)
                         except Exception:
                             torlog.error(traceback.format_exc())
-                            await handle_user_settings(mmes,True,f"<b><u>The conf file is invalid check logs.</b></u>",sub_menu)
+                            await handle_user_settings(mmes,True,f"<b><u>The <code>rclone.conf</code> file is invalid check logs.</b></u>",sub_menu)
                             return
                     elif var_name == "THUMBNAIL":
                         try:
@@ -235,7 +235,7 @@ async def general_input_manager(e,mmes,var_name,datatype,value,sender_id,sub_men
                             await handle_user_settings(mmes,True,f"<b><u>Error in the thumbnail you sent.</b></u>",sub_menu)
                             return
                     else:
-                        user_db.set_var(var_name, value, e.sender_id)
+                        user_db.set_variable(var_name, value, e.sender_id)
                         #db.set_variable(var_name,value)
                         #SessionVars.update_var(var_name,value)
                     
@@ -353,7 +353,7 @@ async def confirm_buttons(e,val):
 async def get_bool_variable(var_name,msg,menu,callback_name,sender_id):
     # handle the vars having bool values
      
-    val = user_db.get_var(var_name, sender_id)
+    val = user_db.get_variable(var_name, sender_id)
     try:
         val = bool(val)
     except:
@@ -385,7 +385,7 @@ async def get_string_variable(var_name,menu,callback_name,sender_id):
             val = "File is Loaded"
             #val = "Custom file is loaded."
     else:
-        val = user_db.get_var(var_name, sender_id)
+        val = user_db.get_variable(var_name, sender_id)
 
        
         
@@ -400,7 +400,7 @@ async def get_string_variable(var_name,menu,callback_name,sender_id):
 async def get_int_variable(var_name,menu,callback_name,sender_id):
     # handle the vars having string value
 
-    val = user_db.get_var(var_name, sender_id)
+    val = user_db.get_variable(var_name, sender_id)
     msg = var_name + " " + str(val)
     menu.append(
         [KeyboardButtonCallback(msg,f"usettings {callback_name} {sender_id}".encode("UTF-8"))]

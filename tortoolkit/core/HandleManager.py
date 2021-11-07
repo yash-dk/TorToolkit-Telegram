@@ -1,34 +1,34 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
+from datetime import datetime
+
+from telethon.client import buttons
+from ..uploaders.telegram_uploader import TelegramUploader
 from telethon import TelegramClient,events 
 from telethon import __version__ as telever
 from pyrogram import __version__ as pyrover
 from telethon.tl.types import KeyboardButtonCallback
-from ..consts.ExecVarsSample import ExecVars
 from ..core.getCommand import get_command
 from ..core.getVars import get_val
-from ..core.speedtest import get_speed
-from ..functions.Leech_Module import check_link,cancel_torrent,pause_all,resume_all,purge_all,get_status,print_files, get_transfer
-from ..functions.tele_upload import upload_a_file,upload_handel
-from ..functions import Human_Format
-from .database_handle import TtkUpload,TtkTorrents, TorToolkitDB
+from ..utils.speedtest import get_speed
+from ..utils import human_format
+from ..utils.misc_utils import clear_stuff
+from ..downloaders.qbittorrent_downloader import QbittorrentDownloader
 from .settings import handle_settings,handle_setting_callback
 from .user_settings import handle_user_settings, handle_user_setting_callback
 from functools import partial
-from ..functions.rclone_upload import get_config,rclone_driver
-from ..functions.admin_check import is_admin
+from ..utils.admin_check import is_admin
 from .. import upload_db, var_db, tor_db, user_db, uptime
 import asyncio as aio
 import re,logging,time,os,psutil,shutil
 from tortoolkit import __version__
-from .ttk_ytdl import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_file_download,handle_ytdl_playlist,handle_ytdl_playlist_down
-from ..functions.instadl import _insta_post_downloader
+from ..downloaders.ytdl_downloader import handle_ytdl_command,handle_ytdl_callbacks,handle_ytdl_playlist
 torlog = logging.getLogger(__name__)
-from .status.status import Status
-from .status.menu import create_status_menu, create_status_user_menu
 import signal
 from PIL import Image
+from .task_sequencer import TaskSequence
+from ..status.status_manager import StatusManager
 
 def add_handlers(bot: TelegramClient):
     #bot.add_event_handler(handle_leech_command,events.NewMessage(func=lambda e : command_process(e,get_command("LEECH")),chats=ExecVars.ALD_USR))
@@ -135,12 +135,6 @@ def add_handlers(bot: TelegramClient):
     )
 
     bot.add_event_handler(
-        _insta_post_downloader,
-        events.NewMessage(pattern=command_process(get_command("INSTADL")),
-        chats=get_val("ALD_USR"))
-    )
-
-    bot.add_event_handler(
         start_handler,
         events.NewMessage(pattern=command_process(get_command("START")))
     )
@@ -163,9 +157,14 @@ def add_handlers(bot: TelegramClient):
         chats=get_val("ALD_USR"))
     )
 
+    bot.add_event_handler(
+        cleardata_handler,
+        events.NewMessage(pattern=command_process(get_command("CRLDATA")),
+        chats=get_val("ALD_USR"))
+    )
 
-    signal.signal(signal.SIGINT, partial(term_handler,client=bot))
-    signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
+    #signal.signal(signal.SIGINT, partial(term_handler,client=bot))
+    #signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
     bot.loop.run_until_complete(booted(bot))
 
     #*********** Callback Handlers *********** 
@@ -218,196 +217,55 @@ def add_handlers(bot: TelegramClient):
         handle_server_command,
         events.CallbackQuery(pattern="fullserver")
     )
-    test()
+    bot.add_event_handler(
+        cleardata_handler,
+        events.CallbackQuery(pattern="cleardata")
+    )
 #*********** Handlers Below ***********
 
 async def handle_leech_command(e):
-    if not e.is_reply:
-        await e.reply("Reply to a link or magnet")
-    else:
-        rclone = False
-        tsp = time.time()
-        buts = [[KeyboardButtonCallback("To Telegram",data=f"leechselect tg {tsp}")]]
-        if await get_config() is not None:
-            buts.append(
-                [KeyboardButtonCallback("To Drive",data=f"leechselect drive {tsp}")]
-            )
-        # tsp is used to split the callbacks so that each download has its own callback
-        # cuz at any time there are 10-20 callbacks linked for leeching XD
-           
-        buts.append(
-                [KeyboardButtonCallback("Upload in a ZIP.[Toggle]", data=f"leechzip toggle {tsp}")]
-        )
-        buts.append(
-                [KeyboardButtonCallback("Extract from Archive.[Toggle]", data=f"leechzipex toggleex {tsp}")]
-        )
+    sequencer = TaskSequence(e, await e.get_reply_message(), TaskSequence.LEECH)
+    res = await sequencer.execute()
+    torlog.info("Sequencer out"+ str(res))
         
-        conf_mes = await e.reply(f"First click if you want to zip the contents or extract as an archive (only one will work at a time) then...\n\n<b>Choose where to upload your files:-</b>\nThe files will be uploaded to default destination: <b>{get_val('DEFAULT_TIMEOUT')}</b> after 60 sec of no action by user.</u>\n\n<b>Supported archives to extract:</b>\nzip, 7z, tar, gzip2, iso, wim, rar, tar.gz, tar.bz2",parse_mode="html",buttons=buts)
 
-        # zip check in background
-        ziplist = await get_zip_choice(e,tsp)
-        zipext = await get_zip_choice(e,tsp,ext=True)
-        
-        # blocking leech choice 
-        choice = await get_leech_choice(e,tsp)
-        
-        # zip check in backgroud end
-        await get_zip_choice(e,tsp,ziplist,start=False)
-        await get_zip_choice(e,tsp,zipext,start=False,ext=True)
-        is_zip = ziplist[1]
-        is_ext = zipext[1]
-        
-        
-        # Set rclone based on choice
-        if choice == "drive":
-            rclone = True
-        else:
-            rclone = False
-        
-        await conf_mes.delete()
+#       ###### Qbittorrent Related ######
 
-        if rclone:
-            if get_val("RCLONE_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext, conf_mes)
-            else:
-                await e.reply("<b>DRIVE IS DISABLED BY THE ADMIN</b>",parse_mode="html")
-        else:
-            if get_val("LEECH_ENABLED"):
-                await check_link(e,rclone, is_zip, is_ext, conf_mes)
-            else:
-                await e.reply("<b>TG LEECH IS DISABLED BY THE ADMIN</b>",parse_mode="html")
-
-
-async def get_leech_choice(e,timestamp):
-    # abstract for getting the confirm in a context
-
-    lis = [False,None]
-    cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
-    
-    gtyh = ""
-    sam1 = [68, 89, 78, 79]
-    for i in sam1:
-        gtyh += chr(i)
-    if os.environ.get(gtyh,False):
-        os.environ["TIME_STAT"] = str(time.time())
-
-    e.client.add_event_handler(
-        #lambda e: test_callback(e,lis),
-        cbak,
-        events.CallbackQuery(pattern="leechselect")
-    )
-
-    start = time.time()
-    defleech = get_val("DEFAULT_TIMEOUT")
-
-    while not lis[0]:
-        if (time.time() - start) >= 60: #TIMEOUT_SEC:
-            
-            if defleech == "leech":
-                return "tg"
-            elif defleech == "rclone":
-                return "drive"
-            else:
-                # just in case something goes wrong
-                return "tg"
-            break
-        await aio.sleep(1)
-
-    val = lis[1]
-    
-    e.client.remove_event_handler(cbak)
-
-    return val
-
-async def get_zip_choice(e,timestamp, lis=None,start=True, ext=False):
-    # abstract for getting the confirm in a context
-    # creating this functions to reduce the clutter
-    if lis is None:
-        lis = [None, None, None]
-    
-    if start:
-        cbak = partial(get_leech_choice_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
-        lis[2] = cbak
-        if ext:
-            e.client.add_event_handler(
-                cbak,
-                events.CallbackQuery(pattern="leechzipex")
-            )
-        else:
-            e.client.add_event_handler(
-                cbak,
-                events.CallbackQuery(pattern="leechzip")
-            )
-        return lis
-    else:
-        e.client.remove_event_handler(lis[2])
-
-
-async def get_leech_choice_callback(e,o_sender,lis,ts):
-    # handle the confirm callback
-
-    if o_sender != e.sender_id:
-        return
-    data = e.data.decode().split(" ")
-    if data [2] != str(ts):
-        return
-    
-    lis[0] = True
-    if data[1] == "toggle":
-        # encompasses the None situation too
-        print("data ",lis)
-        if lis[1] is True:
-            await e.answer("Will Not be zipped", alert=True)
-            lis[1] = False 
-        else:
-            await e.answer("Will be zipped", alert=True)
-            lis[1] = True
-    elif data[1] == "toggleex":
-        print("exdata ",lis)
-        # encompasses the None situation too
-        if lis[1] is True:
-            await e.answer("It will not be extracted.", alert=True)
-            lis[1] = False 
-        else:
-            await e.answer("If it is a Archive it will be extracted. Further in you can set password to extract the ZIP.", alert=True)
-            lis[1] = True
-    else:
-        lis[1] = data[1]
-    
-
-#add admin checks here - done
 async def handle_purge_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
-        await purge_all(e)
+        msg = await QbittorrentDownloader(None, None).delete_all()
+        await e.reply(msg)
+        await e.delete()
     else:
         await e.delete()
 
-def test():
-    herstr = ""
-    sam = [104, 101, 114, 111, 107, 117, 97, 112, 112, 46, 99, 111, 109]
-    sam1 = [68, 89, 78, 79]
-    for i in sam1:
-        herstr += chr(i)
-    if os.environ.get(herstr,False):
-        os.environ["TIME_STAT"] = str(time.time())
-    herstr = ""
-    for i in sam:
-        herstr += chr(i)
-    if os.environ.get("BASE_URL_OF_BOT",False):
-        if herstr.lower() in os.environ.get("BASE_URL_OF_BOT").lower():
-            os.environ["TIME_STAT"] = str(time.time())
-
 async def handle_pauseall_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
-        await pause_all(e)
+        msg = await QbittorrentDownloader(None, None).pause_all()
+        await e.reply(msg)
+        await e.delete()
     else:
         await e.delete()
 
 async def handle_resumeall_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
-        await resume_all(e)
+        msg = await QbittorrentDownloader(None, None).resume_all()
+        await e.reply(msg)
+        await e.delete()
     else:
         await e.delete()
+
+#       ###### Qbittorrent Related End ######
+
+async def handle_ytdl_file_download(e):
+    message = await e.get_message()
+    taskseq = TaskSequence(await message.get_reply_message(),e,TaskSequence.YTDL)
+    await taskseq.execute()
+
+async def handle_ytdl_playlist_down(e):
+    message = await e.get_message()
+    taskseq = TaskSequence(await message.get_reply_message(),e,TaskSequence.PYTDL)
+    await taskseq.execute()
 
 async def handle_settings_command(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
@@ -416,18 +274,14 @@ async def handle_settings_command(e):
         await e.delete()
 
 async def handle_status_command(e):
-    cmds = e.text.split(" ")
-    if len(cmds) > 1:
-        if cmds[1] == "all":
-            await get_status(e,True)
-        else:
-            await get_status(e)
-    else:
-        await create_status_menu(e)
+    # TODO work on status command
+    await StatusManager().generate_central_update(e)
+    return
 
 async def handle_u_status_command(e):
-    await create_status_user_menu(e)
-        
+    await StatusManager().generate_central_update(e, e.sender_id)
+
+
 async def speed_handler(e):
     if await is_admin(e.client,e.sender_id,e.chat_id):
         await get_speed(e)
@@ -444,6 +298,7 @@ async def handle_settings_cb(e):
     else:
         await e.answer("⚠️ WARN ⚠️ Dont Touch Admin Settings.",alert=True)
 
+
 async def handle_upcancel_cb(e):
     db = upload_db
 
@@ -459,7 +314,6 @@ async def handle_upcancel_cb(e):
         await e.answer("UPLOAD CANCELED IN ADMIN MODE XD ;)",alert=True)
     else:
         await e.answer("Can't Cancel others upload 😡",alert=True)
-
 
 async def callback_handler_canc(e):
     # TODO the msg can be deleted
@@ -490,7 +344,8 @@ async def callback_handler_canc(e):
         hashid = hashid.strip("'")
         torlog.info(f"Hashid :- {hashid}")
         #affected to aria2 too, soo
-        await cancel_torrent(hashid, is_aria, is_mega)
+        await TaskSequence(None, None, None).cancel_task(hashid, is_aria, is_mega)
+    
         await e.answer("Leech has been canceled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
         hashid = data[1]
@@ -498,8 +353,9 @@ async def callback_handler_canc(e):
         
         torlog.info(f"Hashid :- {hashid}")
         
-        await cancel_torrent(hashid, is_aria, is_mega)
+        await TaskSequence(None, None, None).cancel_task(hashid, is_aria, is_mega)
         await e.answer("Leech has been canceled in ADMIN MODE XD ;)",alert=True)
+    
     else:
         await e.answer("Can't Cancel others leech 😡", alert=True)
 
@@ -558,7 +414,7 @@ async def handle_pincode_cb(e):
         db = tor_db
         passw = db.get_password(data[1])
         if isinstance(passw,bool):
-            await e.answer("torrent expired download has been started now.")
+            await e.answer("Torrent expired...download has been started now.")
         else:
             await e.answer(f"Your Pincode is {passw}",alert=True)
 
@@ -567,8 +423,6 @@ async def handle_pincode_cb(e):
         await e.answer("It's not your torrent.",alert=True)
 
 async def upload_document_f(message):
-    if get_val("REST11"):
-        return
     imsegd = await message.reply(
         "processing ..."
     )
@@ -576,12 +430,11 @@ async def upload_document_f(message):
     if await is_admin(message.client, message.sender_id, message.chat_id, force_owner=True):
         if " " in message.text:
             recvd_command, local_file_name = message.text.split(" ", 1)
-            recvd_response = await upload_a_file(
-                local_file_name,
-                imsegd,
-                False,
-                upload_db
-            )
+            try:
+                tgup = TelegramUploader(local_file_name, imsegd)
+                await tgup.execute()
+            except Exception as e:
+                await imsegd.edit(e)
             #torlog.info(recvd_response)
     else:
         await message.reply("Only for owner")
@@ -589,8 +442,12 @@ async def upload_document_f(message):
 
 async def get_logs_f(e):
     if await is_admin(e.client,e.sender_id,e.chat_id, force_owner=True):
-        e.text += " torlog.txt"
-        await upload_document_f(e)
+        await e.client.send_file(
+            entity=e.chat_id,
+            file="torlog.txt",
+            caption="torlog.txt",
+            reply_to=e.message.id
+        )
     else:
         await e.delete()
 
@@ -646,10 +503,10 @@ async def handle_server_command(message):
     try:
         # Memory
         mem = psutil.virtual_memory()
-        memavailable = Human_Format.human_readable_bytes(mem.available)
-        memtotal = Human_Format.human_readable_bytes(mem.total)
+        memavailable = human_format.human_readable_bytes(mem.available)
+        memtotal = human_format.human_readable_bytes(mem.total)
         mempercent = mem.percent
-        memfree = Human_Format.human_readable_bytes(mem.free)
+        memfree = human_format.human_readable_bytes(mem.free)
     except:
         memavailable = "N/A"
         memtotal = "N/A"
@@ -681,9 +538,9 @@ async def handle_server_command(message):
     try:
         # Storage
         usage = shutil.disk_usage("/")
-        totaldsk = Human_Format.human_readable_bytes(usage.total)
-        useddsk = Human_Format.human_readable_bytes(usage.used)
-        freedsk = Human_Format.human_readable_bytes(usage.free)
+        totaldsk = human_format.human_readable_bytes(usage.total)
+        useddsk = human_format.human_readable_bytes(usage.used)
+        freedsk = human_format.human_readable_bytes(usage.free)
     except:
         totaldsk = "N/A"
         useddsk = "N/A"
@@ -691,15 +548,15 @@ async def handle_server_command(message):
 
 
     try:
-        upb, dlb = await get_transfer()
-        dlb = Human_Format.human_readable_bytes(dlb)
-        upb = Human_Format.human_readable_bytes(upb)
+        upb, dlb = 0,0
+        dlb = human_format.human_readable_bytes(dlb)
+        upb = human_format.human_readable_bytes(upb)
     except:
         dlb = "N/A"
         upb = "N/A"
 
     diff = time.time() - uptime
-    diff = Human_Format.human_readable_timedelta(diff)
+    diff = human_format.human_readable_timedelta(diff)
 
     if callbk:
         msg = (
@@ -773,7 +630,7 @@ async def about_me(message):
 
 
     diff = time.time() - uptime
-    diff = Human_Format.human_readable_timedelta(diff)
+    diff = human_format.human_readable_timedelta(diff)
 
     msg = (
         "<b>Name</b>: <code>TorToolkit</code>\n"
@@ -793,18 +650,22 @@ async def about_me(message):
         "\n"
         f"<b>Latest {__version__} Changelog :- </b>\n"
         "1.DB Optimizations.\n"
-        "2.Database handling on disconnections..\n"
-        "3.Support for ARM devices.\n"
-        "4.Support for ARM devices.\n"
-        "5.Gdrive Support for PYTDL and YTDL\n"
-        "6.Upload YT Playlist even when some vids are errored.\n"
-        "7.Changed /server menu. Add /speedtest\n"
-        "8.Minor fixes.\n"
-        "9.Deploy takes less then 2 mins now.\n"
-        "10.MegaDL added.\n"
-        "11.Overall download and upload progress.\n"
-        "12.Pixeldrain DL support.\n"
-        "13.Alert on when the bot boots up.\n"
+        "2.Mongo DB and Postgres DB both are supported.\n"
+        "3.Mega Enable/Disable feature.\n"
+        "4.Progress for YTDL (in beta implementation).\n"
+        "5.Progress for PYTDL (in beta implementation).\n"
+        "6.Re written Qbit Interface.\n"
+        "7.Re written Aria2 Interface.\n"
+        "8.Re written Mega Interface.\n"
+        "9.Re written TGUpload Interface.\n"
+        "10.Re written Rclone Interface.\n"
+        "11.Major project structure change.\n"
+        "12.Change the web server interface.\n"
+        "13.Add ability to access downloaded data on the server from web server.\n"
+        "15.Mega Limits added Direct Leech Limites added.\n"
+        "16.Mega folder/file leech disable.\n"
+        "17.Service Account support added along with normal rclone(can switch runtime).\n"
+        "18.Major re write and many features.\n"
     )
 
     await message.reply(msg,parse_mode="html")
@@ -855,11 +716,36 @@ async def handle_user_settings_(message):
 
     await handle_user_settings(message)
 
+async def cleardata_handler(e):
+    if await is_admin(e.client,e.sender_id,e.chat_id):
+        if isinstance(e, events.CallbackQuery.Event):
+            data = e.data.decode("UTF-8").split(" ")
+            if data[1] == "yes":
+                await e.answer("Clearing data.")
+                await e.edit("Cleared Data @ {}".format(datetime.now().strftime("%d-%B-%Y, %H:%M:%S")))
+                await clear_stuff("userdata")
+                await clear_stuff("Downloads")
+                os.mkdir("Downloads")
+                os.mkdir("userdata")
+            else:
+                await e.answer("Aborting.")
+                await e.delete()
+        else:
+            buttons = [[KeyboardButtonCallback("Yes", data="cleardata yes"),KeyboardButtonCallback("No", data="cleardata no")]]
+            await e.reply("Are you sure you want to clear data?\n"
+                          "This will delete all your data, including your downloaded files and will affect any ongoing transfers.\n", buttons=buttons)
+    else:
+        await e.answer("⚠️ WARN ⚠️ Dont Touch Admin Settings.",alert=True)
+
+
 def term_handler(signum, frame, client):
+    # TODO needs rework
+    return
+    
     torlog.info("TERM RECEIVD")
     async def term_async():
         omess = None
-        st = Status().Tasks
+        #st = Status().Tasks
         msg = "Bot Rebooting Re Add your Tasks\n\n"
         for i in st:
             if not await i.is_active():
@@ -888,5 +774,6 @@ async def booted(client):
             await client.send_message(i, "The bot is booted and is ready to use.")
         except Exception as e:
             torlog.info(f"Not found the entity {i}")
+
 def command_process(command):
     return re.compile(command,re.IGNORECASE)

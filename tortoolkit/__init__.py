@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-__version__ = "0.2.6"
+__version__ = "2.0.1.alpha"
 __author__ = "YashDK Github@yash-dk"
-
+#
 import logging
 logging.basicConfig(
     level=logging.INFO,
@@ -10,11 +10,10 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(),logging.FileHandler("torlog.txt")]
 )
 
-from tortoolkit.core.wserver import start_server
-from .core.database_handle import TtkUpload,TorToolkitDB,TtkTorrents, UserDB
+from tortoolkit.server.server import start_server
+from .database.dbhandler import TorToolkitDB,TtkTorrents, UserDB, TtkUpload
 from .core.varholdern import VarHolder
 import time
-
 logging.info("Database created")
 upload_db = TtkUpload()
 var_db = TorToolkitDB()

@@ -1,0 +1,183 @@
+html{
+    font-size:100%;
+    height:100%;
+    width:100%;
+    overflow-x:hidden;
+    margin:0;
+    padding:0;
+    touch-action:manipulation
+}
+body{
+    font-size:16px;
+    font-family:open sans,sans-serif;
+    width:100%;
+    height:100%;
+    margin:0;
+    font-weight:400;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    word-wrap:break-word;
+    overflow-x:hidden;
+    color:#333
+}
+h1,h2,h3,h4,h5,h6,p,a,ul,span,li,img,inpot,button{
+    margin:0;
+    padding:0
+}
+h1,h2,h3,h4,h5,h6{
+    line-height:1.5;
+    font-weight:inherit
+}
+h1,h2,h3{
+    font-family:poppins,sans-serif
+}
+p{
+    line-height:1.6;
+    font-size:1.05em;
+    font-weight:400;
+    color:#555
+}
+h1{
+    font-size:3.5em;
+    line-height:1
+}
+h2{
+    font-size:3em;
+    line-height:1.1
+}
+h3{
+    font-size:2.5em
+}
+h4{
+    font-size:1.5em
+}
+h5{
+    font-size:1.2em
+}
+h6{
+    font-size:.9em;
+    letter-spacing:1px
+}
+a,button{
+    display:inline-block;
+    text-decoration:none;
+    color:inherit;
+    transition:all .3s;
+    line-height:1
+}
+a:focus,a:active,a:hover,button:focus,button:active,button:hover,a b.light-color:hover{
+    text-decoration:none;
+    color:#e45f74
+}
+b{
+    font-weight:500
+}
+img{
+    width:100%
+}
+li{
+    list-style:none;
+    display:inline-block
+}
+span{
+    display:inline-block
+}
+button{
+    outline:0;
+    border:0;
+    background:0 0;
+    cursor:pointer
+}
+b.light-color{
+    color:#444
+}
+.icon{
+    font-size:1.1em;
+    display:inline-block;
+    line-height:inherit
+}
+[class^=icon-]:before,[class*=" icon-"]:before{
+    line-height:inherit
+}
+*,*::before,*::after{
+    -webkit-box-sizing:inherit;
+    box-sizing:inherit
+}
+*,*::before,*::after{
+    -webkit-box-sizing:inherit;
+    box-sizing:inherit
+}
+.center-text{
+    text-align:center
+}
+.display-table{
+    display:table;
+    height:100%;
+    width:100%
+}
+.display-table-cell{
+    display:table-cell;
+    vertical-align:middle
+}
+::-webkit-input-placeholder{
+    font-size:.9em;
+    letter-spacing:1px
+}
+::-moz-placeholder{
+    font-size:.9em;
+    letter-spacing:1px
+}
+:-ms-input-placeholder{
+    font-size:.9em;
+    letter-spacing:1px
+}
+:-moz-placeholder{
+    font-size:.9em;
+    letter-spacing:1px
+}
+.full-height{
+    height:100%
+}
+.position-static{
+    position:static
+}
+.font-white{
+    color:#fff
+}
+.main-div{
+    position:relative;
+    height:100vh;
+    z-index:1;
+    padding:0 20px;
+    background-size:cover;
+    color:#fff
+}
+.main-div:after{
+    content:'';
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    z-index:-1;
+    opacity:.4;
+    background:#000
+}
+.main-div .desc{
+    margin:20px auto;
+    max-width:500px
+}
+.main-div .link-btn{
+    padding:13px 35px;
+    border:2px solid #188ebb;
+    color:#fff;
+    background:#188ebb
+}
+.main-div .link-btn:hover{
+    background:0 0
+}
+
+.github-button {
+	font-size: 25px;
+    margin-bottom: -6px;
+}

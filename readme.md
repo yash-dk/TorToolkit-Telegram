@@ -3,16 +3,32 @@
 # TorToolkit Telegram
 So basically Tortoolkit is aimed to be the most versatile torrent leecher and Youtube-DL bot for telegram. This bot is highly customizable and to customize this bot you don't need to restart the bot every time. 
 The bot gets started with minimum variables and others can be set as and when needed using the /settings.
-## Use master branch if you encounter some issues and report the same.
-## Use beta branch if you want to try latest features.
+
+## Use master/beta branch for stable performance.
+## The Alpha branch is still in testing and is meant for testers. Soon a stable of this version will come out.
+
 
 ## For any help join this:- [TTKDISC](https://t.me/ttkdisc)
 
 ## Whats new
 - MegaDL added
+- Central message update.
 - Overall download and upload progress.
 - Pixeldrain DL support.
 - Alert on when the bot boots up.
+- Mongo DB and Postgres DB both are supported.
+- Mega Enable/Disable feature.
+- Progress for YTDL/PYTDL. (if ENABLE_BETA_YOUTUBE_DL is True)
+- ReWritten almost everything.
+- Mega Limits added Direct Leech Limits added.
+- Mega folder/file leech disable.
+- Service Account support added along with normal rclone(can switch runtime).
+- Onedrive supported natively (both personal and sharepoint)
+- Mega files/folders name fixed.
+- Mega files can be extracted.
+- Show all mirrors at the time of leech (option in rclone settings).
+- Deployment is still the same way.
+- Many more features will be documented (if i remember XD)
 
 Table of Content
 - [FEATURES](#features)
@@ -44,12 +60,12 @@ Following are some awesome features offered by this bot:-
 - Get the server status.
 - InstaDL support
 - Browse the settings menu and try stuff. ;)
+- + above changelog.
 
 # Deployment
 
 ## ***Heroku***
-### For Heroku users New repo will come soon (This repo will not work on heroku)
-[![Deploy](https://telegra.ph/file/e7d224c45cf1d106a28fa.png)](https://telegra.ph/Heroku-TorToolkit-01-18)
+### No heroku blockings.
 
 ## ***Zeet***
 According to me, this platform provides resources that are enough for a genuine user and by default prevents Abuse:
@@ -115,7 +131,7 @@ Steps:-
 
 	Assuming that you are in the directory where you clonned the repo
 	   
-    1. `cd TorToolkit-Telegram/tortoolkit/consts`
+    1. `cd TorToolkit-Telegram/tortoolkit/config`
 	2. `nano ExecVarsSample.py`
     3. Change the following:-
        1.  `API_HASH`
@@ -179,11 +195,32 @@ Steps:-
   - Values :- Owner's ID
   - Default Value :- `0`
   - Use :- Used to restrict use of certain stuff to owner only. 
+### ***Limit Vars***
+- MAX_DL_LINK_SIZE - Max Directlink size in GBs. 
+- MAX_MEGA_LIMIT - Max Mega Download size in GBs.
+- MAX_TORRENT_SIZE - Max Torrent size in GBs.
+
 ### ***Optional Vars***
+
+- `CENTRAL_UPDATE`
+  - Values :- `True`/`False` [Can not be set from settings menu]
+  - Default Value :- `True`
+  - Use :- All the tasks will be updated in one single message rather than each seperate.
+
 - `GD_INDEX_URL`
-  - Values :- Base URL of the index that you are using. (Now that you should include the directory also in URL if you have set `RCLONE_BASE_DIR`). (Dosen't matter if a slash is at the end or not)
+  - Values :- Base URL of the index that you are using. (Note that you should include the directory also in URL if you have set `GDRIVE_BASE_DIR`). (Dosen't matter if a slash is at the end or not)
   - Default Value :- `False`
   - Use :- Provides an addition Index link for Google Drive Upload.
+
+- `ONEDRIVE_INDEX_URL`
+  - Values :- Base URL of the index that you are using. (Note that you should include the directory also in URL if you have set `ONEDRIVE_BASE_DIR`). (Dosen't matter if a slash is at the end or not)
+  - Default Value :- `False`
+  - Use :- Provides an addition Index link for OneDrive Upload.
+
+- `ONEDRIVE_BASE_FOLDER_URL`
+  - Values :- Base URL of your sharepoint. (ignore if personal onedrive user)
+  - Default Value :- `False`
+  - Use :- Provides an link for OneDrive Upload.
 
 - `EDIT_SLEEP_SECS`
   - Values :- Seconds to Sleep before edits. Recommended is 40. (If you are using the bot for your own you can try 10 if you get FloodWait Error in LOGS then increase the value) [Can be set from settings menu]
@@ -211,8 +248,18 @@ Steps:-
   - Default Value :- `▱`
   - Use :- Character used to denote remaining progress in the progress bar. 
 
+- `GDRIVE_BASE_DIR`
+  - Values :- Rclone Base Directory to where stuff should be clonned inside your Google drive . [Cannot be configured from settings]
+  - Default Value :- `"/"`
+  - Use :- The bot will upload all the files to that folder in the drive.
+
+- `ONEDRIVE_BASE_DIR`
+  - Values :- Rclone Base Directory to where stuff should be clonned inside your onedrive.[Cannot be configured from settings]
+  - Default Value :- `"/"`
+  - Use :- The bot will upload all the files to that folder in the drive.
+
 - `RCLONE_BASE_DIR`
-  - Values :- Rclone Base Directory to where stuff should be clonned inside your drive. [Cannot be configured from settings]
+  - Values :- Rclone Base Directory to where stuff should be clonned inside your drive. (does not apply to Google Drive and Onedrive) [Cannot be configured from settings]
   - Default Value :- `"/"`
   - Use :- The bot will upload all the files to that folder in the drive.
 
@@ -251,6 +298,31 @@ Steps:-
   - Values :- Max torrent size in GBs that is allowed. [Can be set from settings menu]
   - Default Value :- `10`
   - Use :- Stops the user from downloading big torrents.
+
+- `Mega Config`
+  - MEGA_API - Mega Api get from mega.nz
+  - MEGA_UNAME - Mega Username. (blank will run in anonymous mode) 
+  - MEGA_PASS = Mega Password. (blank will run in anonymous mode)
+  - ALLOW_MEGA_FOLDER - True to allow False to block (can be set from /settings)
+  - ALLOW_MEGA_FILES - True to allow False to block (can be set from /settings)
+  - MAX_MEGA_LIMIT - Limit in GB of max mega download (can be set from /settings)
+
+- `qBittorrent Config`
+  - QBIT_HOST - Host of qbittorrent.
+  - QBIT_PORT - Port of qbittorrent
+  - QBIT_UNAME - Username of qbittorrent
+  - QBIT_PASS - Password of qbittorrent 
+  - QBIT_MAX_RETRIES - Max retries to make if connection to qbittorrent fails.
+
+- `SAS Settings`
+  - ENABLE_SA_SUPPORT_FOR_GDRIVE - Set to True if you want to use this.
+  - SA_FOLDER_ID - Folder name where to upload inside the SAS drive. (leave blank to upload in root).
+  - SA_TD_ID - Teamdrive ID. (can be obtained from `rclone.conf` of that drive)
+  - SA_ACCOUNTS_FOLDER - Name of the folder where all the json are stored. It should be in root level besides `tortoolkit` folder and `LICENSE`
+  - SA_ACCOUNT_NUMBER - Dont Touch.
+
+- `ENABLE_BETA_YOUTUBE_DL` - Set to True to enable the progress of YTDL/PYTDL.
+- `ENABLE_WEB_FILES_VIEW` - Set to True to view all userdata and Downloads through web interface. Note:- Don't set to true on public bot. might compromise privacy. 
 
 - `USER_CAP_ENABLE` : Work in progress
 - `USER_CAP_LIMIT` : Work in progress
