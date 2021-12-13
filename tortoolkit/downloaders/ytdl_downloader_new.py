@@ -16,7 +16,7 @@ from ..core.getVars import get_val
 from ..core.base_task import BaseTask
 from functools import partial
 from PIL import Image
-from youtube_dl import YoutubeDL
+from yt_dlp import YoutubeDL
 from ..database.dbhandler import TtkUpload
 
 torlog = logging.getLogger(__name__)
@@ -578,7 +578,7 @@ class YTDLController:
         if ytdl_task.is_errored:
             if res is False:
                 omess = await self.user_message.get_reply_message()
-                omess.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()), buttons=None)
+                await omess.edit("Something went wrong, try again later."+str(ytdl_task.get_error_reason()), buttons=None)
                 await self.user_message.reply("Something went wrong, try again later."+str(ytdl_task.get_error_reason()))
 
                 return res
