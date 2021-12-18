@@ -163,6 +163,12 @@ def add_handlers(bot: TelegramClient):
         chats=get_val("ALD_USR"))
     )
 
+    bot.add_event_handler(
+        partial(handle_leech_command, recon=True),
+        events.NewMessage(pattern=command_process(get_command("LEECHINFO")),
+        chats=get_val("ALD_USR"))
+    )
+
     #signal.signal(signal.SIGINT, partial(term_handler,client=bot))
     #signal.signal(signal.SIGTERM, partial(term_handler,client=bot))
     bot.loop.run_until_complete(booted(bot))
@@ -223,9 +229,10 @@ def add_handlers(bot: TelegramClient):
     )
 #*********** Handlers Below ***********
 
-async def handle_leech_command(e):
+async def handle_leech_command(e, recon=False):
+    torlog.debug("Recon here is :- ", recon)
     sequencer = TaskSequence(e, await e.get_reply_message(), TaskSequence.LEECH)
-    res = await sequencer.execute()
+    res = await sequencer.execute(recon)
     torlog.info("Sequencer out"+ str(res))
         
 
@@ -776,4 +783,4 @@ async def booted(client):
             torlog.info(f"Not found the entity {i}")
 
 def command_process(command):
-    return re.compile(command,re.IGNORECASE)
+    return re.compile(command+"$",re.IGNORECASE)

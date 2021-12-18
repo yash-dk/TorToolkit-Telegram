@@ -31,7 +31,7 @@ class TaskSequence:
         self._task_type = task_type
         self._dest_drive = None
 
-    async def execute(self):
+    async def execute(self,recon=False):
         if self._entity_message is None:
             if len(self._user_msg.text.split(" ", 1)) == 2:
                 self._entity_message = self._user_msg
@@ -41,21 +41,22 @@ class TaskSequence:
                 return
                 
         if self._task_type == self.LEECH:
-            choices = await self.get_leech_choices()
+            if not recon:
+                choices = await self.get_leech_choices()
             
-            if choices is None:
-                return
-
-            torlog.info(choices)
-
-            if not choices["rclone"]:
-                if not get_val("LEECH_ENABLED"):
-                    await self._user_msg.reply("Leech to Telegram is disabled by admin.")
+                if choices is None:
                     return
-            else:
-                if not get_val("RCLONE_ENABLED"):
-                    await self._user_msg.reply("Leech to Rclone Drive is disabled by admin.")
-                    return
+
+                torlog.info(choices)
+
+                if not choices["rclone"]:
+                    if not get_val("LEECH_ENABLED"):
+                        await self._user_msg.reply("Leech to Telegram is disabled by admin.")
+                        return
+                else:
+                    if not get_val("RCLONE_ENABLED"):
+                        await self._user_msg.reply("Leech to Rclone Drive is disabled by admin.")
+                        return
 
 
             current_downloader = await self.get_downloader_leech()
@@ -63,8 +64,10 @@ class TaskSequence:
             if current_downloader is None:
                 return
             
-            dl_path = await current_downloader.execute()
-
+            
+            dl_path = await current_downloader.execute(recon)
+            if recon:
+                return
             if dl_path is False:
                 return
             

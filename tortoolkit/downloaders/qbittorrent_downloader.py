@@ -504,6 +504,31 @@ class QbittorrentDownloader(BaseTask):
     def get_error_reason(self):
         return self._error_reason
 
+    async def recon(self):
+        stime = time.time()
+
+        while True:
+            tor_info = await self.get_torrent_info()
+            #update cancellation
+            torlog.info("refreshed")
+            if len(tor_info) > 0:
+                tor_info = tor_info[0]
+                self._tor_info = tor_info
+                
+                if time.time() - stime > 180:
+                    self._error_reason = "The torrent is Dead."
+                    self._is_completed = True
+                    return False
+                    
+                if tor_info.state != "metaDL" and (tor_info.state == "downloading" or tor_info.state.endswith("DL")):
+                    qclient = await self.get_client()
+                    files = qclient.torrents_files(tor_info.hash)
+                    msg_cont = "Name: {}\nSize: {}\nHash: {}\nFiles: {}".format(tor_info.name,human_readable_bytes(tor_info.total_size), tor_info.hash, len(files))
+                    self._error_reason = msg_cont
+                    self._is_completed = True
+                    return True
+
+                    
 
 class QbitController:
     all_tasks = []
@@ -514,7 +539,7 @@ class QbitController:
         self._update_message = None
         self._is_link = is_link
 
-    async def execute(self):
+    async def execute(self, recon=False):
         
         if self._is_file:
             self._update_message = await self._user_msg.reply("Downloading the torrent file.")
@@ -559,7 +584,8 @@ class QbitController:
             if  self._qbit_task.is_errored:
                 await self._update_message.edit("Your Task was unsccuessful. {}".format(self._qbit_task.get_error_reason()))
                 return False
-            
+        
+        
 
         pincode = randint(1000,9999)
         db = TtkTorrents()
@@ -567,6 +593,13 @@ class QbitController:
         torhash = self._qbit_task.get_hash()
 
         db.add_torrent(torhash, pincode)
+
+        if recon:
+            await self._qbit_task.recon()
+            await self._update_message.edit(self._qbit_task.get_error_reason())
+            await self._qbit_task.delete_this()
+            return True
+
 
         pincodetxt = f"getpin {torhash} {self._user_msg.sender_id}"
             

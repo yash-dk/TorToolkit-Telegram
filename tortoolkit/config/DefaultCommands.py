@@ -20,3 +20,4 @@ class Commands:
     CLRTHUMB = "clearthumb"
     SPEEDTEST = "speedtest"
     CRLDATA = "cleardata"
+    LEECHINFO = "leechinfo"
