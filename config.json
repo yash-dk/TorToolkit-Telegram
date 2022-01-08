@@ -1,0 +1,7 @@
+{
+    "Hidden":       [],
+    "Favorites":    ["userdata","Downloads"],
+    "_comment":     "userdata and Downloads are predefined path in TTK, any other path should be added in full.",
+    "Password":     "root",
+    "rootDir":   ""
+}

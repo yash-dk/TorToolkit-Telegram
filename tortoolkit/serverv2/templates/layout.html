@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hover-min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+
+    {{ fontawesome_html() }}
+
+
+    <title>TorToolkit Telegram</title>
+
+
+
+</head>
+
+<body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+                <a class="navbar-brand hvr-shadow" href="/"><img src="/static/toolkit.jpg" style="width:70px; margin-top:-10px;margin-bottom:-20px;"></a>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                  <ul class="navbar-nav ml-auto mt-2 mb-2 ">
+
+                    <!-- <button class='btn btn-light mr-1' id = "view0_button" {{view0_button}}><i class="fas fa-th-large"></i></button >
+                    <button class='btn btn-light' id = "view1_button" {{view1_button}}><i class="fas fa-list"></i></button>
+                 -->
+
+                      {% if favList %}
+
+                      <form id = "uploadForm" class="md-form" action = "/upload/{{currentDir}}" method = "POST"  enctype = "multipart/form-data" style="display:none;">
+
+                        <input style="color:white;" class ="btn btn-sm "  type="file" name = "files[]" multiple="true" >
+                        <input class="btn btn-sm mr-4" type = "submit" value="Upload"/>
+                    
+                      </form>
+
+                      <button id = "uploadButton" class="btn btn-sm mr-4 ml-4" style="margin-bottom:6px;margin-top:3px;">Upload</button>
+                
+                      {% endif %}
+                      <button class='btn btn-light mr-1' id = "view0_button" {{view0_button}}><i class="fas fa-th-large"></i></button >
+                        <button class='btn btn-light mr-3' id = "view1_button" {{view1_button}}><i class="fas fa-list"></i></button>
+                    
+
+                               
+                    {% for f in favList %}
+
+                    {% set list1 = f.split('/') %}
+        
+                    <li class="nav-item">
+                      <a class="nav-link active hvr-shadow mr-2" href="/files/{{f}}">{{list1[list1|length-1]}} <span class="sr-only">(current)</span></a>
+                    </li>
+
+                    {% endfor %}
+                   
+                            
+
+
+                    {% if favList %}
+                    
+
+                    <!-- <li class="nav-item mr-4">
+                      <a data-toggle="tooltip" data-placement="right" title="Download Folder" class="nav-link active hvr-shadow" href="/downloadFolder/{{currentDir}}"> <span class="fa fa-download"></span><span class="sr-only">(current)</span></a>
+                  </li> -->
+                  
+                    <li class="nav-item">
+                      <!-- <p style="color:black;" data-toggle="tooltip" data-placement="right" title="Logout" > -->
+                        <a data-toggle="tooltip" data-placement="right" title="Logout" class="nav-link active hvr-shadow" href="/logout/"> <span class="fa fa-sign-out-alt"></span> <span class="sr-only">(current)</span></a>
+                      <!-- </p> -->
+                      <!-- <a class="nav-link active hvr-shadow" href="/logout/"> <span class="fa fa-sign-out-alt"></span> <span class="sr-only">(current)</span></a> -->
+                 
+                    </li>
+
+                 
+
+                  
+                    {% endif %}
+                    
+                   
+                  </ul>
+                </div>
+              </nav>
+              
+
+      <div class = "container">
+        <div class = "row">
+          <div class = "col-12 lead mt-4" style="text-align: left; margin-bottom:-10px;">
+            {% autoescape false %}
+            {{currentDir_path}}
+            
+            {% endautoescape %}
+            <!-- <a href = "/files/Users">Users</a><a href = "/files/Users/rehanahmed">rehanahmed</a><a href = "/files/Users/rehanahmed/Documents">Documents</a> -->
+            <hr>
+          </div>
+        </div>
+      </div>
+              
+    {% block content %} {% endblock %}
+
+
+
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+<script>
+  $("#uploadButton").click(function(){
+    document.getElementById('uploadForm').style.display="block";
+    document.getElementById('uploadButton').style.display="none";
+  })
+</script>
+
+
+<script>
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+
+
+
+
+
+
+$(function () {
+
+ 
+
+
+
+
+
+			$('#view0_button').click(function () {
+     
+            $('#view1_container').css('display', 'none');
+				    $('#view0_container').css('display', 'block');
+            $('#view0_button').prop("disabled",true);
+            $('#view1_button').prop("disabled",false);
+
+
+            const Http = new XMLHttpRequest();
+            const url='/changeView?view=0';
+            Http.open("GET", url);
+            Http.send();
+
+  //           $.ajax({url: "/calc", success: function(result){
+  // }});
+
+        // $.ajax({
+				// 	url: 'localhost:5000/api/changeView?view=0',
+
+				// 	success: function (data) {
+        //     $('#view1_container').css('display', 'none');
+				//     $('#view0_container').css('display', 'block');
+				// 	},
+				// });
+        
+			});
+      $('#view1_button').click(function () {
+        $('#view0_container').css('display', 'none');
+				$('#view1_container').css('display', 'block');
+        $('#view1_button').prop("disabled",true);
+        $('#view0_button').prop("disabled",false);
+
+
+        const Http = new XMLHttpRequest();
+        const url='/changeView?view=1';
+        Http.open("GET", url);
+        Http.send();
+        // $.ajax({
+				// 	url: '/api/changeView?view=1',
+
+				// 	success: function (data) {
+        //     $('#view1_container').css('display', 'none');
+				//     $('#view0_container').css('display', 'block');
+				// 	},
+
+				// });
+			});
+
+      $(".delclass").click(function(){
+        var geturl = "/delete"+$(this).attr('file_data');
+        var agree = confirm("Are you sure you want to delete this file?\n"+$(this).attr('file_data'));
+        if (agree){
+          $.ajax({url: geturl, success: function(result){
+            alert("File Deleted");
+            location.reload();
+          },
+        error: function(res){
+          alert("Failed to delte file");
+        }
+        });
+        }
+      });
+});
+
+
+</script>
+</body>
+
+</html>

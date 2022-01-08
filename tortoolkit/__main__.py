@@ -4,7 +4,7 @@ from telethon import TelegramClient
 from tortoolkit.core.HandleManager import add_handlers
 from tortoolkit.core.getVars import get_val
 import logging,asyncio
-from tortoolkit.server.server import start_server_async
+from tortoolkit.serverv2.setup import app
 from pyrogram import Client
 from .status.status_manager import StatusManager
 try:
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     ttkbot.loop.create_task(status_mgr.status_poller())
 
     if get_val("IS_VPS"):
-        ttkbot.loop.run_until_complete(start_server_async(get_val("SERVPORT")))
+        app.run(debug=True, use_reloader=False, port=8081)
     try:
         ttkbot.loop.run_until_complete(get_rstuff())
     except:pass

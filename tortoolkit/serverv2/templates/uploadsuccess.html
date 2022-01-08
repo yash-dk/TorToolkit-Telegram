@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+
+<div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div style="padding:100px 15px; text-align:center;">
+                    <h1>
+                        <strong>{{fileNo}}</strong></h1>
+                    <h3 class='text-muted'>
+                            Files Uploaded Successfully</h3>
+                    <div class="error-details lead">
+                        {{fileNo2}} failed to upload.
+                    </div>
+                    <div class="error-details lead">
+                            {% autoescape false %}
+                                {{text}}
+                            {% endautoescape %}
+                        </div>
+                    <div style = "margin-top:15px; margin-bottom:15px;">
+                        <a href="/" class="btn btn-info btn-lg" >
+                            Take Me Home </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+
+
+{% endblock content %}
