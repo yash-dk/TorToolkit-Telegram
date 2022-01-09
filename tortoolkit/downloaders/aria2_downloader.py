@@ -128,6 +128,9 @@ class Aria2Downloader(BaseTask):
         gid = self._gid
         
         try:
+            if self._is_canceled:
+                raise aria2p.client.ClientException(" not found")
+            
             file = await self._aloop.run_in_executor(None, aria2.get_download, gid)
             
             complete = file.is_complete

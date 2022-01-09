@@ -607,8 +607,8 @@ def tortkFile(hashid):
     
     # Central object is not used its Acknowledged 
     db = TtkTorrents()
-    #passw = db.get_password(torr)
-    passw="101010"
+    passw = db.get_password(torr)
+    
     if isinstance(passw,bool):
           return render_template('index.html',err404=True)
     

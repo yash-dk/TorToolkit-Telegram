@@ -109,7 +109,7 @@ class MegaDownloader(BaseTask):
                 self._error_reason = "The mega link is oversized."
                 return
             
-            if dl_info["state"] not in [constants.State.TYPE_STATE_CANCELED,constants.State.TYPE_STATE_FAILED]:
+            if dl_info["state"] not in [constants.State.TYPE_STATE_CANCELED,constants.State.TYPE_STATE_FAILED] and not self._is_canceled:
                 if dl_info["state"] == constants.State.TYPE_STATE_COMPLETED:
                     self._is_completed = True
                     self._error_reason = "Download Complete."
@@ -121,7 +121,7 @@ class MegaDownloader(BaseTask):
                 except Exception as e:
                     torlog.info(e)
             else:
-                if dl_info["state"] == constants.State.TYPE_STATE_CANCELED:
+                if dl_info["state"] == constants.State.TYPE_STATE_CANCELED or self._is_canceled:
                     self._is_canceled = True
                     self._error_reason = "Canceled by user."
                 else:

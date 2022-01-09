@@ -20,9 +20,10 @@ class Aria2Status(BaseStatus):
         self._dl_task = await self._downloader.get_update()
 
         # Construct the status message
-        data = "torcancel aria2 {} {}".format(
+        data = "torcancel aria2 {} {} {}".format(
                 self._downloader.get_gid(),
-                self._sender_id
+                self._sender_id,
+                self._downloader.taskid
             )
         msg = "Aria2 Task Running."
         if self._dl_task is not None:

@@ -336,6 +336,8 @@ async def callback_handler_canc(e):
     
     is_aria = False
     is_mega = False
+    print(e.data.decode("utf-8"), "data in callback handler")
+    print(data, "data in callback handler")
 
     if data[1] == "aria2":
         is_aria = True
@@ -345,13 +347,14 @@ async def callback_handler_canc(e):
         is_mega = True
         data.remove("megadl")
     
+    task_id = int(data[3])
 
     if data[2] == str(e.sender_id):
         hashid = data[1]
         hashid = hashid.strip("'")
         torlog.info(f"Hashid :- {hashid}")
         #affected to aria2 too, soo
-        await TaskSequence(None, None, None).cancel_task(hashid, is_aria, is_mega)
+        await TaskSequence(None, None, None).cancel_task(hashid, task_id, is_aria, is_mega, False)
     
         await e.answer("Leech has been canceled ;)",alert=True)
     elif e.sender_id in get_val("ALD_USR"):
@@ -360,7 +363,7 @@ async def callback_handler_canc(e):
         
         torlog.info(f"Hashid :- {hashid}")
         
-        await TaskSequence(None, None, None).cancel_task(hashid, is_aria, is_mega)
+        await TaskSequence(None, None, None).cancel_task(hashid, task_id, is_aria, is_mega, True)
         await e.answer("Leech has been canceled in ADMIN MODE XD ;)",alert=True)
     
     else:

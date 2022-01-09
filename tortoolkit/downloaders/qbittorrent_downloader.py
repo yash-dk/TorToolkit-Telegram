@@ -408,7 +408,7 @@ class QbittorrentDownloader(BaseTask):
             tor_info = await self.get_torrent_info()
             #update cancellation
             print("refreshed")
-            if len(tor_info) > 0:
+            if len(tor_info) > 0 and not self._is_canceled:
                 tor_info = tor_info[0]
                 self._tor_info = tor_info
             else:
@@ -602,8 +602,10 @@ class QbitController:
 
 
         pincodetxt = f"getpin {torhash} {self._user_msg.sender_id}"
-            
-        data = "torcancel {} {}".format(torhash, self._user_msg.sender_id)
+        
+        
+        data = "torcancel {} {} {}".format(torhash, self._user_msg.sender_id, self._qbit_task.taskid)
+        print(data, "data in qbit")
         base = get_val("BASE_URL_OF_BOT")
 
         urll = f"{base}/tortk/files/{torhash}"

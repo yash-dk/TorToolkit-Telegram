@@ -20,7 +20,7 @@ class QbittorrentStatus(BaseStatus):
         self._torrent = await self._downloader.get_update()
 
         # Construct the status message
-        data = "torcancel {} {}".format(self._downloader.get_hash(), self._sender_id)
+        data = "torcancel {} {} {}".format(self._downloader.get_hash(), self._sender_id, self._downloader.taskid)
         
         msg = "Qbittorrent Task Running."
         if self._torrent is not None:

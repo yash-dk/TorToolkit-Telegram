@@ -18,6 +18,7 @@ from .getVars import get_val
 import asyncio
 import logging
 from ..utils.zip7_utils import is_archive
+from . import base_task
 
 torlog = logging.getLogger(__name__)
 
@@ -171,13 +172,18 @@ class TaskSequence:
 
         
     
-    async def cancel_task(self, hashid, is_aria = False, is_mega = False):
+    async def cancel_task(self, hashid, task_id, is_aria = False, is_mega = False, admin = False):
+
         if is_aria:
             await Aria2Downloader(None, None).remove_dl(hashid)
         elif is_mega:
             await MegaDownloader(None, None).remove_mega_dl(hashid)
         else:
             await QbittorrentDownloader(None, None).deregister_torrent(hashid)
+        
+        for i in base_task.BaseTask.ALL_TASKS:
+            if i.taskid == task_id:
+                i.cancel(admin)
 
     async def get_downloader_leech(self):
         if self._entity_message is None:

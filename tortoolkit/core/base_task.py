@@ -10,6 +10,7 @@ class BaseTask(ABC):
 
     def __init__(self):
         self._task_id = len(self.ALL_TASKS) + 1
+        self.ALL_TASKS.append(self)
         self._is_scheduled = True
         self._is_running = False
         self._is_done = False
@@ -20,6 +21,10 @@ class BaseTask(ABC):
         self._canceled_by = None
         self._time_added = datetime.now()
         self._time_completed = None
+
+    @property
+    def taskid(self):
+        return self._task_id
 
     @property
     def is_scheduled(self):
