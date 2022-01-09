@@ -95,14 +95,17 @@ class TelegramUploader(BaseTask):
         
         chat_id = self._user_message.chat_id
         msg_li = []
+        j=1
         for i in self.files_dict.keys():
             
             link = f'https://t.me/c/{str(chat_id)[4:]}/{self.files_dict[i]}'
-            if len(msg + f'🚩 <a href="{link}">{i}</a>\n') > 4000:
+            if len(msg + f'{j} <a href="{link}">{i}</a>\n') > 4000:
                 msg_li.append(msg)
-                msg = f'🚩 <a href="{link}">{i}</a>\n'
+                msg = f'{j} <a href="{link}">{i}</a>\n'
             else:
-                msg += f'🚩 <a href="{link}">{i}</a>\n'
+                msg += f'{j} <a href="{link}">{i}</a>\n'
+            
+            j += 1
 
         for i in msg_li:
             await self._user_message.reply(i,parse_mode="html")
