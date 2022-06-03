@@ -141,6 +141,9 @@ except:
         USER_CAP_ENABLE = False
         USER_CAP_LIMIT = [50,10,2]
 
+        # Choise to use the YTDLP insted of youtube-dl for downloading
+        USE_YTDLP = False
+
         # No need to worry about these
         # CHANGE THESE AT YOUR RISK
         LOCKED_USERS = False

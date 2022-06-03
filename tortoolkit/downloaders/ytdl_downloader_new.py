@@ -16,8 +16,11 @@ from ..core.getVars import get_val
 from ..core.base_task import BaseTask
 from functools import partial
 from PIL import Image
-from yt_dlp import YoutubeDL
 from ..database.dbhandler import TtkUpload
+if get_val("USE_YTDLP"):
+    from yt_dlp import YoutubeDL
+else:
+    from youtube_dl import YoutubeDL
 
 torlog = logging.getLogger(__name__)
 
