@@ -46,3 +46,6 @@ Jinja2==3.0.1
 MarkupSafe==2.0.1
 qrcode==7.1
 Werkzeug==2.0.1
+fastapi
+cloudscraper
+fastapi-cache2

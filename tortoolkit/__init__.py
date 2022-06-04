@@ -12,6 +12,7 @@ logging.basicConfig(
 
 
 from tortoolkit.serverv2.setup import app
+from tortoolkit.search_server.main import app as searchapp
 from .database.dbhandler import TorToolkitDB,TtkTorrents, UserDB, TtkUpload
 from .core.varholdern import VarHolder
 import time

@@ -1,0 +1,10 @@
+aiohttp
+fastapi
+uvicorn[standard]
+beautifulsoup4
+aioredis
+cloudscraper
+fastapi-cache2
+lxml
+requests
+gunicorn

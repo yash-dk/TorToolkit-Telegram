@@ -1,1 +1,1 @@
-gunicorn tortoolkit:app --bind 0.0.0.0:$PORT & python3 -m tortoolkit
+gunicorn tortoolkit:app --bind 0.0.0.0:$PORT & python3 -m tortoolkit & gunicorn -k uvicorn.workers.UvicornWorker tortoolkit:searchapp --bind 0.0.0.0:8300
