@@ -29,8 +29,8 @@ class TorToolkitDB(MongoDB):
         if update_blob:
             vtype = "blob"
 
-        res = config.find({"var_name":var_name})
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"var_name":var_name}) > 0:
+            res = config.find({"var_name":var_name})
             if update_blob:
                 var_value = blob_val
             vardoc = res[0]
@@ -47,10 +47,9 @@ class TorToolkitDB(MongoDB):
     def get_variable(self,var_name):
         db = self._db
         config = db.ttk_config
-        res = config.find({"var_name":var_name})
         
-        
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"var_name":var_name}) > 0:
+            res = config.find({"var_name":var_name})
             row = res[0]
             vtype = row["var_type"]
             val = row["var_value"]
@@ -91,9 +90,9 @@ class UserDB(MongoDB):
         
 
         
-        res = users.find({"user_id":user_id})
 
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"user_id":user_id}) > 0:
+            res = users.find({"user_id":user_id})
             user = res[0]
             jdata = user["json_data"]
             jdata = json.loads(jdata)
@@ -110,9 +109,9 @@ class UserDB(MongoDB):
         # implement cache later.
         
 
-        res = users.find({"user_id":user_id})
 
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"user_id":user_id}) > 0:
+            res = users.find({"user_id":user_id})
             user = res[0]
             jdata = user["json_data"]
             jdata = json.loads(jdata)
@@ -123,7 +122,8 @@ class UserDB(MongoDB):
             #self.shared_users[user_id] = {var:value}
 
         
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"user_id":user_id}) > 0:
+            res = users.find({"user_id":user_id})
             user = res[0]
             users.update({"_id":user["_id"]}, {"$set":{"json_data":json.dumps(jdata)}})
 
@@ -136,9 +136,9 @@ class UserDB(MongoDB):
         db = self._db
         users = db.ttk_users
 
-        res = users.find({"user_id":user_id})
         
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"user_id":user_id}) > 0:
+            res = users.find({"user_id":user_id})
             row = res[0]
 
             if row["rclone_file"] is None:
@@ -166,10 +166,10 @@ class UserDB(MongoDB):
         db = self._db
         users = db.ttk_users
 
-        res = users.find({"user_id":user_id})
         
         
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"user_id":user_id}) > 0:
+            res = users.find({"user_id":user_id})
             row = res[0]
             
             if row["thumbnail"] is None:
@@ -196,13 +196,12 @@ class UserDB(MongoDB):
         db = self._db
         users = db.ttk_users
 
-        res = users.find({"user_id":user_id})
         
         if isinstance(rclonefile, str):
             with open(rclonefile, "rb") as f:
                 rclonefile = f.read()
 
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"user_id":user_id}) > 0:
             users.update({"user_id":user_id}, {"$set":{"rclone_file": rclonefile}})
         else:
             users.insert_one({"user_id":user_id, "rclone_file": rclonefile})
@@ -213,14 +212,12 @@ class UserDB(MongoDB):
         user_id = str(user_id)
         db = self._db
         users = db.ttk_users
-
-        res = users.find({"user_id":user_id})
         
         if isinstance(thumbnail, str):
             with open(thumbnail, "rb") as f:
                 thumbnail = f.read()
 
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"user_id":user_id}) > 0:
             users.update({"user_id":user_id}, {"$set":{"thumbnail": thumbnail}})
         else:
             users.insert_one({"user_id":user_id, "thumbnail": thumbnail})
@@ -241,9 +238,7 @@ class TtkTorrents(MongoDB):
         db = self._db
         tors = db.ttk_torrents
 
-        res = tors.find({"hash_id":hash_id})
-
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"hash_id":hash_id}) > 0:
             tors.update({"hash_id":hash_id},{"$set":{"passw":passw}})
         else:
             tors.insert_one({"hash_id":hash_id, "passw":passw, "enab":True})
@@ -251,10 +246,8 @@ class TtkTorrents(MongoDB):
     def disable_torrent(self,hash_id):
         db = self._db
         tors = db.ttk_torrents
-
-        res = tors.find({"hash_id":hash_id})
         
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"hash_id":hash_id}) > 0:
             tors.update({"hash_id":hash_id},{"$set": {"enab": False}})
         
         
@@ -262,9 +255,9 @@ class TtkTorrents(MongoDB):
         db = self._db
         tors = db.ttk_torrents
 
-        res = tors.find({"hash_id":hash_id})
 
-        if res.count() > 0:
+        if db.ttk_config.count_documents({"hash_id":hash_id}) > 0:
+            res = tors.find({"hash_id":hash_id})
             row = res[0]
             return row["passw"]
         else:
@@ -275,3 +268,9 @@ class TtkTorrents(MongoDB):
         tors = db.ttk_torrents
 
         tors.delete_many({})
+    
+    def get_variable(self, var_name):
+        pass
+
+    def set_variable(self, var_name, var_value, update_blob, blob_value):
+        pass

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # (c) YashDK [yash-dk@github]
 
+import aiohttp
+import bs4
 from ..core.base_task import BaseTask
 import logging
 from ..core.getVars import get_val
@@ -103,6 +105,7 @@ class MegaDownloader(BaseTask):
 
         while True:
             dl_info = await self._aloop.run_in_executor(None, partial(mega_client.getDownloadInfo, dl_add_info["gid"]))
+            print(dl_info)
             if (dl_info["total_length"]/(1024*1024*1024)) > get_val("MAX_MEGA_LIMIT"):
                 await self.remove_mega_dl(self._gid) 
                 self._is_errored = True
@@ -133,6 +136,37 @@ class MegaDownloader(BaseTask):
         mega_client = await self.init_mega_client()
         await self._aloop.run_in_executor(None, partial(mega_client.cancelDl,gid))
 
+    async def recon(self):
+        text = ""
+        respst = 0
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://mega.nz/folder/EXYylIRb#3qbG0y4BkXw2Dy8jdXtycw') as resp:
+                respst = resp.status
+                text = await resp.text()
+
+        msg = ""
+        if respst == 200:
+            soup = bs4.BeautifulSoup(text, 'html.parser')
+            metas = soup.find_all('meta')
+
+            for i in metas:
+                if i.get('property') == 'og:title':
+                    msg += i.get('content')
+                    msg += "\n"
+                if i.get('property') == 'og:description':
+                    msg += i.get('content')
+                    msg += "\n"
+                    break
+        if msg != "":
+            self._error_reason = msg
+            self._is_completed = True
+            return True
+        
+        
+        self._is_completed = False
+        return False
+
+
     def get_gid(self):
         return self._gid
 
@@ -156,10 +190,15 @@ class MegaController:
         self._user_msg = user_msg
         self._new_name = new_name
 
-    async def execute(self):
+    async def execute(self, recon):
         self._update_msg = await self._user_msg.reply("Starting the Mega DL Download.")
 
         self._mega_down = MegaDownloader(self._dl_link, self._user_msg.sender_id)
+        if recon:
+            resp = await self._mega_down.recon()
+            if resp:
+                await self._update_msg.edit(self._mega_down.get_error_reason())
+            return resp
 
         self.all_tasks.append(self)
         # Status update active
@@ -167,7 +206,7 @@ class MegaController:
         StatusManager().add_status(status_mgr)
         status_mgr.set_active()
 
-        res = await self._mega_down.execute()
+        res = await self._mega_down.execute(recon)
 
         # Status update inactive
         status_mgr.set_inactive()
