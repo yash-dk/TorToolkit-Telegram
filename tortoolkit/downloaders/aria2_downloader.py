@@ -12,6 +12,7 @@ import time
 from ..core.getVars import get_val
 from telethon.errors.rpcerrorlist import MessageNotModifiedError
 from ..status.aria2_status import Aria2Status
+from ..utils.zip7_utils import is_archive, count_contents  
 
 torlog = logging.getLogger(__name__)
 
@@ -285,7 +286,7 @@ class Aria2Controller:
         self._user_msg = user_msg
         self._new_name = new_name
 
-    async def execute(self):
+    async def execute(self, recon=False):
         self._update_msg = await self._user_msg.reply("Starting the Aria2 Download.")
 
         self._aria2_down = Aria2Downloader(self._dl_link, self._user_msg.sender_id, self._new_name)
@@ -306,8 +307,18 @@ class Aria2Controller:
             return False
         else:
             if self._aria2_down.is_completed:
-                await self._update_msg.edit(self._aria2_down.get_error_reason(), buttons=None)
-            
+                msg = None
+                if recon:
+                    if is_archive(res):
+                        zipres = await count_contents(res)
+                        if zipres is not None:
+                            msg  = zipres[2] + "\nDirs: "+ str(zipres[1]) +"\nFiles: " + str(zipres[0]) + "\n"
+
+                if msg is None:
+                    await self._update_msg.edit(self._aria2_down.get_error_reason(), buttons=None)
+                else:
+                    await self._update_msg.edit(msg+self._aria2_down.get_error_reason(), buttons=None)
+
             return res
 
     async def get_update_message(self):

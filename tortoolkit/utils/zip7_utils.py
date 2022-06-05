@@ -2,6 +2,7 @@
 # (c) YashDK [yash-dk@github]
 
 import asyncio,shlex,os,logging,time
+import re
 from typing import Union,Optional,List,Tuple
 
 # ref https://info.nrao.edu/computing/guide/file-access-and-archiving/7zip/7z-7za-command-line-guide
@@ -164,6 +165,35 @@ def is_archive(path):
         return True
     else:
         return False
+
+async def count_contents(path):
+    if os.path.exists(path):
+        if os.path.isfile(path):
+            cmd = f'7z l "{path}"'
+            out, err, rcode = await cli_call(cmd)
+            if err:
+                torlog.error(err)
+                return False
+            file, dir = 0,0
+            flag = True
+            msg = ""
+            for line in out.split("\n"):
+                r = re.search(".*Date.*Time.*Attr.*", line)
+                if r:
+                    flag = False
+                
+                if flag:
+                    msg += line + "\n"
+                
+                if "D...." in line:
+                    dir += 1
+                elif "....A" in line:
+                    file += 1
+            return file, dir, msg
+        else:
+            return None
+    else:
+        return None
 
 #7z e -y {path} {ext_path}
 #/setpassword jobid password

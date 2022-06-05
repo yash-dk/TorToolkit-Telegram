@@ -67,12 +67,20 @@ class TaskSequence:
             
             
             dl_path = await current_downloader.execute(recon)
+            prev_update_message = await current_downloader.get_update_message()
+            
             if recon:
-                return
+                if not type(dl_path) is bool:
+                    recon_decision = await self.get_leechinfo_next_action(self._user_msg, time.time(),prev_update_message)
+                    if recon_decision:
+                        choices = await self.get_leech_choices()
+                    else:
+                        return
+                else:
+                    return
             if dl_path is False:
                 return
             
-            prev_update_message = await current_downloader.get_update_message()
             
             if choices["ext"] and choices["zip"]:
                 if is_archive(dl_path):
@@ -419,3 +427,60 @@ class TaskSequence:
             lis[1] = data[1]
             if len(data) == 4:
                 self._dest_drive = data[3]
+
+    async def get_leechinfo_next_action(self, e,timestamp, previous_messsage,lis=None,start=True):
+        # abstract for getting the confirm in a context
+        # creating this functions to reduce the clutter
+        buts = []
+        buts.append([KeyboardButtonCallback("Continue",data=f"leechinfoaction continue {timestamp}")]) 
+        buts.append([KeyboardButtonCallback("Stop",data=f"leechinfoaction stop {timestamp}")])
+        tempmsg = await previous_messsage.reply("Select what to do with your leechinfo command.",buttons=buts)
+
+        lis = [False,None]
+        cbak = partial(self.get_leechinfo_next_action_callback,o_sender=e.sender_id,lis=lis,ts=timestamp)
+        
+        e.client.add_event_handler(
+            #lambda e: test_callback(e,lis),
+            cbak,
+            events.CallbackQuery(pattern="leechinfoaction")
+        )
+
+        start = time.time()
+        defleech = 1200
+
+        while not lis[0]:
+            if (time.time() - start) >= 60: #TIMEOUT_SEC:
+                
+                if defleech == "continue":
+                    return True
+                elif defleech == "stop":
+                    return False
+                else:
+                    # just in case something goes wrong
+                    return False
+                
+            await asyncio.sleep(1)
+
+        val = lis[1]
+        
+        e.client.remove_event_handler(cbak)
+
+        await tempmsg.delete()
+        return val
+    
+    async def get_leechinfo_next_action_callback(self, e,o_sender,lis,ts):
+        # handle the confirm callback
+        print("In callback")
+        if o_sender != e.sender_id:
+            return
+        data = e.data.decode().split(" ")
+        if data [2] != str(ts):
+            return
+        
+        if data[1] == "continue":
+            lis[1] = True
+            print("continue" )
+        elif data[1] == "stop":
+            lis[1] = False
+            print("stop" )
+        lis[0] = True
