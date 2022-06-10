@@ -15,6 +15,8 @@ class BaseStatus(ABC):
     PYTDL = 4
     RCLUP = 5
     TGUP = 6
+    GDL = 7
+
     def __init__(self):
         self.is_active = False
         self.is_inactive = False

@@ -16,11 +16,17 @@ from tortoolkit.search_server.main import app as searchapp
 from .database.dbhandler import TorToolkitDB,TtkTorrents, UserDB, TtkUpload
 from .core.varholdern import VarHolder
 import time
+
+try:
+    upload_db = TtkUpload()
+    var_db = TorToolkitDB()
+    tor_db = TtkTorrents()
+    user_db = UserDB()
+except:
+    logging.error("Failed to connect to database. Check your connection settings.")
+    exit(0)
+
 logging.info("Database created")
-upload_db = TtkUpload()
-var_db = TorToolkitDB()
-tor_db = TtkTorrents()
-user_db = UserDB()
 transfer = [0,0] # UP,DOWN
 
 uptime = time.time()

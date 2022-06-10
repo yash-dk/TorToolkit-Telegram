@@ -27,10 +27,14 @@ class PostgresDB(AbstractDatabase):
             self._conn = self._active_connections[0]
             self._connection_users.append(1)
         else:
-            torlog.debug("Established Connection")
-            self._conn = psycopg2.connect(self._dburl)
-            self._connection_users.append(1)
-            self._active_connections.append(self._conn)
+            try:
+                torlog.debug("Established Connection")
+                self._conn = psycopg2.connect(self._dburl)
+                self._connection_users.append(1)
+                self._active_connections.append(self._conn)
+            except:
+                self._block = True
+                raise
 
     def scur(self, dictcur:bool =False) -> DictCursor:
         # start cursor
@@ -74,7 +78,8 @@ class PostgresDB(AbstractDatabase):
         """
         if self._block:
             return
-        self._connection_users.pop()
+        if self._connection_users:
+            self._connection_users.pop()
         
         if not self._connection_users:
             self._conn.close()
