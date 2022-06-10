@@ -11,8 +11,8 @@ logging.basicConfig(
 )
 
 
-from tortoolkit.serverv2.setup import app
-from tortoolkit.search_server.main import app as searchapp
+from .serverv2.setup import app
+from .search_server.main import app as searchapp
 from .database.dbhandler import TorToolkitDB,TtkTorrents, UserDB, TtkUpload
 from .core.varholdern import VarHolder
 import time
@@ -24,7 +24,7 @@ try:
     user_db = UserDB()
 except:
     logging.error("Failed to connect to database. Check your connection settings.")
-    exit(0)
+    exit(-1)
 
 logging.info("Database created")
 transfer = [0,0] # UP,DOWN
