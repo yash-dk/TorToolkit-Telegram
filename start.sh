@@ -1,1 +1,2 @@
-gunicorn tortoolkit:app --bind 0.0.0.0:$PORT & python3 -m tortoolkit & gunicorn -k uvicorn.workers.UvicornWorker tortoolkit:searchapp --bind 0.0.0.0:8300
+gunicorn tortoolkit:app --bind 0.0.0.0:$PORT --timeout 5 --workers 5 & python3 -m tortoolkit & gunicorn -k uvicorn.workers.UvicornWorker tortoolkit:searchapp --bind 0.0.0.0:8300
+# Need to configure the timeout and workers to adjust the load on the server.

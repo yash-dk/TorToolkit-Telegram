@@ -43,7 +43,7 @@ class RcloneStatus(BaseStatus):
         return msg
 
     def get_type(self):
-        return self.RCLUP
+        return self.GDL
     
     def get_sender_id(self):
         return self._sender_id
